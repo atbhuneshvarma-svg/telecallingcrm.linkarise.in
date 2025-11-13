@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Redirecting...</title>
-    <script type="text/javascript">
-      // GitHub Pages redirect handler for SPA (React Router)
-      (function() {
-        var redirectTo = window.location.pathname.replace(
-          '/telecallingcrm.linkarise.in',
-          ''
-        );
-        // redirect to the index.html inside your repo with full path restored
-        var newUrl = '/telecallingcrm.linkarise.in/index.html?redirect=' + redirectTo + window.location.search;
-        window.location.replace(newUrl);
-      })();
-    </script>
-  </head>
-  <body>
-    <h2>Redirecting to the app...</h2>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found</title>
+  <script>
+    // Redirect all 404 requests to index.html preserving the path
+    (function() {
+      var pathname = window.location.pathname;
+      var repoBase = '/telecallingcrm.linkarise.in/'; // <-- your repo path
+      if (pathname !== repoBase) {
+        window.location.href = repoBase + '#' + pathname.replace(repoBase, '/');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <h1>404 - Page Not Found</h1>
+  <p>Redirecting to the app...</p>
+</body>
 </html>
