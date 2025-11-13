@@ -2,14 +2,21 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=./index.html" />
-    <script>
-      // Redirect all routes to index.html for React Router support
-      sessionStorage.redirect = location.href;
-    </script>
     <title>Redirecting...</title>
+    <script type="text/javascript">
+      // GitHub Pages redirect handler for SPA (React Router)
+      (function() {
+        var redirectTo = window.location.pathname.replace(
+          '/telecallingcrm.linkarise.in',
+          ''
+        );
+        // redirect to the index.html inside your repo with full path restored
+        var newUrl = '/telecallingcrm.linkarise.in/index.html?redirect=' + redirectTo + window.location.search;
+        window.location.replace(newUrl);
+      })();
+    </script>
   </head>
   <body>
-    <p>Redirecting to the app...</p>
+    <h2>Redirecting to the app...</h2>
   </body>
 </html>
