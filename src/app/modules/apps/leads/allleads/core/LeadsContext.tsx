@@ -6,6 +6,7 @@ import { purposeApi } from '../../../master/purpose/core/_request'
 import { activityApi } from '../../../master/activity/core/_request'
 import { statusApi } from '../../../master/status/core/_request'
 import { userApi } from '../../../master/user-management/core/_requests'
+import { teamRequests } from '../../../manage/teams/core/_requests'
 
 interface Campaign {
   id: number
@@ -37,6 +38,10 @@ interface User {
   usermid: number
   username: string
 }
+interface Team{
+  tmid: number
+  teamname: string
+}
 
 interface Dropdowns {
   campaigns: Campaign[]
@@ -45,6 +50,7 @@ interface Dropdowns {
   activities: Activity[]
   statuses: Status[]
   users: User[]
+  teams: Team[]
 }
 
 interface LeadsContextType {
@@ -71,9 +77,19 @@ const extractData = (response: any, fallback: any[] = []): any[] => {
 const fetchUsers = async (): Promise<any[]> => {
   try {
     const response = await userApi.getUsersPaginated(1, 1000)
-    return response.data || []
+    return extractData(response, [])
   } catch (error) {
     console.error('Error fetching users:', error)
+    return []
+  }
+}
+
+const fetchTeams = async (): Promise<any[]> => {
+  try {
+    const response = await teamRequests.getTeamLeads()
+    return extractData(response, [])
+  } catch (error) {
+    console.error('Error fetching teams:', error)
     return []
   }
 }
@@ -137,6 +153,14 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
     enabled: isAuthenticated,
   })
 
+  // ✅ Teams
+  const { data: teams, isLoading: teamsLoading, error: teamsError } = useQuery({
+    queryKey: ['teams'],
+    queryFn: fetchTeams,
+    staleTime: 5 * 60 * 1000,
+    enabled: isAuthenticated,
+  })
+
   const loading =
     campaignsLoading ||
     sourcesLoading ||
@@ -165,6 +189,7 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
           activities: [],
           statuses: [],
           users: [],
+          teams: [],
         },
         loading: false,
         error: null,
@@ -200,6 +225,7 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
         })) || [],
       statuses: transformedStatuses,
       users: extractData(users),
+      teams: extractData(teams),
     }
 
     return {
@@ -214,6 +240,7 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
     activities,
     statusesResponse,
     users,
+    teams,
     loading,
     error,
     isAuthenticated,

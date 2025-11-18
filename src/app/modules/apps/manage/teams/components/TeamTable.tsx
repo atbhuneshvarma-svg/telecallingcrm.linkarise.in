@@ -1,11 +1,13 @@
-// src/app/modules/apps/manage/teams/components/TeamTable.tsx
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom' // Add this import
 import { Team } from '../core/_models'
 import { useTeamManagement } from '../hooks/useTeamManagement'
 import DeleteModal from './DeleteModal'
 import CreateEditModal from './CreateEditModal'
 
 export const TeamTable: React.FC = () => {
+  const navigate = useNavigate() // Add this hook
+  
   const {
     teams,
     loading,
@@ -40,6 +42,11 @@ export const TeamTable: React.FC = () => {
     setSelectedTeam(null)
     setIsEditing(false)
     setCreateEditModalOpen(true)
+  }
+
+  // Updated: Use React Router navigation
+  const handleViewClick = (team: Team) => {
+    navigate(`${team.tmid}`) // This will navigate to /manage/teams/123 internally
   }
 
   const handleDeleteConfirm = async () => {
@@ -161,12 +168,13 @@ export const TeamTable: React.FC = () => {
                     <tr key={team.tmid}>
                       <td className="ps-4 fw-medium">{startRecord + index}</td>
                       <td className="fw-semibold">{team.teamname}</td>
-                      <td>{team.teamname}</td>
+                      <td>{team.leader.username}</td>
                       <td className="text-center">
                         <div className="btn-group" role="group">
                           <button
                             className="btn btn-outline-primary btn-sm me-2"
                             title="View team"
+                            onClick={() => handleViewClick(team)} // Updated: Use the new handler
                           >
                             <i className="fas fa-eye me-1"></i>
                             View
@@ -260,7 +268,6 @@ export const TeamTable: React.FC = () => {
         team={selectedTeam}
         isEditing={isEditing}
       />
-
     </div>
   )
 }

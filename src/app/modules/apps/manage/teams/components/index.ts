@@ -2,3 +2,5 @@
 export { default as CreateEditModal } from './CreateEditModal';
 export { default as DeleteModal } from './DeleteModal';
 export { TeamTable } from './TeamTable'; // Named export for TeamTable
+export { AddMemberModal } from './AddMemberModal'
+export { TeamMembersTable } from './TeamMembersTable'

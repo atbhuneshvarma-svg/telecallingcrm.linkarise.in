@@ -1,5 +1,5 @@
 // components/FreshLeadsTable.tsx
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import { FreshLead } from '../core/_models'
 
 interface FreshLeadsTableProps {
@@ -19,6 +19,32 @@ interface FreshLeadsTableProps {
   onEntriesPerPageChange?: (perPage: number) => void
 }
 
+type SortField = 'name' | 'phone' | 'email' | 'campaign' | 'source' | 'purpose' | 'status' | 'assigned' | 'activity' | 'created'
+type SortDirection = 'asc' | 'desc'
+
+// Helper functions outside component for hoisting
+const getTimeAgo = (dateString: string) => {
+  const created = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - created.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return created.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const getStatusColor = (statusname: string, statuscolor?: string) => {
+  return statuscolor || '#6c757d'
+}
+
 export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
   leads,
   isLoading,
@@ -36,6 +62,8 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
   onEntriesPerPageChange,
 }) => {
   const [localSearchTerm, setLocalSearchTerm] = React.useState(searchTerm)
+  const [sortField, setSortField] = useState<SortField>('created')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -64,30 +92,50 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
     onEntriesPerPageChange?.(perPageValue)
   }
 
-  const getTimeAgo = (dateString: string) => {
-    const created = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - created.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
-    return created.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  // Handle sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New field, default to ascending
+      setSortField(field)
+      setSortDirection('asc')
+    }
   }
 
-  const getStatusColor = (statusname: string, statuscolor?: string) => {
-    return statuscolor || '#6c757d'
+  // Sort indicator component
+  const SortIndicator: React.FC<{ field: SortField }> = ({ field }) => {
+    if (sortField !== field) {
+      return <i className="bi bi-arrow-down-up ms-1 text-muted small opacity-50"></i>
+    }
+    
+    return sortDirection === 'asc' 
+      ? <i className="bi bi-arrow-up ms-1 text-primary small"></i>
+      : <i className="bi bi-arrow-down ms-1 text-primary small"></i>
   }
+
+  // Sortable header component
+  const SortableHeader: React.FC<{ 
+    field: SortField
+    children: React.ReactNode
+    className?: string
+    style?: React.CSSProperties
+  }> = ({ field, children, className = '', style = {} }) => (
+    <th 
+      className={`${className} cursor-pointer user-select-none`}
+      onClick={() => handleSort(field)}
+      style={{ cursor: 'pointer', ...style }}
+    >
+      <div className="d-flex align-items-center">
+        {children}
+        <SortIndicator field={field} />
+      </div>
+    </th>
+  )
 
   // Filter leads based on search term
-  const filteredLeads = React.useMemo(() => {
+  const filteredLeads = useMemo(() => {
     if (!localSearchTerm || onSearch) {
       return leads
     }
@@ -103,7 +151,72 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
     )
   }, [leads, localSearchTerm, onSearch])
 
-  const displayLeads = onSearch ? leads : filteredLeads
+  // Sort leads
+  const sortedLeads = useMemo(() => {
+    const leadsToSort = onSearch ? leads : filteredLeads
+    
+    return [...leadsToSort].sort((a, b) => {
+      let aValue: any = ''
+      let bValue: any = ''
+
+      switch (sortField) {
+        case 'name':
+          aValue = (a.name || 'Unnamed Lead').toLowerCase()
+          bValue = (b.name || 'Unnamed Lead').toLowerCase()
+          break
+        case 'phone':
+          aValue = a.phone || ''
+          bValue = b.phone || ''
+          break
+        case 'email':
+          aValue = a.email || ''
+          bValue = b.email || ''
+          break
+        case 'campaign':
+          aValue = (a.campaign?.campaignname || 'N/A').toLowerCase()
+          bValue = (b.campaign?.campaignname || 'N/A').toLowerCase()
+          break
+        case 'source':
+          aValue = (a.sourceofinquiry || 'N/A').toLowerCase()
+          bValue = (b.sourceofinquiry || 'N/A').toLowerCase()
+          break
+        case 'purpose':
+          aValue = (a.purpose || 'N/A').toLowerCase()
+          bValue = (b.purpose || 'N/A').toLowerCase()
+          break
+        case 'status':
+          aValue = (a.statusname || 'N/A').toLowerCase()
+          bValue = (b.statusname || 'N/A').toLowerCase()
+          break
+        case 'assigned':
+          aValue = (a.user?.username || 'Unassigned').toLowerCase()
+          bValue = (b.user?.username || 'Unassigned').toLowerCase()
+          break
+        case 'activity':
+          aValue = (a.activityname || 'No activity').toLowerCase()
+          bValue = (b.activityname || 'No activity').toLowerCase()
+          break
+        case 'created':
+          aValue = new Date(a.created_at).getTime()
+          bValue = new Date(b.created_at).getTime()
+          break
+        default:
+          return 0
+      }
+
+      // Handle empty values
+      if (!aValue && !bValue) return 0
+      if (!aValue) return sortDirection === 'asc' ? -1 : 1
+      if (!bValue) return sortDirection === 'asc' ? 1 : -1
+
+      // Compare values
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [filteredLeads, leads, onSearch, sortField, sortDirection])
+
+  const displayLeads = sortedLeads
 
   if (isLoading) {
     return (
@@ -177,6 +290,14 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                   <span className="text-muted fw-medium">entries</span>
                 </div>
                 
+                {/* Sort Info */}
+                <div className="d-flex align-items-center gap-2 ms-3">
+                  <span className="text-muted fw-medium">Sorted by:</span>
+                  <span className="badge bg-primary bg-opacity-10 text-primary fw-semibold">
+                    {sortField}
+                    <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -251,33 +372,43 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                 <th className="ps-4" style={{ width: '60px' }}>
                   <span className="text-muted fw-semibold fs-7">#</span>
                 </th>
-                <th className="min-w-150px">
+                
+                <SortableHeader field="name" className="min-w-150px">
                   <span className="text-muted fw-semibold fs-7">Lead Information</span>
-                </th>
-                <th className="min-w-130px">
+                </SortableHeader>
+                
+                <SortableHeader field="phone" className="min-w-130px">
                   <span className="text-muted fw-semibold fs-7">Contact Info</span>
-                </th>
-                <th className="min-w-120px">
+                </SortableHeader>
+                
+                <SortableHeader field="campaign" className="min-w-120px">
                   <span className="text-muted fw-semibold fs-7">Campaign</span>
-                </th>
-                <th className="min-w-100px">
+                </SortableHeader>
+                
+                <SortableHeader field="source" className="min-w-100px">
                   <span className="text-muted fw-semibold fs-7">Source</span>
-                </th>
-                <th className="min-w-100px">
+                </SortableHeader>
+                
+                <SortableHeader field="purpose" className="min-w-100px">
                   <span className="text-muted fw-semibold fs-7">Purpose</span>
-                </th>
-                <th className="min-w-120px text-center">
+                </SortableHeader>
+                
+                <SortableHeader field="status" className="min-w-120px text-center">
                   <span className="text-muted fw-semibold fs-7">Status</span>
-                </th>
-                <th className="min-w-120px">
+                </SortableHeader>
+                
+                <SortableHeader field="assigned" className="min-w-120px">
                   <span className="text-muted fw-semibold fs-7">Assigned To</span>
-                </th>
-                <th className="min-w-100px">
+                </SortableHeader>
+                
+                <SortableHeader field="activity" className="min-w-100px">
                   <span className="text-muted fw-semibold fs-7">Activity</span>
-                </th>
-                <th className="min-w-100px">
+                </SortableHeader>
+                
+                <SortableHeader field="created" className="min-w-100px">
                   <span className="text-muted fw-semibold fs-7">Created</span>
-                </th>
+                </SortableHeader>
+                
                 {(onViewClick || onEditClick || onStatusClick) && (
                   <th className="pe-4 text-center" style={{ width: '120px' }}>
                     <span className="text-muted fw-semibold fs-7">Actions</span>
@@ -474,6 +605,21 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Sort Info Footer */}
+        {displayLeads.length > 0 && (
+          <div className="card-footer bg-transparent border-top-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <small className="text-muted">
+                Showing {displayLeads.length} leads
+              </small>
+              <small className="text-muted">
+                Sorted by: <span className="fw-semibold text-capitalize">{sortField}</span> 
+                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+              </small>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

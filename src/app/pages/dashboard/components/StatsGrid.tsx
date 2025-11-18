@@ -10,7 +10,7 @@ interface StatsGridProps {
 export const StatsGrid: React.FC<StatsGridProps> = ({ stats, loading }) => {
   // Calculate today's calls from leadscalltodaypf
   const getTodaysCalls = () => {
-    if (!stats?.leadscalltodaypf) return 3 // Fallback to 3 if no data
+    if (!stats?.leadscalltodaypf) return 0 // Fallback to 3 if no data
     let totalCalls = 0
     Object.values(stats.leadscalltodaypf).forEach(userCalls => {
       totalCalls += userCalls.length
@@ -19,11 +19,10 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ stats, loading }) => {
   }
 
   // Use the actual data from your API response
-  const freshLeads = stats?.leadCount || 5981
-  const todaysFollowup = stats?.todayLeadCount || 3
+  const freshLeads = stats?.leadCount ?? 0
+  const todaysFollowup = stats?.todayLeadCount ?? 0
   const todaysCalls = getTodaysCalls()
-  const convertedToClient = stats?.thismonthclientCount || 4
-
+  const convertedToClient = stats?.thismonthclientCount ?? 0
   return (
     <div className='row g-5 g-xl-10 mb-5 mb-xl-10'>
       {/* Fresh Leads - 5981 */}

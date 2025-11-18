@@ -25,7 +25,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ stats, loading }) =>
       title: 'Process Fresh Leads',
       icon: 'bi-lightning-charge',
       color: 'primary',
-      href: '/leads/freshleads',
+      href: '/telecallingcrm.linkarise.in/leads/freshleads',
       count: stats?.todayLeadCount || 0,
       label: 'waiting'
     },
@@ -33,7 +33,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ stats, loading }) =>
       title: "Today's Follow-ups",
       icon: 'bi-clock-history',
       color: 'warning',
-      href: '/leads/followup',
+      href: '/telecallingcrm.linkarise.in/leads/followup',
       count: getPendingFollowups(),
       label: 'pending'
     },
@@ -41,7 +41,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ stats, loading }) =>
       title: 'Allocate Leads',
       icon: 'bi-arrow-left-right',
       color: 'info',
-      href: '/leads/allocate',
+      href: '/telecallingcrm.linkarise.in/leads/allocate',
       count: null,
       label: 'Distribute to team'
     }

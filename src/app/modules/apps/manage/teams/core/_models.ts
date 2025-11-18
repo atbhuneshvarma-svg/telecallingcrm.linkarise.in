@@ -1,4 +1,3 @@
-// src/app/modules/apps/manage/core/_models.ts
 export interface User {
   usermid: number;
   leadermid: number;
@@ -27,6 +26,10 @@ export interface Team {
   created_at: string;
   updated_at: string;
   leader: User;
+  // Add these properties for the team details page
+  createdon?: string;
+  updatedon?: string;
+  totalmembers?: number;
 }
 
 export interface TeamsResponse {
@@ -56,4 +59,19 @@ export interface UpdateTeamRequest {
   teamname?: string;
   leadermid?: number;
   tmid?: number;
+}
+
+export interface TeamMember {
+  tmid: number;
+  usermid: number; // Changed from userid to usermid
+  username: string;
+  userrole: string;
+  operation: string;
+}
+
+// Add interface for team details response
+export interface TeamDetailsResponse {
+  result: boolean;
+  data: Team;
+  members?: TeamMember[];
 }

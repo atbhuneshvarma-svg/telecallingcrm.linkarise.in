@@ -12,7 +12,7 @@ interface LeadFiltersProps {
   setShowAllocateModal: React.Dispatch<React.SetStateAction<boolean>>
   setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>
   setShowImportModal: React.Dispatch<React.SetStateAction<boolean>>
-  showImportModal: boolean // ✅ ADD THIS PROP
+  showImportModal: boolean
   handleImport: (file: File, campaignmid: number) => Promise<void>
 }
 
@@ -26,7 +26,7 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
   setShowAllocateModal,
   setShowDeleteModal,
   setShowImportModal,
-  showImportModal, // ✅ RECEIVE THIS PROP
+  showImportModal,
   handleImport,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -148,17 +148,10 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
 
             {/* ⚙️ Actions */}
             <div className="col-md-5 col-sm-12 d-flex align-items-end gap-2 justify-content-md-end justify-content-start">
+              {/* Allocate Button - Green */}
               <button
                 type="button"
-                className="btn btn-outline-primary"
-                onClick={() => setShowImportModal(true)}
-              >
-                Import Leads
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-outline-success"
+                className="btn btn-success"
                 onClick={() => setShowAllocateModal(true)}
                 disabled={selectedCount === 0}
               >
@@ -166,9 +159,10 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
                 Allocate{selectedCount ? ` (${selectedCount})` : ''}
               </button>
 
+              {/* Delete Button - Red */}
               <button
                 type="button"
-                className="btn btn-outline-danger"
+                className="btn btn-danger"
                 onClick={() => setShowDeleteModal(true)}
                 disabled={selectedCount === 0}
               >
@@ -189,7 +183,7 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
 
       {/* 📂 Import Modal */}
       <CampaignFileModal
-        show={showImportModal} // ✅ Now this variable exists
+        show={showImportModal}
         onFileSelect={handleFileSelect}
         onClose={() => setShowImportModal(false)}
       />

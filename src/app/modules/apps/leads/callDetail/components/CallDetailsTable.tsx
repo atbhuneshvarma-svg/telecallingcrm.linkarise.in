@@ -24,6 +24,9 @@ interface CallDetailsTableProps {
   };
 }
 
+type SortField = 'telecaller' | 'campaign' | 'leadname' | 'mobile' | 'starttime' | 'endtime' | 'duration' | 'calltype' | 'activity' | 'status' | 'remarks'
+type SortDirection = 'asc' | 'desc'
+
 const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
   data,
   loading,
@@ -39,6 +42,8 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
   filters,
 }) => {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  const [sortField, setSortField] = useState<SortField>('starttime');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,6 +71,143 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
   const handleEntriesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const perPage = Number(e.target.value);
     onEntriesPerPageChange?.(perPage);
+  };
+
+  // Handle sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort indicator component
+  const SortIndicator: React.FC<{ field: SortField }> = ({ field }) => {
+    if (sortField !== field) {
+      return <i className="bi bi-arrow-down-up ms-1 text-muted small opacity-50"></i>;
+    }
+    
+    return sortDirection === 'asc' 
+      ? <i className="bi bi-arrow-up ms-1 text-primary small"></i>
+      : <i className="bi bi-arrow-down ms-1 text-primary small"></i>;
+  };
+
+  // Sortable header component
+  const SortableHeader: React.FC<{ 
+    field: SortField;
+    children: React.ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+  }> = ({ field, children, className = '', style = {} }) => (
+    <th 
+      className={`${className} cursor-pointer user-select-none`}
+      onClick={() => handleSort(field)}
+      style={{ cursor: 'pointer', ...style }}
+    >
+      <div className="d-flex align-items-center justify-content-center">
+        {children}
+        <SortIndicator field={field} />
+      </div>
+    </th>
+  );
+
+  // Sort call records
+  const sortedData = useMemo(() => {
+    return [...data].sort((a, b) => {
+      let aValue: any = '';
+      let bValue: any = '';
+
+      switch (sortField) {
+        case 'telecaller':
+          aValue = (a.telecaller_name || '-').toLowerCase();
+          bValue = (b.telecaller_name || '-').toLowerCase();
+          break;
+        case 'campaign':
+          aValue = (a.campaignname || '-').toLowerCase();
+          bValue = (b.campaignname || '-').toLowerCase();
+          break;
+        case 'leadname':
+          aValue = (a.lead_name || '-').toLowerCase();
+          bValue = (b.lead_name || '-').toLowerCase();
+          break;
+        case 'mobile':
+          aValue = a.primary_mobile || '';
+          bValue = b.primary_mobile || '';
+          break;
+        case 'starttime':
+          aValue = a.starttime ? new Date(a.starttime).getTime() : 0;
+          bValue = b.starttime ? new Date(b.starttime).getTime() : 0;
+          break;
+        case 'endtime':
+          aValue = a.endtime ? new Date(a.endtime).getTime() : 0;
+          bValue = b.endtime ? new Date(b.endtime).getTime() : 0;
+          break;
+        case 'duration':
+          // Parse duration like "5m 30s" to seconds for sorting
+          aValue = parseDurationToSeconds(a.callduration || '0s');
+          bValue = parseDurationToSeconds(b.callduration || '0s');
+          break;
+        case 'calltype':
+          aValue = (a.calltype || '-').toLowerCase();
+          bValue = (b.calltype || '-').toLowerCase();
+          break;
+        case 'activity':
+          aValue = (a.actvity || '-').toLowerCase();
+          bValue = (b.actvity || '-').toLowerCase();
+          break;
+        case 'status':
+          aValue = (a.statusname || 'N/A').toLowerCase();
+          bValue = (b.statusname || 'N/A').toLowerCase();
+          break;
+        case 'remarks':
+          aValue = (a.followupremark || '-').toLowerCase();
+          bValue = (b.followupremark || '-').toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      // Handle empty values
+      if (!aValue && !bValue) return 0;
+      if (!aValue) return sortDirection === 'asc' ? -1 : 1;
+      if (!bValue) return sortDirection === 'asc' ? 1 : -1;
+
+      // Compare values
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortField, sortDirection]);
+
+  // Helper function to parse duration string to seconds
+  const parseDurationToSeconds = (duration: string): number => {
+    if (!duration) return 0;
+    
+    let totalSeconds = 0;
+    
+    // Match minutes and seconds
+    const minutesMatch = duration.match(/(\d+)m/);
+    const secondsMatch = duration.match(/(\d+)s/);
+    
+    if (minutesMatch) {
+      totalSeconds += parseInt(minutesMatch[1]) * 60;
+    }
+    
+    if (secondsMatch) {
+      totalSeconds += parseInt(secondsMatch[1]);
+    }
+    
+    return totalSeconds;
+  };
+
+  // Format duration for display
+  const formatDuration = (duration: string): string => {
+    if (!duration) return '-';
+    return duration;
   };
 
   // Calculate row numbers
@@ -172,7 +314,7 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
     ));
   };
 
-  if (!loading && data.length === 0) {
+  if (!loading && sortedData.length === 0) {
     return (
       <div className="card">
         <div className="card-body p-0">
@@ -219,10 +361,22 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
                   <span className="text-muted fw-medium">entries</span>
                 </div>
                 
+                {/* Sort Info */}
+                <div className="d-flex align-items-center gap-2 ms-3">
+                  <span className="text-muted fw-medium">Sorted by:</span>
+                  <span className="badge bg-primary bg-opacity-10 text-primary fw-semibold">
+                    {sortField === 'starttime' ? 'Start Time' : 
+                     sortField === 'endtime' ? 'End Time' : 
+                     sortField === 'leadname' ? 'Lead Name' : 
+                     sortField === 'calltype' ? 'Call Type' : sortField}
+                    <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+                  </span>
+                </div>
+
                 {/* Active Filters Indicator */}
                 {hasActiveFilters && (
                   <div className="d-flex align-items-center gap-2">
-                    <span className="badge bg-primary">
+                    <span className="badge bg-warning">
                       <i className="bi bi-funnel me-1"></i>
                       Filters Active
                     </span>
@@ -290,8 +444,8 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
                   <div className="d-flex align-items-center gap-2 fs-8">
                     <i className="bi bi-info-circle text-info"></i>
                     <span className="text-muted">
-                      Showing <strong className="text-dark">{data.length}</strong> call record
-                      {data.length !== 1 ? 's' : ''}
+                      Showing <strong className="text-dark">{sortedData.length}</strong> call record
+                      {sortedData.length !== 1 ? 's' : ''}
                       {hasActiveFilters && (
                         <span className="ms-2">
                           • Filters: <strong>{getFilterSummary()}</strong>
@@ -317,24 +471,57 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
             >
               <tr>
                 <th style={{ width: '70px' }}>Sr.No</th>
-                <th>Telecaller</th>
-                <th>Campaign</th>
-                <th>Lead Name</th>
-                <th>Mobile</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Duration</th>
-                <th>Call Type</th>
-                <th>Activity</th>
-                <th>Status</th>
-                <th>Remarks</th>
+                
+                <SortableHeader field="telecaller">
+                  Telecaller
+                </SortableHeader>
+                
+                <SortableHeader field="campaign">
+                  Campaign
+                </SortableHeader>
+                
+                <SortableHeader field="leadname">
+                  Lead Name
+                </SortableHeader>
+                
+                <SortableHeader field="mobile">
+                  Mobile
+                </SortableHeader>
+                
+                <SortableHeader field="starttime">
+                  Start Time
+                </SortableHeader>
+                
+                <SortableHeader field="endtime">
+                  End Time
+                </SortableHeader>
+                
+                <SortableHeader field="duration">
+                  Duration
+                </SortableHeader>
+                
+                <SortableHeader field="calltype">
+                  Call Type
+                </SortableHeader>
+                
+                <SortableHeader field="activity">
+                  Activity
+                </SortableHeader>
+                
+                <SortableHeader field="status">
+                  Status
+                </SortableHeader>
+                
+                <SortableHeader field="remarks">
+                  Remarks
+                </SortableHeader>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 renderLoadingRows()
-              ) : data.length > 0 ? (
-                data.map((item, index) => (
+              ) : sortedData.length > 0 ? (
+                sortedData.map((item, index) => (
                   <tr key={item.ldmid ?? index}>
                     <td className="text-center fw-semibold">{getRowNumber(index)}</td>
                     <td>{item.telecaller_name || '-'}</td>
@@ -343,7 +530,7 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
                     <td>{item.primary_mobile || '-'}</td>
                     <td>{item.starttime || '-'}</td>
                     <td>{item.endtime || '-'}</td>
-                    <td>{item.callduration || '-'}</td>
+                    <td>{formatDuration(item.callduration) || '-'}</td>
                     <td>{item.calltype || '-'}</td>
                     <td>{item.actvity || '-'}</td>
                     <td className="text-center">
@@ -365,6 +552,26 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Sort Info Footer */}
+        {sortedData.length > 0 && (
+          <div className="card-footer bg-transparent border-top-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <small className="text-muted">
+                Showing {sortedData.length} call records
+              </small>
+              <small className="text-muted">
+                Sorted by: <span className="fw-semibold text-capitalize">
+                  {sortField === 'starttime' ? 'Start Time' : 
+                   sortField === 'endtime' ? 'End Time' : 
+                   sortField === 'leadname' ? 'Lead Name' : 
+                   sortField === 'calltype' ? 'Call Type' : sortField}
+                </span> 
+                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+              </small>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

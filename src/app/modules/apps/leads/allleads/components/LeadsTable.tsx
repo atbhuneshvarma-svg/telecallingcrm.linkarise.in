@@ -358,15 +358,6 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
   if (!loading && displayLeads.length === 0) {
     return (
       <div className="card-body text-center py-5">
-        <i className="bi bi-inbox display-4 d-block mb-2 text-muted"></i>
-        <p className="text-muted mb-2">
-          {localSearchTerm ? 'No leads match your search' : 'No leads found'}
-        </p>
-        <small className="text-muted">
-          {localSearchTerm
-            ? 'Try adjusting your search terms'
-            : 'Try adjusting your filters or add a new lead'}
-        </small>
         {localSearchTerm && (
           <div className="mt-3">
             <button className="btn btn-sm btn-light" onClick={handleSearchClear}>

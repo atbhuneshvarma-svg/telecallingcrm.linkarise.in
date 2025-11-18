@@ -20,6 +20,9 @@ interface FollowupTableProps {
   searchTerm?: string;
 }
 
+type SortField = 'name' | 'assigned' | 'campaign' | 'phone' | 'status' | 'details' | 'followupdate'
+type SortDirection = 'asc' | 'desc'
+
 const FollowupTable: React.FC<FollowupTableProps> = ({
   data,
   loading,
@@ -40,6 +43,8 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
   const { statuses } = useStatuses();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  const [sortField, setSortField] = useState<SortField>('followupdate');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,6 +78,48 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
     const perPage = Number(e.target.value);
     onEntriesPerPageChange?.(perPage);
   };
+
+  // Handle sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort indicator component
+  const SortIndicator: React.FC<{ field: SortField }> = ({ field }) => {
+    if (sortField !== field) {
+      return <i className="bi bi-arrow-down-up ms-1 text-muted small opacity-50"></i>;
+    }
+    
+    return sortDirection === 'asc' 
+      ? <i className="bi bi-arrow-up ms-1 text-primary small"></i>
+      : <i className="bi bi-arrow-down ms-1 text-primary small"></i>;
+  };
+
+  // Sortable header component
+  const SortableHeader: React.FC<{ 
+    field: SortField;
+    children: React.ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+  }> = ({ field, children, className = '', style = {} }) => (
+    <th 
+      className={`${className} cursor-pointer user-select-none`}
+      onClick={() => handleSort(field)}
+      style={{ cursor: 'pointer', ...style }}
+    >
+      <div className="d-flex align-items-center">
+        {children}
+        <SortIndicator field={field} />
+      </div>
+    </th>
+  );
 
   // Memoized status color mapping
   const statusColorMap = useMemo(() => {
@@ -123,8 +170,61 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
     );
   }, [data, localSearchTerm, onSearch]);
 
-  // Use filtered leads for display
-  const displayLeads = onSearch ? data : filteredLeads;
+  // Sort leads
+  const sortedLeads = useMemo(() => {
+    const leadsToSort = onSearch ? data : filteredLeads;
+    
+    return [...leadsToSort].sort((a, b) => {
+      let aValue: any = '';
+      let bValue: any = '';
+
+      switch (sortField) {
+        case 'name':
+          aValue = (a.leadname || 'Unnamed Lead').toLowerCase();
+          bValue = (b.leadname || 'Unnamed Lead').toLowerCase();
+          break;
+        case 'assigned':
+          aValue = (a.username || 'Unassigned').toLowerCase();
+          bValue = (b.username || 'Unassigned').toLowerCase();
+          break;
+        case 'campaign':
+          aValue = (a.campaignname || 'N/A').toLowerCase();
+          bValue = (b.campaignname || 'N/A').toLowerCase();
+          break;
+        case 'phone':
+          aValue = a.phone || '';
+          bValue = b.phone || '';
+          break;
+        case 'status':
+          aValue = (a.statusname || 'N/A').toLowerCase();
+          bValue = (b.statusname || 'N/A').toLowerCase();
+          break;
+        case 'details':
+          aValue = (a.detail || 'No details provided').toLowerCase();
+          bValue = (b.detail || 'No details provided').toLowerCase();
+          break;
+        case 'followupdate':
+          aValue = a.followupdate ? new Date(a.followupdate).getTime() : 0;
+          bValue = b.followupdate ? new Date(b.followupdate).getTime() : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      // Handle empty values
+      if (!aValue && !bValue) return 0;
+      if (!aValue) return sortDirection === 'asc' ? -1 : 1;
+      if (!bValue) return sortDirection === 'asc' ? 1 : -1;
+
+      // Compare values
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredLeads, data, onSearch, sortField, sortDirection]);
+
+  // Use sorted leads for display
+  const displayLeads = sortedLeads;
 
   // Calculate row numbers
   const getRowNumber = (index: number) => {
@@ -173,15 +273,6 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
         <td>
           <div className="placeholder-glow">
             <span className="placeholder col-5"></span>
-          </div>
-        </td>
-        <td className="pe-4 text-center">
-          <div className="d-flex justify-content-center gap-2">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="btn btn-sm btn-icon btn-light disabled opacity-0">
-                <i className="bi bi-circle"></i>
-              </div>
-            ))}
           </div>
         </td>
       </tr>
@@ -239,6 +330,15 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                     <option value="100">100</option>
                   </select>
                   <span className="text-muted fw-medium">entries</span>
+                </div>
+                
+                {/* Sort Info */}
+                <div className="d-flex align-items-center gap-2 ms-3">
+                  <span className="text-muted fw-medium">Sorted by:</span>
+                  <span className="badge bg-primary bg-opacity-10 text-primary fw-semibold">
+                    {sortField === 'followupdate' ? 'Follow-up Date' : sortField}
+                    <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+                  </span>
                 </div>
               </div>
             </div>
@@ -322,27 +422,34 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                 <th className="ps-4" style={{ width: '60px' }}>
                   <span className="text-muted fw-semibold fs-7">#</span>
                 </th>
-                <th className="min-w-150px">
+                
+                <SortableHeader field="name" className="min-w-150px">
                   <span className="text-muted fw-semibold fs-7">Lead Information</span>
-                </th>
-                <th className="min-w-120px">
+                </SortableHeader>
+                
+                <SortableHeader field="assigned" className="min-w-120px">
                   <span className="text-muted fw-semibold fs-7">Assigned To</span>
-                </th>
-                <th className="min-w-120px">
+                </SortableHeader>
+                
+                <SortableHeader field="campaign" className="min-w-120px">
                   <span className="text-muted fw-semibold fs-7">Campaign</span>
-                </th>
-                <th className="min-w-130px">
+                </SortableHeader>
+                
+                <SortableHeader field="phone" className="min-w-130px">
                   <span className="text-muted fw-semibold fs-7">Contact Info</span>
-                </th>
-                <th className="min-w-120px text-center">
+                </SortableHeader>
+                
+                <SortableHeader field="status" className="min-w-120px text-center">
                   <span className="text-muted fw-semibold fs-7">Status</span>
-                </th>
-                <th className="min-w-150px">
+                </SortableHeader>
+                
+                <SortableHeader field="details" className="min-w-150px">
                   <span className="text-muted fw-semibold fs-7">Details</span>
-                </th>
-                <th className="min-w-120px">
+                </SortableHeader>
+                
+                <SortableHeader field="followupdate" className="min-w-120px">
                   <span className="text-muted fw-semibold fs-7">Follow-up Date</span>
-                </th>
+                </SortableHeader>
               </tr>
             </thead>
 
@@ -589,7 +696,7 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                               className="text-muted fs-9 mt-1 d-flex align-items-center gap-1 transition-all"
                               style={{
                                 transition: 'color 0.2s ease',
-                              }}
+                                }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.color = '#009ef7';
                               }}
@@ -671,6 +778,23 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Sort Info Footer */}
+        {displayLeads.length > 0 && (
+          <div className="card-footer bg-transparent border-top-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <small className="text-muted">
+                Showing {displayLeads.length} follow-up leads
+              </small>
+              <small className="text-muted">
+                Sorted by: <span className="fw-semibold text-capitalize">
+                  {sortField === 'followupdate' ? 'Follow-up Date' : sortField}
+                </span> 
+                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+              </small>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

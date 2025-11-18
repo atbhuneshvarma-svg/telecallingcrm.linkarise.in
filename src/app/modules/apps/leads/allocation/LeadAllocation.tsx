@@ -27,8 +27,8 @@ const LeadAllocation: React.FC = () => {
     selectAllLeads,
     toggleLeadSelection,
     allocateLeads,
-    fetchBulkAllocationData, // ✅ Add this from hook
-    bulkAllocateLeads, // ✅ Add this from hook
+    fetchBulkAllocationData,
+    bulkAllocateLeads,
     deleteLeads,
     handleImport,
     refreshData,
@@ -59,10 +59,9 @@ const LeadAllocation: React.FC = () => {
     }
   }
 
-  // ✅ UPDATED: Bulk allocation handler
+  // ✅ Bulk allocation handler
   const handleBulkAllocate = async (campaignId: number, userIds: number[]) => {
     try {
-      // Use the bulkAllocateLeads function from the hook
       await bulkAllocateLeads(campaignId, userIds)
       setIsBulkModalOpen(false)
     } catch (error) {
@@ -73,7 +72,6 @@ const LeadAllocation: React.FC = () => {
   // ✅ Fetch bulk allocation data when opening modal
   const handleOpenBulkModal = async () => {
     try {
-      // Fetch fresh data for bulk allocation
       await fetchBulkAllocationData()
       setIsBulkModalOpen(true)
     } catch (error) {
@@ -129,24 +127,32 @@ const LeadAllocation: React.FC = () => {
         <div className="card-header bg-transparent py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h1 className="h4 fw-bold text-dark mb-1">Lead Master</h1>
-              <p className="text-muted mb-0">
-                Total: {leads.length} • Showing: {filteredLeads.length} • Selected: {selectedLeads.length}
-              </p>
+              <h1 className="h4 fw-bold text-dark mb-1">Lead Allocation</h1>
+              <p className="text-muted mb-0">Manage and allocate leads to team members</p>
             </div>
 
+            {/* ✅ Action Buttons Group - Bulk Allocate & Import Leads */}
+           
           </div>
            <div className="btn-group">
               <button
                 className="btn btn-primary"
-                onClick={handleOpenBulkModal} // ✅ Use the proper handler
+                onClick={handleOpenBulkModal}
                 disabled={loading}
               >
                 <i className="fas fa-users me-2"></i>
                 Bulk Allocate
               </button>
               <button
-                className="btn btn-outline-primary btn-md"
+                className="btn btn-outline-primary"
+                onClick={() => setShowImportModal(true)}
+                disabled={loading}
+              >
+                <i className="fas fa-file-import me-2"></i>
+                Import Leads
+              </button>
+              <button
+                className="btn btn-outline-secondary"
                 onClick={refreshData}
                 disabled={loading}
               >
@@ -160,7 +166,10 @@ const LeadAllocation: React.FC = () => {
                     Loading...
                   </>
                 ) : (
-                  'Refresh'
+                  <>
+                    <i className="fas fa-refresh me-2"></i>
+                    Refresh
+                  </>
                 )}
               </button>
             </div>
@@ -228,8 +237,8 @@ const LeadAllocation: React.FC = () => {
         onClose={() => setIsBulkModalOpen(false)}
         onSubmit={handleBulkAllocate}
         users={users}
-        campaigns={leadCampaigns} // ✅ Use campaigns from leads
-        loading={loading} // ✅ Use main loading state
+        campaigns={leadCampaigns}
+        loading={loading}
       />
     </div>
   )

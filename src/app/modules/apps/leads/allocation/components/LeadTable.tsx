@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Lead } from '../core/_models'
 
 interface Props {
@@ -10,6 +10,9 @@ interface Props {
   selectAllLeads: (checked: boolean) => void
 }
 
+type SortField = 'name' | 'phone' | 'email' | 'campaign' | 'status' | 'assigned' | 'details'
+type SortDirection = 'asc' | 'desc'
+
 const LeadTable: React.FC<Props> = ({
   leads,
   loading,
@@ -18,6 +21,9 @@ const LeadTable: React.FC<Props> = ({
   toggleLeadSelection,
   selectAllLeads
 }) => {
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+
   // Inline CSS for text truncation
   const textTruncateStyle = `
     .text-truncate-ellipsis {
@@ -30,21 +36,7 @@ const LeadTable: React.FC<Props> = ({
     }
   `
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="card shadow-sm">
-        <div className="card-body text-center py-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <div className="mt-2">Loading leads...</div>
-        </div>
-      </div>
-    )
-  }
-
-  // Helpers
+  // Helper functions - MOVED UP before they are used
   const getDisplayName = (lead: Lead): string => lead.leadname || lead.name || 'Unnamed Lead'
   const getCampaignName = (lead: Lead): string => lead.campaign?.campaignname ?? 'No Campaign'
   const getStatusBadgeClass = (status?: string): string => {
@@ -60,12 +52,116 @@ const LeadTable: React.FC<Props> = ({
     }
   }
 
+  // Handle sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New field, default to ascending
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  // Sort leads
+  const sortedLeads = [...leads].sort((a, b) => {
+    let aValue: any = ''
+    let bValue: any = ''
+
+    switch (sortField) {
+      case 'name':
+        aValue = getDisplayName(a).toLowerCase()
+        bValue = getDisplayName(b).toLowerCase()
+        break
+      case 'phone':
+        aValue = a.phone || ''
+        bValue = b.phone || ''
+        break
+      case 'email':
+        aValue = a.email || ''
+        bValue = b.email || ''
+        break
+      case 'campaign':
+        aValue = getCampaignName(a).toLowerCase()
+        bValue = getCampaignName(b).toLowerCase()
+        break
+      case 'status':
+        aValue = a.statusname || ''
+        bValue = b.statusname || ''
+        break
+      case 'assigned':
+        aValue = a.username || ''
+        bValue = b.username || ''
+        break
+      case 'details':
+        aValue = a.detail || ''
+        bValue = b.detail || ''
+        break
+      default:
+        return 0
+    }
+
+    // Handle empty values
+    if (!aValue && !bValue) return 0
+    if (!aValue) return sortDirection === 'asc' ? -1 : 1
+    if (!bValue) return sortDirection === 'asc' ? 1 : -1
+
+    // Compare values
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+    return 0
+  })
+
+  // Sort indicator component
+  const SortIndicator: React.FC<{ field: SortField }> = ({ field }) => {
+    if (sortField !== field) {
+      return <i className="bi bi-arrow-down-up ms-1 text-muted small"></i>
+    }
+    
+    return sortDirection === 'asc' 
+      ? <i className="bi bi-arrow-up ms-1 text-primary small"></i>
+      : <i className="bi bi-arrow-down ms-1 text-primary small"></i>
+  }
+
+  // Sortable header component
+  const SortableHeader: React.FC<{ 
+    field: SortField
+    children: React.ReactNode
+    className?: string
+  }> = ({ field, children, className = '' }) => (
+    <th 
+      className={`${className} cursor-pointer user-select-none`}
+      onClick={() => handleSort(field)}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="d-flex align-items-center">
+        {children}
+        <SortIndicator field={field} />
+      </div>
+    </th>
+  )
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="card shadow-sm">
+        <div className="card-body text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="mt-2">Loading leads...</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: textTruncateStyle }} />
       <div className="card shadow-sm">
         <div className="card-body p-0">
-          <div className="table-responsive px-3 mx-3  ">
+          <div className="table-responsive px-3 mx-3">
             <table className="table table-hover table-striped table-sm mb-0 align-middle">
               <thead className="table-light">
                 <tr>
@@ -78,19 +174,40 @@ const LeadTable: React.FC<Props> = ({
                       disabled={leads.length === 0}
                     />
                   </th>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Email</th>
-                  <th>Campaign</th>
-                  <th>Status</th>
-                  <th>Assigned To</th>
-                  <th>Details</th>
+                  
+                  <SortableHeader field="name">
+                    Name
+                  </SortableHeader>
+                  
+                  <SortableHeader field="phone">
+                    Phone
+                  </SortableHeader>
+                  
+                  <SortableHeader field="email">
+                    Email
+                  </SortableHeader>
+                  
+                  <SortableHeader field="campaign">
+                    Campaign
+                  </SortableHeader>
+                  
+                  <SortableHeader field="status">
+                    Status
+                  </SortableHeader>
+                  
+                  <SortableHeader field="assigned">
+                    Assigned To
+                  </SortableHeader>
+                  
+                  <SortableHeader field="details">
+                    Details
+                  </SortableHeader>
                 </tr>
               </thead>
 
               <tbody>
-                {leads.length > 0 ? (
-                  leads.map((lead) => (
+                {sortedLeads.length > 0 ? (
+                  sortedLeads.map((lead) => (
                     <tr key={lead.leadmid} className={selectedLeads.includes(lead.leadmid) ? 'table-active' : ''}>
                       <td>
                         <input
@@ -168,6 +285,20 @@ const LeadTable: React.FC<Props> = ({
             </table>
           </div>
 
+          {/* Sort info footer */}
+          {sortedLeads.length > 0 && (
+            <div className="card-footer bg-transparent border-top-0">
+              <div className="d-flex justify-content-between align-items-center">
+                <small className="text-muted">
+                  Showing {sortedLeads.length} leads
+                </small>
+                <small className="text-muted">
+                  Sorted by: <span className="fw-semibold text-capitalize">{sortField}</span> 
+                  <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+                </small>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
