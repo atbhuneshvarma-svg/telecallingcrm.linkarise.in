@@ -1,8 +1,11 @@
 import React from 'react'
+import { DashboardStats } from '../../../modules/auth/core/_requests'
 
-interface PerformanceTableProps {
-  stats: any
+// In PerformanceTable component file
+export interface PerformanceTableProps {
+  stats: DashboardStats | null
   loading: boolean
+  telecallerPerformance?: any // Add this prop
 }
 
 export const PerformanceTable: React.FC<PerformanceTableProps> = ({ stats, loading }) => {

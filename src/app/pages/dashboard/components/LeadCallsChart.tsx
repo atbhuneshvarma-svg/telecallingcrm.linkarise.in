@@ -12,7 +12,8 @@ import {
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend)
 
 // <<< ADD TYPES HERE
-interface LeadCallsChartProps {
+// In LeadCallsChart component file
+export interface LeadCallsChartProps {
   data: {
     months: string[]
     totalCallsData: number[]
@@ -20,6 +21,7 @@ interface LeadCallsChartProps {
     totalLeads: number[]
     convertedClients: number[]
   }
+  loading?: boolean // Add this as optional
 }
 // >>>
 

@@ -36,6 +36,13 @@ export interface DashboardStats {
     created_at: string
     cmpmid: number
   }>
+  performance?: Array<{
+    telecaller: string
+    dialCalls: number
+    answered: number
+    converted: number
+    callDuration: string
+  }>
   userstf: Array<any>
   leadscalltodaypf: Record<string, any[]>
   leadCount: number

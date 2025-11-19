@@ -7,7 +7,7 @@ import CreateEditModal from './CreateEditModal'
 
 export const TeamTable: React.FC = () => {
   const navigate = useNavigate() // Add this hook
-  
+
   const {
     teams,
     loading,
@@ -172,16 +172,16 @@ export const TeamTable: React.FC = () => {
                       <td className="text-center">
                         <div className="btn-group" role="group">
                           <button
-                            className="btn btn-outline-primary btn-sm me-2"
+                            className="btn btn-primary btn-sm me-2"
                             title="View team"
-                            onClick={() => handleViewClick(team)} // Updated: Use the new handler
+                            onClick={() => handleViewClick(team)}
                           >
                             <i className="fas fa-eye me-1"></i>
                             View
                           </button>
                           <button
                             onClick={() => handleEditClick(team)}
-                            className="btn btn-outline-success btn-sm me-2"
+                            className="btn btn-success btn-sm me-2"
                             title="Edit team"
                           >
                             <i className="fas fa-edit me-1"></i>
@@ -189,7 +189,7 @@ export const TeamTable: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleDeleteClick(team)}
-                            className="btn btn-outline-danger btn-sm"
+                            className="btn btn-danger btn-sm"
                             title="Delete team"
                           >
                             <i className="fas fa-trash me-1"></i>

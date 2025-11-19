@@ -27,6 +27,32 @@ interface CallDetailsTableProps {
 type SortField = 'telecaller' | 'campaign' | 'leadname' | 'mobile' | 'starttime' | 'endtime' | 'duration' | 'calltype' | 'activity' | 'status' | 'remarks'
 type SortDirection = 'asc' | 'desc'
 
+// Move helper functions outside the component to avoid hoisting issues
+const parseDurationToSeconds = (duration: string): number => {
+  if (!duration) return 0;
+  
+  let totalSeconds = 0;
+  
+  // Match minutes and seconds
+  const minutesMatch = duration.match(/(\d+)m/);
+  const secondsMatch = duration.match(/(\d+)s/);
+  
+  if (minutesMatch) {
+    totalSeconds += parseInt(minutesMatch[1]) * 60;
+  }
+  
+  if (secondsMatch) {
+    totalSeconds += parseInt(secondsMatch[1]);
+  }
+  
+  return totalSeconds;
+};
+
+const formatDuration = (duration: string): string => {
+  if (!duration) return '-';
+  return duration;
+};
+
 const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
   data,
   loading,
@@ -182,33 +208,6 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
       return 0;
     });
   }, [data, sortField, sortDirection]);
-
-  // Helper function to parse duration string to seconds
-  const parseDurationToSeconds = (duration: string): number => {
-    if (!duration) return 0;
-    
-    let totalSeconds = 0;
-    
-    // Match minutes and seconds
-    const minutesMatch = duration.match(/(\d+)m/);
-    const secondsMatch = duration.match(/(\d+)s/);
-    
-    if (minutesMatch) {
-      totalSeconds += parseInt(minutesMatch[1]) * 60;
-    }
-    
-    if (secondsMatch) {
-      totalSeconds += parseInt(secondsMatch[1]);
-    }
-    
-    return totalSeconds;
-  };
-
-  // Format duration for display
-  const formatDuration = (duration: string): string => {
-    if (!duration) return '-';
-    return duration;
-  };
 
   // Calculate row numbers
   const getRowNumber = (index: number) => {

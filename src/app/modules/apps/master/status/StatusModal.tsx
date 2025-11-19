@@ -26,6 +26,16 @@ const StatusModal: React.FC<StatusModalProps> = ({
 }) => {
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Stage options
+  const stageOptions = [
+    { value: '', label: '-- Select Stage --' },
+    { value: 'Fresh Lead', label: 'Fresh Lead' },
+    { value: 'Contacted', label: 'Contacted' },
+    { value: 'Interested', label: 'Interested' },
+    { value: 'Converted', label: 'Converted' },
+    { value: 'Not Interested', label: 'Not Interested' }
+  ];
+
   // Clear errors when modal opens/closes
   useEffect(() => {
     if (show) {
@@ -47,6 +57,10 @@ const StatusModal: React.FC<StatusModalProps> = ({
     onStatusChange({ ...status, color: e.target.value });
   };
 
+  const handleStageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onStatusChange({ ...status, stage: e.target.value });
+  };
+
   const handleSave = () => {
     if (!status.name.trim()) {
       setLocalError('Status name is required');
@@ -55,6 +69,11 @@ const StatusModal: React.FC<StatusModalProps> = ({
     
     if (status.name.length > 50) {
       setLocalError('Status name must be less than 50 characters');
+      return;
+    }
+
+    if (!status.stage) {
+      setLocalError('Stage selection is required');
       return;
     }
     
@@ -68,7 +87,9 @@ const StatusModal: React.FC<StatusModalProps> = ({
     }
   };
 
-  const isFormValid = status.name.trim() !== '' && status.name.length <= 50;
+  const isFormValid = status.name.trim() !== '' && 
+                     status.name.length <= 50 && 
+                     status.stage !== '';
 
   return (
     <Modal show={show} onHide={onClose} backdrop="static">
@@ -105,6 +126,30 @@ const StatusModal: React.FC<StatusModalProps> = ({
           />
           <div className="form-text">
             {status.name.length}/50 characters
+          </div>
+        </div>
+
+        {/* Stage Field */}
+        <div className="mb-3">
+          <label className="form-label fw-semibold">
+            Stage <span className="text-danger">*</span>
+          </label>
+          <select
+            name="stage"
+            className="form-select"
+            value={status.stage || ''}
+            onChange={handleStageChange}
+            disabled={isLoading}
+            required
+          >
+            {stageOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <div className="form-text">
+            Select the stage for this status
           </div>
         </div>
 

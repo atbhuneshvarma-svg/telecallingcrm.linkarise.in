@@ -1,10 +1,12 @@
 import React from 'react'
-
-interface DashboardHeaderProps {
+import { getTodayTelecallerPerformance } from '../../../modules/apps/reports/performance/core/_requests'
+// In DashboardHeader component file
+export interface DashboardHeaderProps {
   error: string | null
   loading: boolean
   onRefresh: () => void
   onClearError: () => void
+  lastUpdated?: Date | null // Make this optional if it wasn't there before
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({

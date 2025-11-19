@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { Team, TeamMember, User } from '../core/_models'
 import { AddMemberModal } from '../components/AddMemberModal'
 import { TeamMembersTable } from '../components/TeamMembersTable'
+import { teamRequests } from '../core/_requests'
 
 interface TeamDetailsPageProps {
   teamId: number
   onBack?: () => void
 }
 
-export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({ 
-  teamId, 
-  onBack 
+export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
+  teamId,
+  onBack
 }) => {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -19,175 +20,9 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
 
-  // Debug: Log the teamId to see what's being passed
-  console.log('TeamDetailsPage - teamId:', teamId, 'Type:', typeof teamId)
-
-  // Mock data for teams - UPDATED to include team ID 8
-  const mockTeams: Team[] = [
-    {
-      tmid: 1,
-      teamname: 'MakeYourWish',
-      leadermid: 1,
-      cmpmid: 1,
-      created_at: '2025-11-18T00:00:00Z',
-      updated_at: '2025-11-18T00:00:00Z',
-      leader: {
-        usermid: 1,
-        leadermid: 0,
-        username: 'bhunesh varma',
-        usermobile: '9876543210',
-        userloginid: 'bhunesh',
-        userstatus: 'Active',
-        usertype: 'Team Leader',
-        userrole: 'teamleader',
-        userlastlogintime: '2025-11-18T10:30:00Z',
-        usernooflogin: 15,
-        userregip: '192.168.1.1',
-        designation: 'Team Leader',
-        detail: 'Team lead for MakeYourWish',
-        useremail: 'bhunesh@example.com',
-        updated_at: '2025-11-18T00:00:00Z',
-        created_at: '2025-11-18T00:00:00Z',
-        cmpmid: 1
-      }
-    },
-    {
-      tmid: 2,
-      teamname: 'Sales Warriors',
-      leadermid: 2,
-      cmpmid: 1,
-      created_at: '2025-11-17T00:00:00Z',
-      updated_at: '2025-11-18T12:00:00Z',
-      leader: {
-        usermid: 2,
-        leadermid: 0,
-        username: 'John Manager',
-        usermobile: '9876543211',
-        userloginid: 'john',
-        userstatus: 'Active',
-        usertype: 'Team Leader',
-        userrole: 'teamleader',
-        userlastlogintime: '2025-11-18T09:15:00Z',
-        usernooflogin: 22,
-        userregip: '192.168.1.2',
-        designation: 'Sales Manager',
-        detail: 'Sales team leader',
-        useremail: 'john@example.com',
-        updated_at: '2025-11-18T00:00:00Z',
-        created_at: '2025-11-17T00:00:00Z',
-        cmpmid: 1
-      }
-    },
-    {
-      tmid: 8, // ADDED: Team with ID 8
-      teamname: 'Telecalling Team',
-      leadermid: 3,
-      cmpmid: 1,
-      created_at: '2025-11-16T00:00:00Z',
-      updated_at: '2025-11-18T14:30:00Z',
-      leader: {
-        usermid: 3,
-        leadermid: 0,
-        username: 'Sarah Wilson',
-        usermobile: '9876543215',
-        userloginid: 'sarah',
-        userstatus: 'Active',
-        usertype: 'Team Leader',
-        userrole: 'teamleader',
-        userlastlogintime: '2025-11-18T11:20:00Z',
-        usernooflogin: 18,
-        userregip: '192.168.1.6',
-        designation: 'Telecalling Manager',
-        detail: 'Telecalling team lead',
-        useremail: 'sarah@example.com',
-        updated_at: '2025-11-18T00:00:00Z',
-        created_at: '2025-11-16T00:00:00Z',
-        cmpmid: 1
-      }
-    }
-  ]
-
-  // Mock data for available users (sales executives)
-  const mockAvailableUsers: User[] = [
-    {
-      usermid: 4,
-      leadermid: 8, // Updated to be under team 8
-      username: 'Alice Johnson',
-      usermobile: '9876543212',
-      userloginid: 'alice',
-      userstatus: 'Active',
-      usertype: 'Sales Executive',
-      userrole: 'telecaller',
-      userlastlogintime: '2025-11-18T08:45:00Z',
-      usernooflogin: 8,
-      userregip: '192.168.1.3',
-      designation: 'Sales Executive',
-      detail: 'Top performing sales executive',
-      useremail: 'alice@example.com',
-      updated_at: '2025-11-18T00:00:00Z',
-      created_at: '2025-11-15T00:00:00Z',
-      cmpmid: 1
-    },
-    {
-      usermid: 5,
-      leadermid: 8, // Updated to be under team 8
-      username: 'Bob Smith',
-      usermobile: '9876543213',
-      userloginid: 'bob',
-      userstatus: 'Active',
-      usertype: 'Sales Executive',
-      userrole: 'telecaller',
-      userlastlogintime: '2025-11-18T09:30:00Z',
-      usernooflogin: 12,
-      userregip: '192.168.1.4',
-      designation: 'Senior Sales Executive',
-      detail: 'Experienced sales professional',
-      useremail: 'bob@example.com',
-      updated_at: '2025-11-18T00:00:00Z',
-      created_at: '2025-11-10T00:00:00Z',
-      cmpmid: 1
-    },
-    {
-      usermid: 6,
-      leadermid: 8, // Updated to be under team 8
-      username: 'Carol Davis',
-      usermobile: '9876543214',
-      userloginid: 'carol',
-      userstatus: 'Active',
-      usertype: 'Sales Executive',
-      userrole: 'telecaller',
-      userlastlogintime: '2025-11-18T10:15:00Z',
-      usernooflogin: 5,
-      userregip: '192.168.1.5',
-      designation: 'Sales Executive',
-      detail: 'New team member',
-      useremail: 'carol@example.com',
-      updated_at: '2025-11-18T00:00:00Z',
-      created_at: '2025-11-12T00:00:00Z',
-      cmpmid: 1
-    }
-  ]
-
-  // Mock data for existing team members - UPDATED for team 8
-  const mockTeamMembers: TeamMember[] = [
-    {
-      tmid: 8, // Updated to team 8
-      usermid: 4,
-      username: 'Alice Johnson',
-      userrole: 'Sales Executive',
-      operation: 'Remove'
-    },
-    {
-      tmid: 8, // Updated to team 8
-      usermid: 5,
-      username: 'Bob Smith',
-      userrole: 'Senior Sales Executive',
-      operation: 'Remove'
-    }
-  ]
-
-  // Format date to match your design
+  // Format date
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A'
     const date = new Date(dateString)
     return date.toLocaleDateString('en-GB', {
       day: '2-digit',
@@ -196,147 +31,109 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
     })
   }
 
-  // Calculate total members
-  const totalMembers = teamMembers.length
-
-  // Fetch team details - using mock data
+  // Fetch team details
   const fetchTeamDetails = async () => {
     setLoading(true)
     setError('')
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      console.log('Looking for team with ID:', teamId)
-      console.log('Available teams:', mockTeams.map(t => ({ id: t.tmid, name: t.teamname })))
-      
-      const team = mockTeams.find(t => t.tmid === teamId)
-      console.log('Found team:', team)
-      
-      if (team) {
-        const teamData: Team = {
-          ...team,
-          createdon: formatDate(team.created_at),
-          updatedon: formatDate(team.updated_at),
-          totalmembers: totalMembers
+      const response = await teamRequests.getTeamMembers(teamId)
+
+      if (response && response.status === 'success') {
+        const teamData = response.team
+        const agents = response.agents || []
+        const members = teamData?.members || []
+
+        if (teamData) {
+          const formattedTeam: Team = {
+            ...teamData,
+            createdon: formatDate(teamData.created_at),
+            updatedon: formatDate(teamData.updated_at),
+            totalmembers: members.length
+          }
+
+          setSelectedTeam(formattedTeam)
+
+          // Transform members data
+          const transformedMembers: TeamMember[] = members.map((member: any) => ({
+            tmbmid: member.tmbmid,
+            teamid: teamId,
+            usermid: member.usermid,
+            created_at: member.created_at,
+            updated_at: member.updated_at,
+            user: member.user
+          }))
+
+          setTeamMembers(transformedMembers)
+
+          // Filter available users (agents not in team)
+          const existingMemberIds = transformedMembers.map(member => member.usermid)
+          const availableUsers = agents.filter(agent =>
+            !existingMemberIds.includes(agent.usermid) &&
+            agent.userstatus === 'Active'
+          )
+          setAvailableUsers(availableUsers)
+          return
         }
-        setSelectedTeam(teamData)
       } else {
-        setError(`Team not found. Looking for ID: ${teamId}, Available IDs: ${mockTeams.map(t => t.tmid).join(', ')}`)
+        setError(`Failed to load team details. Status: ${response?.status}`)
       }
-    } catch (err) {
-      setError('Error fetching team details')
-      console.error('Error fetching team:', err)
+
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Error fetching team details'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
   }
 
-  // Fetch available users - using mock data
-  const fetchAvailableUsers = async () => {
-    try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAvailableUsers(mockAvailableUsers)
-    } catch (err) {
-      console.error('Error fetching users:', err)
-    }
-  }
-
-  // Fetch team members - using mock data
-  const fetchTeamMembers = async () => {
-    try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      const members = mockTeamMembers.filter(member => member.tmid === teamId)
-      setTeamMembers(members)
-    } catch (err) {
-      console.error('Error fetching team members:', err)
-    }
-  }
-
-  useEffect(() => {
-    if (teamId) {
-      fetchTeamDetails()
-      fetchAvailableUsers()
-      fetchTeamMembers()
-    }
-  }, [teamId])
-
+  // Handle adding a team member - FIXED: Use array as expected by the function
   const handleAddMember = async (usermid: number) => {
     setLoading(true)
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const selectedUser = availableUsers.find(user => user.usermid === usermid)
-      if (selectedUser) {
-        const newMember: TeamMember = {
-          tmid: teamId,
-          usermid: selectedUser.usermid,
-          username: selectedUser.username,
-          userrole: selectedUser.userrole,
-          operation: 'Remove'
-        }
-        
-        // Add to team members
-        setTeamMembers(prev => [...prev, newMember])
-        
-        // Remove from available users
-        setAvailableUsers(prev => prev.filter(user => user.usermid !== usermid))
-        
-        // Refresh team details to update dates
-        if (selectedTeam) {
-          setSelectedTeam({
-            ...selectedTeam,
-            updatedon: formatDate(new Date().toISOString()),
-            totalmembers: totalMembers + 1
-          })
-        }
+      const result = await teamRequests.addTeamMembers(teamId, usermid) // Pass as array
+
+      // FIXED: Check result.result instead of result.status
+      if (result.status) {
+        await fetchTeamDetails()
+        setAddMemberModalOpen(false)
+      } else {
+        setError(result.message || 'Failed to add team member')
       }
-      setAddMemberModalOpen(false)
-    } catch (error) {
-      console.error('Error adding team member:', error)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Error adding team member'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
   }
 
+  // Handle removing a team member - FIXED: Check result.result
   const handleRemoveMember = async (usermid: number) => {
     setLoading(true)
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const removedMember = teamMembers.find(member => member.usermid === usermid)
-      
-      // Remove from team members
-      setTeamMembers(prev => prev.filter(member => member.usermid !== usermid))
-      
-      // Add back to available users if the user exists
-      if (removedMember) {
-        const userToAddBack = mockAvailableUsers.find(user => user.usermid === usermid)
-        if (userToAddBack) {
-          setAvailableUsers(prev => [...prev, userToAddBack])
-        }
+      const result = await teamRequests.removeTeamMember(teamId, usermid)
+
+      // FIXED: Check result.result instead of result.status
+      if (result.status) {
+        await fetchTeamDetails()
+      } else {
+        setError(result.message || 'Failed to remove team member')
       }
-      
-      // Refresh team details to update dates
-      if (selectedTeam) {
-        setSelectedTeam({
-          ...selectedTeam,
-          updatedon: formatDate(new Date().toISOString()),
-          totalmembers: Math.max(0, totalMembers - 1)
-        })
-      }
-    } catch (error) {
-      console.error('Error removing team member:', error)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Error removing team member'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
   }
 
-  // Updated back button handler
+  // Load data when component mounts
+  useEffect(() => {
+    if (teamId) {
+      fetchTeamDetails()
+    }
+  }, [teamId])
+
   const handleBackClick = () => {
     if (onBack) {
       onBack()
@@ -345,6 +142,8 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
     }
   }
 
+  const clearError = () => setError('')
+
   if (loading && !selectedTeam) {
     return (
       <div className="container-fluid p-6">
@@ -352,18 +151,29 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
+          <span className="ms-2">Loading team details...</span>
         </div>
       </div>
     )
   }
 
-  if (error) {
+  if (error && !selectedTeam) {
     return (
       <div className="container-fluid p-6">
-        <div className="alert alert-danger d-flex align-items-center" role="alert">
-          <i className="fas fa-exclamation-triangle me-2"></i>
-          {error}
+        <div className="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
+          <div>
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            {error}
+          </div>
+          <button type="button" className="btn-close" onClick={clearError}></button>
         </div>
+        <button
+          className="btn btn-outline-secondary mt-3"
+          onClick={handleBackClick}
+        >
+          <i className="fas fa-arrow-left me-2"></i>
+          Back to Teams
+        </button>
       </div>
     )
   }
@@ -372,18 +182,37 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
     return (
       <div className="container-fluid p-6">
         <div className="alert alert-warning">Team not found</div>
+        <button
+          className="btn btn-outline-secondary mt-3"
+          onClick={handleBackClick}
+        >
+          <i className="fas fa-arrow-left me-2"></i>
+          Back to Teams
+        </button>
       </div>
     )
   }
 
   return (
     <div className="container-fluid p-6">
+      {/* Error Alert */}
+      {error && (
+        <div className="alert alert-danger d-flex align-items-center justify-content-between mb-4" role="alert">
+          <div>
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            {error}
+          </div>
+          <button type="button" className="btn-close" onClick={clearError}></button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h2 mb-0 text-gray-800">Team Details</h1>
         <button
           className="btn btn-outline-secondary"
           onClick={handleBackClick}
+          disabled={loading}
         >
           <i className="fas fa-arrow-left me-2"></i>
           Back to Teams
@@ -410,7 +239,7 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
                   </tr>
                   <tr>
                     <td className="fw-semibold text-muted">Total Members</td>
-                    <td className="fw-bold">{totalMembers}</td>
+                    <td className="fw-bold">{teamMembers.length}</td>
                   </tr>
                 </tbody>
               </table>
@@ -420,11 +249,15 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
                 <tbody>
                   <tr>
                     <td className="fw-semibold text-muted" style={{ width: '140px' }}>Team Leader</td>
-                    <td className="fw-bold text-dark">{selectedTeam.leader.username}</td>
+                    <td className="fw-bold text-dark">{selectedTeam.leader?.username || 'N/A'}</td>
                   </tr>
                   <tr>
                     <td className="fw-semibold text-muted">Updated On</td>
                     <td>{selectedTeam.updatedon || formatDate(selectedTeam.updated_at)}</td>
+                  </tr>
+                  <tr>
+                    <td className="fw-semibold text-muted">Team ID</td>
+                    <td className="fw-bold text-muted">#{selectedTeam.tmid}</td>
                   </tr>
                 </tbody>
               </table>
@@ -436,31 +269,44 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
       {/* Add Team Member Section */}
       <div className="card shadow mb-4">
         <div className="card-header bg-light py-3">
-          <h5 className="mb-0 text-gray-800">Add Team Member</h5>
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="mb-0 text-gray-800">Add Team Member</h5>
+          </div>
         </div>
         <div className="card-body">
-          <div className="row align-items-end">
-            <div className="col-md-8">
-              <label className="form-label fw-semibold">Select Sales Executive *</label>
+          <div className="row align-items-center">
+            <div className="col-md-8 mb-3">
+              <label className="form-label fw-semibold">Select Agent *</label>
               <select className="form-select" disabled>
-                <option>Select Sales Executive</option>
+                <option>
+                  {availableUsers.length === 0
+                    ? 'No available agents'
+                    : `Select from ${availableUsers.length} available agents`
+                  }
+                </option>
               </select>
+              <div className="form-text">
+                {availableUsers.length === 0
+                  ? 'All agents are already part of this team or no active agents available.'
+                  : `Click "Add Agent" to select from available agents.`
+                }
+              </div>
             </div>
             <div className="col-md-4">
               <button
                 className="btn btn-primary w-100"
                 onClick={() => setAddMemberModalOpen(true)}
-                disabled={loading}
+                disabled={loading || availableUsers.length === 0}
               >
                 {loading ? (
                   <>
                     <span className="spinner-border spinner-border-sm me-2"></span>
-                    Adding...
+                    Loading...
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-plus me-2"></i>
-                    Add
+                    <i className="fas fa-user-plus me-2"></i>
+                    Add Agent
                   </>
                 )}
               </button>
@@ -472,13 +318,19 @@ export const TeamDetailsPage: React.FC<TeamDetailsPageProps> = ({
       {/* Team Members Table */}
       <div className="card shadow">
         <div className="card-header bg-light py-3">
-          <h5 className="mb-0 text-gray-800">Team Members</h5>
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="mb-0 text-gray-800">Team Members</h5>
+            <span className="badge bg-secondary">
+              {teamMembers.length} agent{teamMembers.length !== 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
         <div className="card-body p-0">
           <TeamMembersTable
             members={teamMembers}
             onRemoveMember={handleRemoveMember}
             loading={loading}
+            teamLeaderId={selectedTeam?.leadermid}
           />
         </div>
       </div>

@@ -14,8 +14,8 @@ export interface TelecallerPerformanceParams {
 }
 
 export const getTelecallerPerformance = async (params: TelecallerPerformanceParams = {}): Promise<TelecallerPerformanceResponse> => {
-  const response = await axios.post(GET_TELECALLER_PERFORMANCE_URL)
-
+  const response = await axios.post(GET_TELECALLER_PERFORMANCE_URL, params) // Pass params as request body
+  
   return response.data
 }
 

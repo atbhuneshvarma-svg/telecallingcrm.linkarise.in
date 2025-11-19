@@ -9,6 +9,7 @@ import ConvertedClientsTable from './components/ConvertedClientsTable'
 import { QuickActions } from './components/QuickActions'
 import { TeamMembers } from './components/TeamMembers'
 import { RecentActivities } from './components/RecentActivities'
+import {getTelecallerPerformance} from '../../modules/apps/reports/performance/core/_requests'
 import LeadCallsChart from './components/LeadCallsChart'
 
 const DashboardPage: React.FC = () => {
@@ -16,6 +17,7 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
+  
 
   useEffect(() => {
     fetchDashboardData()

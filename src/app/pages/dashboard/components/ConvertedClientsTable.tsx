@@ -1,9 +1,21 @@
 import React from 'react'
-
+import {convertedLeadService } from '../../../modules/apps/reports/converted/core/services/leadService'
 interface ConvertedClientsTableProps {
   stats?: any
   loading?: boolean
 }
+
+const fetchConvertedClients = async () => {
+  try {
+    const response = await convertedLeadService.getConvertedLeads({ page: 1, per_page: 5 })
+    return response.data
+  } catch (error) {
+    console.error('Error fetching converted clients:', error)
+    return []
+  }
+}
+
+const convertedClients = await fetchConvertedClients()
 
 const ConvertedClientsTable: React.FC<ConvertedClientsTableProps> = ({ stats, loading }) => {
   if (loading) {
@@ -15,14 +27,6 @@ const ConvertedClientsTable: React.FC<ConvertedClientsTableProps> = ({ stats, lo
       </div>
     )
   }
-
-  const convertedClients = [
-    { name: 'ABITHA ABRAHAM', mobile: '8129150209', telecaller: 'manu', campaign: 'testreport', date: '2025-T' },
-    { name: 'VIJAYANPILLAI G', mobile: '8547404662', telecaller: 'manu', campaign: 'testreport', date: '2025-T' },
-    { name: 'ASHNA NOUSHAD', mobile: '9447421357', telecaller: 'Counsellor', campaign: 'Campaign', date: '2025-T' },
-    { name: 'KRISHNA KIRKELER', mobile: '7306249490', telecaller: 'Telecaller', campaign: 'Campaign', date: '2025-T' },
-    { name: 'KRISHNA KIRKELER', mobile: '7306249490', telecaller: 'Telecaller', campaign: 'Campaign', date: '2025-T' }
-  ]
 
   return (
     <div className="table-responsive">

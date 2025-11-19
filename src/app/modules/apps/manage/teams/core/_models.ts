@@ -26,10 +26,10 @@ export interface Team {
   created_at: string;
   updated_at: string;
   leader: User;
-  // Add these properties for the team details page
   createdon?: string;
   updatedon?: string;
   totalmembers?: number;
+  members?: TeamMember[];
 }
 
 export interface TeamsResponse {
@@ -46,7 +46,7 @@ export interface PaginationParams {
   limit: number;
   search: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface CreateTeamRequest {
@@ -62,16 +62,42 @@ export interface UpdateTeamRequest {
 }
 
 export interface TeamMember {
-  tmid: number;
-  usermid: number; // Changed from userid to usermid
-  username: string;
-  userrole: string;
-  operation: string;
+  tmbmid: number;
+  teamid: number;
+  usermid: number;
+  created_at: string;
+  updated_at: string;
+  user: {
+    usermid: number;
+    username: string;
+    usermobile: string;
+    userloginid: string;
+    userstatus: string;
+    usertype: string;
+    userrole: string;
+    userlastlogintime: string;
+    usernooflogin: number;
+    userregip: string;
+    designation: string | null;
+    detail: string | null;
+    useremail: string;
+    updated_at: string;
+    created_at: string;
+    cmpmid: number;
+  };
 }
 
-// Add interface for team details response
 export interface TeamDetailsResponse {
   result: boolean;
-  data: Team;
+  message?: string;
+  data?: {
+    team?: Team;
+    agents?: User[];
+    members?: TeamMember[];
+  };
+  // Or if the API returns directly:
+  status?:string;
+  team?: Team;
+  agents?: User[];
   members?: TeamMember[];
 }

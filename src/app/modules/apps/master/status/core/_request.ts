@@ -11,6 +11,7 @@ const STATUS_URL = `${API_URL}/status`;
 export interface Status {
   id: number;
   name: string;
+  stage: string; // Add this field
   color: string;
   cmpmid?: number;
   created_at?: string;
@@ -72,6 +73,7 @@ export const statusApi = {
       return response.data.data.map((item: any) => ({
         id: item.statusmid,
         name: item.statusname,
+        stage: item.stage, // Add this line
         color: item.statuscolor || "#0d6efd",
         cmpmid: item.cmpmid,
         created_at: item.created_at,
@@ -103,6 +105,7 @@ export const statusApi = {
         data: response.data.data.map((item: any) => ({
           id: item.statusmid,
           name: item.statusname,
+          stage: item.stage, // Add this line
           color: item.statuscolor || "#0d6efd",
           cmpmid: item.cmpmid,
           created_at: item.created_at,
@@ -133,6 +136,7 @@ export const statusApi = {
       return {
         id: item.statusmid,
         name: item.statusname,
+        stage: item.stage, // Add this line
         color: item.statuscolor || "#0d6efd",
         cmpmid: item.cmpmid,
         created_at: item.created_at,
@@ -162,6 +166,7 @@ export const statusApi = {
       return {
         id: item.statusmid,
         name: item.statusname,
+        stage: item.stage, // Add this line
         color: item.statuscolor || "#0d6efd",
         cmpmid: item.cmpmid,
         created_at: item.created_at,
@@ -212,7 +217,7 @@ export const addStatus = async (
   name: string,
   color: string = "#0d6efd"
 ): Promise<Status> => {
-  return statusApi.createStatus({ name, color });
+  return statusApi.createStatus({ name, color , stage: '' });
 };
 
 // Update status
@@ -221,7 +226,7 @@ export const updateStatus = async (
   name: string,
   color: string
 ): Promise<Status> => {
-  return statusApi.updateStatus(id, { name, color });
+  return statusApi.updateStatus(id, { name, color, stage: '' });
 };
 
 // Delete status

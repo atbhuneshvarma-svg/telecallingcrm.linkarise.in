@@ -5,7 +5,9 @@ import {
   TeamsResponse,
   CreateTeamRequest,
   UpdateTeamRequest,
+  TeamDetailsResponse,
 } from "./_models";
+import { get } from "http";
 
 const API_URL =
   import.meta.env.VITE_APP_THEME_API_URL ||
@@ -113,5 +115,39 @@ export const teamRequests = {
         },
       ];
     }
+  },
+
+  // In your teamRequests - fix the API endpoints and response handling
+  getTeamMembers: async (teamid: number): Promise<TeamDetailsResponse> => {
+    const response = await axios.post<TeamDetailsResponse>(
+      `${API_URL}/showteam/${teamid}`,
+      { teamid }
+    );
+    console.log("Team Members API Response:", response.data);
+    return response.data; // Return the full response, not just data
+  },
+
+ addTeamMembers: async (
+  teamid: number,
+  usermid: number  // Change from number[] to number
+): Promise<{ status: boolean; message: string }> => {
+  const response = await axios.post<{ status: boolean; message: string }>(
+    `${API_URL}/team/${teamid}/add-member`,
+    { usermid }  // Send as single number
+  );
+  console.log("Add Team Members Response:", response.data);
+  return response.data;
+},
+
+  removeTeamMember: async (
+    teamid: number,
+    usermid: number
+  ): Promise<{ status: boolean; message: string }> => {
+    const response = await axios.delete<{ status: boolean; message: string }>(
+      `${API_URL}/team/${teamid}/remove-member/${usermid}?usermid=${usermid}`, // Fixed: use body instead of query param
+      { data: { teamid, usermid } }
+    );
+    console.log("Remove Team Member Response:", response.data);
+    return response.data;
   },
 };
