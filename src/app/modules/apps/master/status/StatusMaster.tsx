@@ -22,6 +22,7 @@ const StatusMaster: React.FC = () => {
     id: 0,
     name: '',
     color: '#0d6efd',
+    stage: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,19 +78,21 @@ const StatusMaster: React.FC = () => {
         const newStatus = await statusApi.createStatus({
           name: currentStatus.name,
           color: currentStatus.color,
+          stage: currentStatus.stage,
         });
         console.log('✅ StatusMaster: Status created', newStatus);
       } else {
         const updatedStatus = await statusApi.updateStatus(currentStatus.id, {
           name: currentStatus.name,
           color: currentStatus.color,
+          stage: currentStatus.stage,
         });
         console.log('✅ StatusMaster: Status updated', updatedStatus);
       }
 
       // Close modal first
       setShowModal(false);
-      setCurrentStatus({ id: 0, name: '', color: '#0d6efd' });
+      setCurrentStatus({ id: 0, name: '', color: '#0d6efd', stage: '' });
 
       // Then reload data - IMPORTANT: Don't await, let it happen in background
       console.log('🔄 StatusMaster: Triggering data reload after save...');
@@ -131,13 +134,13 @@ const StatusMaster: React.FC = () => {
 
   const handleAddNew = () => {
     setModalMode('add');
-    setCurrentStatus({ id: 0, name: '', color: '#0d6efd' });
+    setCurrentStatus({ id: 0, name: '', color: '#0d6efd', stage: '' });
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setCurrentStatus({ id: 0, name: '', color: '#0d6efd' });
+    setCurrentStatus({ id: 0, name: '', color: '#0d6efd', stage: '' });
   };
 
   const handleRetry = () => {

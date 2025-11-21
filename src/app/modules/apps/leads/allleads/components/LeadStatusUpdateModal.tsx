@@ -4,11 +4,12 @@ import { Lead } from '../core/_models'
 import { leadApi } from '../core/_request'
 import { useLeads } from '../core/LeadsContext'
 import { useToast } from '../hooks/useToast'
+import { FreshLead } from '../../fressleads/core/_models'
 
 interface LeadStatusUpdateModalProps {
   show: boolean
   onHide: () => void
-  lead: Lead | null
+  lead: Lead | FreshLead | null
   onStatusUpdated: () => void
 }
 
@@ -18,8 +19,6 @@ interface FormData {
   followupremark: string
   followup: boolean
   followupdate: string
-  starttime: string
-  endtime: string
   isclient: boolean
 }
 
@@ -31,18 +30,16 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
 }) => {
   const { showSuccess, showError } = useToast()
   const { dropdowns, loading: dropdownsLoading } = useLeads()
-  
+
   const [formData, setFormData] = useState<FormData>({
     statusname: '',
     activityname: '',
     followupremark: '',
     followup: false,
     followupdate: '',
-    starttime: '',
-    endtime: '',
     isclient: false
   })
-  
+
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Set<string>>(new Set())
@@ -52,41 +49,40 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
     const now = new Date()
     const today = now.toISOString().split('T')[0]
     const currentTime = now.toTimeString().split(' ')[0].substring(0, 5)
-    
+
     // Calculate end time (30 minutes from now)
     const endTime = new Date(now.getTime() + 30 * 60000)
     const endTimeString = endTime.toTimeString().split(' ')[0].substring(0, 5)
-    
+
     return { today, currentTime, endTimeString }
   }, [])
 
   // Memoized status and activity options
-  const statusOptions = useMemo(() => 
-    dropdowns?.statuses?.filter(s => s.statusname) || [], 
+  const statusOptions = useMemo(() =>
+    dropdowns?.statuses?.filter(s => s.statusname) || [],
     [dropdowns?.statuses]
   )
-  
-  const activityOptions = useMemo(() => 
-    dropdowns?.activities?.filter(a => a.activityname) || [], 
+
+  const activityOptions = useMemo(() =>
+    dropdowns?.activities?.filter(a => a.activityname) || [],
     [dropdowns?.activities]
   )
 
+  const isStatusNEW = lead?.statusname.toLowerCase() === 'new';
   // Reset form when modal opens/closes or lead changes
   useEffect(() => {
     if (show && lead) {
       const defaultActivity = activityOptions[0]?.activityname || ''
-      
+
       setFormData({
         statusname: lead.statusname || '',
         activityname: defaultActivity,
         followupremark: '',
         followup: false,
         followupdate: currentDateTime.today,
-        starttime: currentDateTime.currentTime,
-        endtime: currentDateTime.endTimeString,
         isclient: false
       })
-      
+
       setErrors({})
       setTouched(new Set())
     }
@@ -104,21 +100,8 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
       newErrors.activityname = 'Activity type is required'
     }
 
-    if (!formData.starttime) {
-      newErrors.starttime = 'Start time is required'
-    }
-
-    if (!formData.endtime) {
-      newErrors.endtime = 'End time is required'
-    }
 
     // Validate time logic
-    if (formData.starttime && formData.endtime) {
-      if (formData.starttime >= formData.endtime) {
-        newErrors.endtime = 'End time must be after start time'
-      }
-    }
-
     if (formData.followup && !formData.followupdate) {
       newErrors.followupdate = 'Follow-up date is required when follow-up is enabled'
     }
@@ -135,7 +118,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
   const handleFieldChange = useCallback((field: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     setTouched(prev => new Set(prev).add(field))
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => {
@@ -167,8 +150,9 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
         followupdate: formData.followup ? formData.followupdate : '',
         statusname: formData.statusname,
         activityname: formData.activityname,
-        starttime: `${currentDateTime.today} ${formData.starttime}:00`,
-        endtime: `${currentDateTime.today} ${formData.endtime}:00`,
+        // API expects starttime and endtime — provide current times or empty strings when not scheduling follow-up
+        starttime: formData.followup ? currentDateTime.currentTime : '',
+        endtime: formData.followup ? currentDateTime.endTimeString : '',
         mobileno: lead.phone || '',
         isclient: formData.isclient ? 1 : 0,
       }
@@ -185,9 +169,9 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
       }
     } catch (error: any) {
       console.error('Error updating lead status:', error)
-      
+
       let errorMessage = 'Something went wrong while updating. Please try again.'
-      
+
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.errors
         errorMessage = Object.values(validationErrors).flat().join(', ')
@@ -196,7 +180,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
       } else if (error.message) {
         errorMessage = error.message
       }
-      
+
       showError(errorMessage)
     } finally {
       setLoading(false)
@@ -210,8 +194,6 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
       followupremark: '',
       followup: false,
       followupdate: '',
-      starttime: '',
-      endtime: '',
       isclient: false
     })
     setErrors({})
@@ -264,7 +246,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
             Update Lead Status
             {lead && (
               <Badge bg="light" text="dark" className="ms-2">
-                {lead.leadname}
+                {'leadname' in lead ? lead.leadname : lead.name}
               </Badge>
             )}
           </Modal.Title>
@@ -284,7 +266,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
                   <div className="col-12">
                     <div className="d-flex justify-content-between align-items-start p-3 bg-primary bg-opacity-10 rounded">
                       <div>
-                        <h6 className="fw-bold text-primary mb-1">{lead.leadname}</h6>
+                        <h6 className="fw-bold text-primary mb-1">{'leadname' in lead ? lead.leadname : lead.name}</h6>
                         <div className="d-flex gap-3 text-muted fs-7">
                           <span>
                             <i className="bi bi-telephone me-1"></i>
@@ -296,7 +278,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
                           </span>
                           <span>
                             <i className="bi bi-person me-1"></i>
-                            {lead.username || 'Unassigned'}
+                            {'username' in lead ? lead.username : ('user' in lead && lead.user?.username) ? lead.user.username : 'Unassigned'}
                           </span>
                         </div>
                       </div>
@@ -337,7 +319,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
                       </Form.Control.Feedback>
                     )}
                   </Col>
-                  
+
                   <Col md={6}>
                     <Form.Label className="fw-semibold d-flex align-items-center gap-2">
                       <i className="bi bi-activity"></i>
@@ -363,53 +345,6 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
                     {isFieldInvalid('activityname') && (
                       <Form.Control.Feedback type="invalid">
                         {errors.activityname}
-                      </Form.Control.Feedback>
-                    )}
-                  </Col>
-                </Row>
-
-                {/* Time Selection */}
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                      <i className="bi bi-clock"></i>
-                      Start Time *
-                      {isFieldInvalid('starttime') && (
-                        <i className="bi bi-exclamation-circle text-danger"></i>
-                      )}
-                    </Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={formData.starttime}
-                      onChange={(e) => handleFieldChange('starttime', e.target.value)}
-                      isInvalid={isFieldInvalid('starttime')}
-                      required
-                    />
-                    {isFieldInvalid('starttime') && (
-                      <Form.Control.Feedback type="invalid">
-                        {errors.starttime}
-                      </Form.Control.Feedback>
-                    )}
-                  </Col>
-                  
-                  <Col md={6}>
-                    <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                      <i className="bi bi-clock-fill"></i>
-                      End Time *
-                      {isFieldInvalid('endtime') && (
-                        <i className="bi bi-exclamation-circle text-danger"></i>
-                      )}
-                    </Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={formData.endtime}
-                      onChange={(e) => handleFieldChange('endtime', e.target.value)}
-                      isInvalid={isFieldInvalid('endtime')}
-                      required
-                    />
-                    {isFieldInvalid('endtime') && (
-                      <Form.Control.Feedback type="invalid">
-                        {errors.endtime}
                       </Form.Control.Feedback>
                     )}
                   </Col>
@@ -443,96 +378,76 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
                 </Form.Group>
 
                 {/* Follow-up Section */}
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                    <i className="bi bi-calendar-check"></i>
-                    Schedule Follow-up?
-                  </Form.Label>
-                  <div className="d-flex gap-3">
-                    <Form.Check 
-                      type="radio" 
-                      label="No" 
-                      name="followup" 
-                      checked={!formData.followup} 
-                      onChange={() => handleFieldChange('followup', false)} 
-                    />
-                    <Form.Check 
-                      type="radio" 
-                      label="Yes" 
-                      name="followup" 
-                      checked={formData.followup} 
-                      onChange={() => handleFieldChange('followup', true)} 
-                    />
-                  </div>
-
-                  {formData.followup && (
-                    <div className="mt-3 p-3 border rounded bg-white shadow-sm">
-                      <Row>
-                        <Col md={6}>
-                          <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                            Follow-up Date *
-                            {isFieldInvalid('followupdate') && (
-                              <i className="bi bi-exclamation-circle text-danger"></i>
-                            )}
-                          </Form.Label>
-                          <Form.Control
-                            type="date"
-                            value={formData.followupdate}
-                            onChange={(e) => handleFieldChange('followupdate', e.target.value)}
-                            min={currentDateTime.today}
-                            isInvalid={isFieldInvalid('followupdate')}
-                            required
-                          />
-                          {isFieldInvalid('followupdate') && (
-                            <Form.Control.Feedback type="invalid">
-                              {errors.followupdate}
-                            </Form.Control.Feedback>
-                          )}
-                        </Col>
-                      </Row>
+                {(!isStatusNEW) && (
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fw-semibold d-flex align-items-center gap-2">
+                      <i className="bi bi-calendar-check"></i>
+                      Schedule Follow-up?
+                    </Form.Label>
+                    <div className="d-flex gap-3">
+                      <Form.Check
+                        type="radio"
+                        label="No"
+                        name="followup"
+                        id="followup-no"
+                        checked={!formData.followup}
+                        onChange={() => handleFieldChange('followup', false)}
+                      />
+                      <Form.Check
+                        type="radio"
+                        label="Yes"
+                        name="followup"
+                        id="followup-yes"
+                        checked={formData.followup}
+                        onChange={() => handleFieldChange('followup', true)}
+                      />
                     </div>
-                  )}
-                </Form.Group>
 
-                {/* Is Client */}
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                    <i className="bi bi-person-check"></i>
-                    Mark as Client?
-                  </Form.Label>
-                  <div className="d-flex gap-3">
-                    <Form.Check 
-                      type="radio" 
-                      label="No" 
-                      name="isclient" 
-                      checked={!formData.isclient} 
-                      onChange={() => handleFieldChange('isclient', false)} 
-                    />
-                    <Form.Check 
-                      type="radio" 
-                      label="Yes" 
-                      name="isclient" 
-                      checked={formData.isclient} 
-                      onChange={() => handleFieldChange('isclient', true)} 
-                    />
-                  </div>
-                </Form.Group>
+                    {formData.followup && (
+                      <div className="mt-3 p-3 border rounded bg-light">
+                        <Row className="g-3">
+                          <Col md={6}>
+                            <Form.Label className="fw-semibold">
+                              Follow-up Date *
+                              {isFieldInvalid('followupdate') && (
+                                <i className="bi bi-exclamation-circle text-danger ms-2"></i>
+                              )}
+                            </Form.Label>
+                            <Form.Control
+                              type="date"
+                              value={formData.followupdate}
+                              onChange={(e) => handleFieldChange('followupdate', e.target.value)}
+                              min={currentDateTime.today}
+                              isInvalid={isFieldInvalid('followupdate')}
+                              required
+                            />
+                            {isFieldInvalid('followupdate') && (
+                              <Form.Control.Feedback type="invalid">
+                                {errors.followupdate}
+                              </Form.Control.Feedback>
+                            )}
+                          </Col>
+                        </Row>
+                      </div>
+                    )}
+                  </Form.Group>
+                )}
               </Card.Body>
             </Card>
           )}
         </Modal.Body>
 
         <Modal.Footer className="bg-white border-top">
-          <Button 
-            variant="outline-secondary" 
-            onClick={handleClose} 
+          <Button
+            variant="outline-secondary"
+            onClick={handleClose}
             disabled={loading}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            variant="primary" 
+          <Button
+            type="submit"
+            variant="primary"
             disabled={loading}
             className="d-flex align-items-center gap-2"
           >
@@ -550,7 +465,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
           </Button>
         </Modal.Footer>
       </Form>
-    </Modal>
+    </Modal >
   )
 }
 

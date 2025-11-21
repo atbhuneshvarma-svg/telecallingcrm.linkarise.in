@@ -1,20 +1,24 @@
 import { useEffect, useState, useCallback } from "react"
 import axios from "axios"
-import { Lead as LeadModel, Campaign, User } from "../core/_models"
+import { Lead as LeadModel, Campaign, User, LeadAllocationResponse } from "../core/_models"
 import { toast } from "react-toastify"
 
-interface LeadsResponse {
-  current_page: number
-  data: LeadModel[]
-  per_page: number
-  total: number
-  last_page: number
-}
-
-interface LeadAllocationData {
-  leads: LeadsResponse
-  campaigns: Campaign[]
-  users: User[]
+// ✅ Import Response Interface
+interface ImportLeadsResponse {
+  success: boolean
+  imported: number
+  duplicates: Array<{
+    row: number
+    email: string
+    phone: string
+    message: string
+  }>
+  errors: Array<{
+    row: number
+    field?: string
+    message: string
+  }>
+  message?: string
 }
 
 // ✅ Bulk Allocation Interfaces
@@ -76,7 +80,7 @@ export interface UseLeadAllocationReturn {
 
   allocateLeads: (assignToUserId: number) => Promise<void>
   deleteLeads: () => Promise<void>
-  importLeads: (file: File, campaignmid: number) => Promise<any>
+  importLeads: (file: File, campaignmid: number) => Promise<ImportLeadsResponse>
   handleImport: (file: File, campaignmid: number) => Promise<void>
   
   // ✅ Bulk Allocation Functions
@@ -103,7 +107,7 @@ export const useLeadAllocation = (): UseLeadAllocationReturn => {
   const fetchLeads = useCallback(async (page = 1) => {
     setLoading(true)
     try {
-      const { data } = await axios.get<{ success: boolean; data: LeadAllocationData }>(
+      const { data } = await axios.get<LeadAllocationResponse>(
         `${API_URL}/leadallocation?page=${page}`
       )
 
@@ -263,6 +267,7 @@ export const useLeadAllocation = (): UseLeadAllocationReturn => {
         setLoading(false)
     }
 }
+
   const deleteLeads = async () => {
     if (selectedLeads.length === 0) throw new Error("No leads selected")
     setLoading(true)
@@ -281,14 +286,43 @@ export const useLeadAllocation = (): UseLeadAllocationReturn => {
   const handleImport = async (file: File, campaignmid: number) => {
     try {
       console.log("📤 Uploading file:", file.name, "for campaignmid:", campaignmid)
-      await importLeads(file, campaignmid)
+      const result = await importLeads(file, campaignmid)
+      
+      // Show detailed import results
+      if (result.success) {
+        if (result.imported > 0) {
+          toast.success(`✅ Successfully imported ${result.imported} leads!`)
+        }
+        
+        if (result.duplicates && result.duplicates.length > 0) {
+          toast.warning(`⚠️ Found ${result.duplicates.length} duplicate leads`, {
+            autoClose: false // Keep duplicate warning visible
+          })
+          console.log('Duplicate leads:', result.duplicates)
+        }
+        
+        if (result.errors && result.errors.length > 0) {
+          toast.error(`❌ ${result.errors.length} errors found during import`, {
+            autoClose: false
+          })
+          console.log('Import errors:', result.errors)
+        }
+        
+        // If no leads were imported and there are duplicates/errors
+        if (result.imported === 0 && (result.duplicates.length > 0 || result.errors.length > 0)) {
+          toast.info('📋 No new leads imported. Check duplicates/errors above.')
+        }
+      } else {
+        toast.error(result.message || "Failed to import leads")
+      }
+      
       await refreshData()
     } catch (error) {
       console.error("Import failed:", error)
     }
   }
 
-  const importLeads = async (file: File, campaignmid: number) => {
+  const importLeads = async (file: File, campaignmid: number): Promise<ImportLeadsResponse> => {
     if (!campaignmid) throw new Error("Campaign ID is required")
     setLoading(true)
     try {
@@ -296,21 +330,26 @@ export const useLeadAllocation = (): UseLeadAllocationReturn => {
       form.append("file", file)
       form.append("campaignmid", campaignmid.toString())
 
-      const res = await axios.post(`${API_URL}/leadallocation/importstore`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-
-      if (res.data.success) {
-        toast.success(res.data.message || "Leads imported successfully!")
-      } else {
-        toast.error(res.data.message || "Failed to import leads")
-      }
+      const res = await axios.post<ImportLeadsResponse>(
+        `${API_URL}/leadallocation/importstore`, 
+        form, 
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      )
 
       return res.data
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error importing leads:", err)
-      toast.error("Error importing leads")
-      throw err
+      
+      // Handle API error response
+      if (err.response?.data) {
+        toast.error(err.response.data.message || "Error importing leads")
+        return err.response.data
+      } else {
+        toast.error("Error importing leads")
+        throw err
+      }
     } finally {
       setLoading(false)
     }

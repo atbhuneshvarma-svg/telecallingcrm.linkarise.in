@@ -19,7 +19,8 @@ import LeadCallDetails from '../modules/apps/leads/callDetail/LeadCallDetails'
 import LeadFollowup from '../modules/apps/leads/followup/LeadFollowup'
 import { FreshLeadsPage } from '../modules/apps/leads/fressleads/pages/FreshLeadsPage'
 import { ActivityLogsPage } from '../modules/apps/reports/activity/ActivityLogsPage'
-import { TeamDetailsPage } from '../modules/apps/manage/teams'
+import LeadTransfer from '../modules/apps/leads/transfer/Leadtransfer'
+import LeadAllocationRoutes from '../modules/apps/leads/allocation/LeadAllocationRoutes'
 
 const PrivateRoutes = () => {
   const ProfilePage = lazy(() => import('../modules/profile/ProfilePage'))
@@ -183,7 +184,7 @@ const PrivateRoutes = () => {
           path='leads/allocate/*'
           element={
             <SuspensedView>
-              <LeadAllocation />
+              <LeadAllocationRoutes />
             </SuspensedView>
           }
         />

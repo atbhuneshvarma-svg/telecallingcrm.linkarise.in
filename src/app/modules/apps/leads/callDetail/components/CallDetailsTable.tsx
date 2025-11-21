@@ -556,9 +556,7 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
         {sortedData.length > 0 && (
           <div className="card-footer bg-transparent border-top-0">
             <div className="d-flex justify-content-between align-items-center">
-              <small className="text-muted">
-                Showing {sortedData.length} call records
-              </small>
+              
               <small className="text-muted">
                 Sorted by: <span className="fw-semibold text-capitalize">
                   {sortField === 'starttime' ? 'Start Time' : 

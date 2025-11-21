@@ -7,6 +7,26 @@ import { CampaignFileModal } from './components/LeadImport'
 import { useLeadAllocation } from './hooks/useLeadAllocation'
 import { Lead, Campaign } from './core/_models'
 import BulkAllocateModal from './components/BulkAllocateModal'
+import { ImportResultsModal } from './components/ImportResultsModal'
+import { useNavigate } from 'react-router-dom'
+
+// ✅ Add interface for import results
+interface ImportResults {
+  imported: number;
+  duplicates: Array<{
+    row: number;
+    email: string;
+    phone: string;
+    message: string;
+  }>;
+  errors: Array<{
+    row: number;
+    field?: string;
+    message: string;
+  }>;
+  success?: boolean;
+  message?: string;
+}
 
 const LeadAllocation: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -16,6 +36,14 @@ const LeadAllocation: React.FC = () => {
   const [assignTo, setAssignTo] = useState('')
   const [showImportModal, setShowImportModal] = useState(false)
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
+  
+  // ✅ Add state for import results
+  const [importResults, setImportResults] = useState<ImportResults | null>(null)
+  const [showImportResults, setShowImportResults] = useState(false)
+  const [isImporting, setIsImporting] = useState(false)
+
+  // ✅ Add navigate hook for transfer functionality
+  const navigate = useNavigate()
 
   const {
     leads,
@@ -32,7 +60,39 @@ const LeadAllocation: React.FC = () => {
     deleteLeads,
     handleImport,
     refreshData,
+    importLeads
   } = useLeadAllocation()
+
+  // ✅ Simple transfer leads handler - just redirects
+  const handleTransferLeads = () => {
+    navigate('transfer') // Adjust path to match your existing route
+  }
+
+  // ✅ Updated import handler that captures results
+  const handleImportWithResults = async (file: File, campaignmid: number) => {
+    setIsImporting(true)
+    setShowImportModal(false) // Close import modal
+    
+    try {
+      console.log("🔄 Starting import...")
+      
+      // Use importLeads directly to get the detailed response
+      const result = await importLeads(file, campaignmid)
+      console.log("📊 Import result:", result)
+      
+      // Store the results and show modal
+      setImportResults(result)
+      setShowImportResults(true)
+      
+      // Refresh the data
+      await refreshData()
+      
+    } catch (error) {
+      console.error("❌ Import failed:", error)
+    } finally {
+      setIsImporting(false)
+    }
+  }
 
   // ✅ Allocate handler
   const handleAllocate = async () => {
@@ -84,7 +144,7 @@ const LeadAllocation: React.FC = () => {
     return leads.filter((lead: Lead) => {
       const matchesSearch =
         searchTerm === '' ||
-        lead.leadname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.phone?.includes(searchTerm)
 
@@ -108,12 +168,13 @@ const LeadAllocation: React.FC = () => {
     return uniqueCampaigns
   }, [campaigns])
 
+  console.log("hello",leads);
   // ✅ Get unique campaigns from leads for bulk allocation modal
   const leadCampaigns: Campaign[] = useMemo(() => {
     const campaignsFromLeads = leads
       .map(lead => lead.campaign)
       .filter((campaign): campaign is Campaign => campaign !== undefined)
-
+ 
     return [
       ...new Map(
         campaignsFromLeads.map(campaign => [campaign.campaignmid, campaign])
@@ -128,51 +189,78 @@ const LeadAllocation: React.FC = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h1 className="h4 fw-bold text-dark mb-1">Lead Allocation</h1>
-              <p className="text-muted mb-0">Manage and allocate leads to team members</p>
-            </div>
-
-            {/* ✅ Action Buttons Group - Bulk Allocate & Import Leads */}
-           
-          </div>
-           <div className="btn-group">
-              <button
-                className="btn btn-primary"
-                onClick={handleOpenBulkModal}
-                disabled={loading}
-              >
-                <i className="fas fa-users me-2"></i>
-                Bulk Allocate
-              </button>
-              <button
-                className="btn btn-outline-primary"
-                onClick={() => setShowImportModal(true)}
-                disabled={loading}
-              >
-                <i className="fas fa-file-import me-2"></i>
-                Import Leads
-              </button>
-              <button
-                className="btn btn-outline-secondary"
-                onClick={refreshData}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                      role="status"
-                      aria-hidden="true"
-                    ></span>
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-refresh me-2"></i>
-                    Refresh
-                  </>
+              <p className="text-muted mb-0">
+                {selectedLeads.length > 0 && (
+                  <span className="badge bg-primary">
+                    {selectedLeads.length} lead(s) selected
+                  </span>
                 )}
-              </button>
+              </p>
             </div>
+          </div>
+          
+          {/* ✅ Action Buttons Group - Bulk Allocate, Import Leads & Transfer Leads */}
+          <div className="btn-group mt-2">
+            <button
+              className="btn btn-primary"
+              onClick={handleOpenBulkModal}
+              disabled={loading}
+            >
+              <i className="fas fa-users me-2"></i>
+              Bulk Allocate
+            </button>
+            <button
+              className="btn btn-outline-primary"
+              onClick={() => setShowImportModal(true)}
+              disabled={loading || isImporting}
+            >
+              {isImporting ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-file-import me-2"></i>
+                  Import Leads
+                </>
+              )}
+            </button>
+            {/* ✅ Transfer Leads Button - Simple redirect */}
+            <button
+              className="btn btn-outline-info"
+              onClick={handleTransferLeads}
+              disabled={loading}
+            >
+              <i className="fas fa-exchange-alt me-2"></i>
+              Transfer Leads
+            </button>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={refreshData}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-refresh me-2"></i>
+                  Refresh
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -188,7 +276,7 @@ const LeadAllocation: React.FC = () => {
         setShowDeleteModal={setShowDeleteModal}
         setShowImportModal={setShowImportModal}
         showImportModal={showImportModal}
-        handleImport={handleImport}
+        handleImport={handleImportWithResults}
       />
 
       {/* ✅ Table */}
@@ -227,7 +315,7 @@ const LeadAllocation: React.FC = () => {
       {/* ✅ Import Modal */}
       <CampaignFileModal
         show={showImportModal}
-        onFileSelect={handleImport}
+        onFileSelect={handleImportWithResults}
         onClose={() => setShowImportModal(false)}
       />
 
@@ -239,6 +327,16 @@ const LeadAllocation: React.FC = () => {
         users={users}
         campaigns={leadCampaigns}
         loading={loading}
+      />
+
+      {/* ✅ Import Results Modal */}
+      <ImportResultsModal
+        show={showImportResults}
+        onClose={() => {
+          setShowImportResults(false)
+          setImportResults(null)
+        }}
+        results={importResults}
       />
     </div>
   )

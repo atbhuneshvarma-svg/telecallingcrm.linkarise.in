@@ -48,7 +48,7 @@ const CallDetailsPagination: React.FC<CallDetailsPaginationProps> = ({
   };
 
   return (
-    <Row className="mt-3 align-items-center">
+    <Row className="mt-3 align-items-center d-flex justify-content-between p-5">
       <Col md={6}>
         <p className="text-muted mb-0">
           Showing {startIndex + 1} to {Math.min(endIndex, totalEntries)} of {totalEntries} entries
