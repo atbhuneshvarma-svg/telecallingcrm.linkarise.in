@@ -19,7 +19,6 @@ import LeadCallDetails from '../modules/apps/leads/callDetail/LeadCallDetails'
 import LeadFollowup from '../modules/apps/leads/followup/LeadFollowup'
 import { FreshLeadsPage } from '../modules/apps/leads/fressleads/pages/FreshLeadsPage'
 import { ActivityLogsPage } from '../modules/apps/reports/activity/ActivityLogsPage'
-import LeadTransfer from '../modules/apps/leads/transfer/Leadtransfer'
 import LeadAllocationRoutes from '../modules/apps/leads/allocation/LeadAllocationRoutes'
 
 const PrivateRoutes = () => {
@@ -35,12 +34,6 @@ const PrivateRoutes = () => {
   const TelecallerPerformancePage = lazy(() => 
     import('../modules/apps/reports/performance/pages/TelecallerPerformancePage')
       .then(module => ({ default: module.TelecallerPerformancePage }))
-  )
-
-  // Add Converted Reports Page
-  const ConvertedReportsPage = lazy(() =>
-    import('../modules/apps/reports/converted/ConvertedLeadPage')
-      .then(module => ({ default: module.ConvertedLeadPage }))
   )
 
   return (
@@ -211,16 +204,6 @@ const PrivateRoutes = () => {
           element={
             <SuspensedView>
               <TelecallerPerformancePage />
-            </SuspensedView>
-          }
-        />
-
-        {/* Reports Routes */}
-        <Route
-          path='reports/converted/*'
-          element={
-            <SuspensedView>
-              <ConvertedReportsPage />
             </SuspensedView>
           }
         />

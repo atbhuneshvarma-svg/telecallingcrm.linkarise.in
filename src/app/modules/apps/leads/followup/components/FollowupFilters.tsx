@@ -1,9 +1,7 @@
+// components/FollowupFilters.tsx
 import React from 'react'
 import { useLeads } from '../../allleads/core/LeadsContext'
 import { useAuth } from '../../../../auth';
-
-
-
 
 interface FollowupFiltersProps {
   filters: {
@@ -24,48 +22,31 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
   loading = false,
 }) => {
   const { currentUser } = useAuth();
-
   const userRole = currentUser?.user?.userrole || 'telecaller';
   const isAdmin = userRole === 'admin';
   const isManager = userRole === 'manager';
-  const { dropdowns } = useLeads()
+  const { dropdowns } = useLeads();
 
-  // Function to get current date in YYYY-MM-DD format
-  const getCurrentDate = () => {
-    return new Date().toISOString().split('T')[0]
-  }
+  const getCurrentDate = () => new Date().toISOString().split("T")[0];
 
-  // Set default current date if no date is selected
-  React.useEffect(() => {
-    if (!filters.followupDate) {
-      const currentDate = getCurrentDate()
-      onFiltersChange({
-        ...filters,
-        followupDate: currentDate
-      })
-    }
-  }, [filters.followupDate, onFiltersChange])
-
-  const handleFilterChange = (key: string, value: string) => {
-    onFiltersChange({
-      ...filters,
-      [key]: value,
-    })
-  }
+  const updateFilter = (key: string, value: string) => {
+    onFiltersChange({ ...filters, [key]: value });
+  };
 
   const handleResetAll = () => {
-    onReset()
-  }
+    onReset();
+  };
 
   return (
     <div className="card card-flush mb-6">
       <div className="card-body">
-        {/* Header Section */}
+        {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
             <h1 className="fw-bold text-gray-800 mb-2">Follow-up Leads</h1>
           </div>
-          <div className="d-flex align-items-center gap-3">
+
+          <div className="d-flex gap-3">
             <button
               className="btn btn-light btn-active-light-primary"
               onClick={handleResetAll}
@@ -77,55 +58,57 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
           </div>
         </div>
 
+        {/* Main Filters - USING NUMERIC IDs */}
         <div className="row g-4">
-          {/* User Filter */}
-          {(isAdmin || isManager) && (<div className="col-md-3">
-            <label className="form-label">Assigned To</label>
-            <select
-              value={filters.user}
-              onChange={(e) => handleFilterChange('user', e.target.value)}
-              className="form-select"
-              disabled={loading}
-            >
-              <option value="All">All Users</option>
-              {dropdowns.users.map((user) => (
-                <option key={user.usermid} value={user.username}>
-                  {user.username}
-                </option>
-              ))}
-            </select>
-          </div>
+          {(isAdmin || isManager) && (
+            <div className="col-md-3">
+              <label className="form-label">Assigned To</label>
+              <select
+                value={filters.user}
+                onChange={(e) => updateFilter("user", e.target.value)}
+                className="form-select"
+                disabled={loading}
+              >
+                <option value="All">All Users</option>
+                {dropdowns.users.map((user) => (
+                  // Use usermid (numeric) as value, display username
+                  <option key={user.usermid} value={user.usermid.toString()}>
+                    {user.username}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
 
-          {/* Campaign Filter */}
           <div className="col-md-3">
             <label className="form-label">Campaign</label>
             <select
               value={filters.campaign}
-              onChange={(e) => handleFilterChange('campaign', e.target.value)}
+              onChange={(e) => updateFilter("campaign", e.target.value)}
               className="form-select"
               disabled={loading}
             >
               <option value="All">All Campaigns</option>
               {dropdowns.campaigns.map((campaign) => (
-                <option key={campaign.id} value={campaign.name}>
+                // Use campaign ID (numeric) as value, display name
+                <option key={campaign.id} value={campaign.id.toString()}>
                   {campaign.name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Status Filter */}
           <div className="col-md-3">
             <label className="form-label">Status</label>
             <select
               value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
+              onChange={(e) => updateFilter("status", e.target.value)}
               className="form-select"
               disabled={loading}
             >
               <option value="All">All Statuses</option>
               {dropdowns.statuses.map((status) => (
+                // Use statusname as value (text like "Warm")
                 <option key={status.statusmid} value={status.statusname}>
                   {status.statusname}
                 </option>
@@ -133,49 +116,59 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
             </select>
           </div>
 
-          {/* Follow-up Date Filter */}
           <div className="col-md-3">
             <label className="form-label">Follow-up Date</label>
             <input
               type="date"
-              value={filters.followupDate || getCurrentDate()}
-              onChange={(e) => handleFilterChange('followupDate', e.target.value)}
+              value={filters.followupDate}
+              onChange={(e) => updateFilter("followupDate", e.target.value)}
               className="form-control"
               disabled={loading}
             />
           </div>
         </div>
 
-        {/* Quick Date Filters */}
+        {/* Quick Date filters */}
         <div className="row mt-4">
           <div className="col-12">
-            <label className="form-label mb-2">Quick Date Filters</label>
+            <label className="form-label mb-2">Quick Dates</label>
             <div className="d-flex gap-2 flex-wrap">
               <button
                 type="button"
-                className={`btn btn-sm ${filters.followupDate === getCurrentDate() ? 'btn-primary' : 'btn-light'}`}
-                onClick={() => handleFilterChange('followupDate', getCurrentDate())}
+                className={`btn btn-sm ${
+                  filters.followupDate === getCurrentDate()
+                    ? "btn-primary"
+                    : "btn-light"
+                }`}
+                onClick={() => updateFilter("followupDate", getCurrentDate())}
                 disabled={loading}
               >
                 Today
               </button>
+
               <button
                 type="button"
-                className={`btn btn-sm ${filters.followupDate === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] ? 'btn-primary' : 'btn-light'}`}
+                className={`btn btn-sm ${
+                  filters.followupDate ===
+                  new Date(Date.now() + 86400000).toISOString().split("T")[0]
+                    ? "btn-primary"
+                    : "btn-light"
+                }`}
                 onClick={() => {
-                  const tomorrow = new Date()
-                  tomorrow.setDate(tomorrow.getDate() + 1)
-                  handleFilterChange('followupDate', tomorrow.toISOString().split('T')[0])
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  updateFilter("followupDate", tomorrow.toISOString().split("T")[0]);
                 }}
                 disabled={loading}
               >
                 Tomorrow
               </button>
+
               {filters.followupDate && (
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-secondary"
-                  onClick={() => handleFilterChange('followupDate', '')}
+                  onClick={() => updateFilter("followupDate", "")}
                   disabled={loading}
                 >
                   Clear Date
@@ -186,7 +179,7 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default React.memo(FollowupFilters)
+export default React.memo(FollowupFilters);

@@ -41,7 +41,6 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
   searchTerm = '',
 }) => {
   const { statuses } = useStatuses();
-  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const [sortField, setSortField] = useState<SortField>('followupdate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -50,8 +49,8 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setLocalSearchTerm(value);
-
-    // If onSearch callback is provided, call it
+    
+    // If onSearch callback is provided, call it for server-side search
     if (onSearch) {
       onSearch(value);
     }
@@ -79,13 +78,11 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
     onEntriesPerPageChange?.(perPage);
   };
 
-  // Handle sort
+  // Handle sort - CLIENT-SIDE ONLY (since server doesn't support sorting)
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      // Toggle direction if same field
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // New field, default to ascending
       setSortField(field);
       setSortDirection('asc');
     }
@@ -149,32 +146,10 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
     onCallClick?.(lead);
   };
 
-  // Filter leads locally based on search term (if no external search is provided)
-  const filteredLeads = useMemo(() => {
-    if (!localSearchTerm || onSearch) {
-      return data; // Return original data if using external search or no search term
-    }
-
-    const searchLower = localSearchTerm.toLowerCase();
-    return data.filter(
-      (lead) =>
-        lead.leadname?.toLowerCase().includes(searchLower) ||
-        lead.email?.toLowerCase().includes(searchLower) ||
-        lead.phone?.toLowerCase().includes(searchLower) ||
-        lead.username?.toLowerCase().includes(searchLower) ||
-        lead.campaignname?.toLowerCase().includes(searchLower) ||
-        lead.statusname?.toLowerCase().includes(searchLower) ||
-        lead.detail?.toLowerCase().includes(searchLower) ||
-        lead.leadremarks?.toLowerCase().includes(searchLower) ||
-        false
-    );
-  }, [data, localSearchTerm, onSearch]);
-
-  // Sort leads
+  // ✅ REMOVED CLIENT-SIDE FILTERING - Use server data directly
+  // Only apply client-side sorting since server doesn't support it
   const sortedLeads = useMemo(() => {
-    const leadsToSort = onSearch ? data : filteredLeads;
-    
-    return [...leadsToSort].sort((a, b) => {
+    return [...data].sort((a, b) => {
       let aValue: any = '';
       let bValue: any = '';
 
@@ -221,7 +196,7 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [filteredLeads, data, onSearch, sortField, sortDirection]);
+  }, [data, sortField, sortDirection]);
 
   // Use sorted leads for display
   const displayLeads = sortedLeads;
@@ -279,7 +254,7 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
     ));
   };
 
-  if (!loading && displayLeads.length === 0) {
+  if (!loading && data.length === 0) {
     return (
       <div className="card">
         <div className="card-body p-0">
@@ -332,14 +307,23 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                   <span className="text-muted fw-medium">entries</span>
                 </div>
                 
-                {/* Sort Info */}
+                {/* Records Info */}
                 <div className="d-flex align-items-center gap-2 ms-3">
-                  <span className="text-muted fw-medium">Sorted by:</span>
-                  <span className="badge bg-primary bg-opacity-10 text-primary fw-semibold">
-                    {sortField === 'followupdate' ? 'Follow-up Date' : sortField}
-                    <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+                  <span className="text-muted fw-medium">
+                    Showing {showingFrom} to {showingTo} of {totalRecords}
                   </span>
                 </div>
+
+                {/* Sort Info */}
+                {displayLeads.length > 0 && (
+                  <div className="d-flex align-items-center gap-2 ms-3">
+                    <span className="text-muted fw-medium">Sorted by:</span>
+                    <span className="badge bg-primary bg-opacity-10 text-primary fw-semibold">
+                      {sortField === 'followupdate' ? 'Follow-up Date' : sortField}
+                      <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -390,14 +374,8 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                   <div className="d-flex align-items-center gap-2 fs-8">
                     <i className="bi bi-info-circle text-info"></i>
                     <span className="text-muted">
-                      Found <strong className="text-dark">{displayLeads.length}</strong> follow-up
+                      Showing <strong className="text-dark">{displayLeads.length}</strong> follow-up
                       lead{displayLeads.length !== 1 ? 's' : ''}
-                      {data.length !== displayLeads.length && (
-                        <span>
-                          {' '}
-                          (filtered from <strong>{data.length}</strong> total leads)
-                        </span>
-                      )}
                     </span>
                     {localSearchTerm && (
                       <button
@@ -608,19 +586,6 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                               </a>
                             </div>
                           )}
-                          {onCallClick && lead.phone && (
-                            <button
-                              className="btn btn-sm btn-icon btn-light-success btn-hover-scale align-self-start transition-all"
-                              onClick={(e) => handleCallClick(lead, e)}
-                              title="Call lead"
-                              style={{
-                                borderRadius: '6px',
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              <i className="bi bi-telephone-outbound fs-7"></i>
-                            </button>
-                          )}
                           {!lead.phone && (
                             <span className="text-muted fs-8 d-flex align-items-center gap-1">
                               <i className="bi bi-telephone-x"></i>
@@ -784,7 +749,7 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
           <div className="card-footer bg-transparent border-top-0">
             <div className="d-flex justify-content-between align-items-center">
               <small className="text-muted">
-                Showing {displayLeads.length} follow-up leads
+                Showing {showingFrom} to {showingTo} of {totalRecords} entries
               </small>
               <small className="text-muted">
                 Sorted by: <span className="fw-semibold text-capitalize">

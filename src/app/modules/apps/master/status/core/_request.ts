@@ -155,6 +155,7 @@ export const statusApi = {
         {
           statusname: status.name,
           statuscolor: status.color,
+          stage: status.stage,
         }
       );
 
@@ -224,9 +225,10 @@ export const addStatus = async (
 export const updateStatus = async (
   id: number,
   name: string,
-  color: string
+  color: string,
+  stage: string = ''
 ): Promise<Status> => {
-  return statusApi.updateStatus(id, { name, color, stage: '' });
+  return statusApi.updateStatus(id, { name, color, stage });
 };
 
 // Delete status

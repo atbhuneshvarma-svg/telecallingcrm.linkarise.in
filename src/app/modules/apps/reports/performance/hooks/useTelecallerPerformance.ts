@@ -114,14 +114,14 @@ export const useTelecallerPerformance = (filters: TelecallerPerformanceFilters):
       const endTime = Date.now()
       console.log('✅ useTelecallerPerformance: API call completed in', (endTime - startTime), 'ms')
       console.log('📄 API Response structure:', {
-        hasData: !!data.rows?.data,
-        dataLength: data.rows?.data?.length || 0,
+        hasData: !!data?.data,
+        dataLength: data?.data?.length || 0,
         hasTelecallers: !!data.telecallers,
         telecallersLength: data.telecallers?.length || 0
       })
       
       // Transform API data
-      const transformedData: TelecallerPerformance[] = data.rows.data.map(item => ({
+      const transformedData: TelecallerPerformance[] = data?.data.map(item => ({
         sr_no: item.sr,
         telecaller: item.user,
         date: item.date,
@@ -161,12 +161,12 @@ export const useTelecallerPerformance = (filters: TelecallerPerformanceFilters):
       
       // Set pagination
       const paginationData = {
-        current_page: data.rows.current_page || 1,
-        per_page: data.rows.per_page || 10,
-        total_pages: data.rows.last_page || 1,
-        total_rows: data.rows.total || 0,
-        from: data.rows.from || 0,
-        to: data.rows.to || 0
+        current_page: data.current_page || 1,
+        per_page: data.per_page || 10,
+        total_pages: data.last_page || 1,
+        total_rows: data.total || 0,
+        from: data.from || 0,
+        to: data.to || 0
       }
       
       console.log('🔢 useTelecallerPerformance: Pagination data:', paginationData)

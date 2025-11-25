@@ -181,13 +181,6 @@ const SidebarMenuMain = () => {
               hasBullet={true}
             />
             <SidebarMenuItem
-              to="/reports/converted"
-              title="Converted Leads"
-              icon="arrow-right"
-              fontIcon="bi-person-check"
-              hasBullet={true}
-            />
-            <SidebarMenuItem
               to="/reports/allactivity"
               title="Activity Logs"
               icon="abstract-42"

@@ -1,3 +1,7 @@
+// ============================================
+//  Row after mapping → used in React table
+// ============================================
+// Row after mapping → supports BOTH old UI names + new API names
 export interface TelecallerPerformance {
   sr_no: number
   telecaller: string
@@ -11,30 +15,53 @@ export interface TelecallerPerformance {
   talk_time: string
 }
 
+// Filters sent to API
 export interface TelecallerPerformanceFilters {
-  page: number
-  per_page: number
+  page?: number
+  per_page?: number
   search?: string
   date_from?: string
   date_to?: string
+
+  // UI expects telecaller_id, backend wants usermid → support both
   telecaller_id?: number
+  usermid?: number
 }
 
+
+// ============================================
+//  Filters sent to API
+// ============================================
+export interface TelecallerPerformanceFilters {
+  page?: number
+  per_page?: number
+  search?: string
+  date_from?: string
+  date_to?: string
+  usermid?: number
+}
+
+// ============================================
+//  Telecaller list (telecallers array)
+// ============================================
 export interface Telecaller {
   usermid: number
   username: string
 }
 
+// ============================================
+//  Raw pagination info from backend
+// ============================================
 export interface PaginationInfo {
   current_page: number
+  last_page: number
   per_page: number
-  total_pages: number
-  total_rows: number
-  from: number
-  to: number
+  total: number
 }
 
-// API Response Interfaces
+// ============================================
+//  Raw API item (exact backend fields)
+// ============================================
 export interface TelecallerPerformanceApiResponse {
   sr: number
   user: string
@@ -43,33 +70,36 @@ export interface TelecallerPerformanceApiResponse {
   end_time: string
   dialed: number
   answered: number
-  interested: number
   confirmed: number
+  interested: number
   talktime: string
+  total_leads: number
+  notinterested: number
 }
 
-export interface PaginationLink {
-  url: string | null
-  label: string
-  active: boolean
-}
-
-export interface TelecallerPerformanceRows {
-  current_page: number
+// ============================================
+//  Final API Response (FULL, EXACT)
+// ============================================
+export interface TelecallerPerformanceResponse {
+  status: string
+  message?: string
+  
   data: TelecallerPerformanceApiResponse[]
-  first_page_url: string
-  from: number
+
+  telecallers: Telecaller[]
+  telecallersselect: TelecallerSelect[]
+
+  current_page: number
   last_page: number
-  last_page_url: string
-  links: PaginationLink[]
-  next_page_url: string | null
-  path: string
   per_page: number
-  prev_page_url: string | null
-  to: number
   total: number
+  from: number
+  to: number
 }
 
+// ============================================
+//  Detailed telecaller info (telecallersselect)
+// ============================================
 export interface TelecallerSelect {
   usermid: number
   leadermid: number
@@ -91,17 +121,9 @@ export interface TelecallerSelect {
   cmpmid: number
 }
 
-export interface TelecallerPerformanceResponse {
-  rows: TelecallerPerformanceRows
-  daterange: string | null
-  telecallers: Telecaller[]
-  usermid: string
-  search: string
-  telecallersselect: TelecallerSelect[]
-  perPage: number
-}
-
-// Performance Metrics Interface
+// ============================================
+//  Calculated Performance Metrics
+// ============================================
 export interface PerformanceMetrics {
   totalDialed: number
   totalAnswered: number

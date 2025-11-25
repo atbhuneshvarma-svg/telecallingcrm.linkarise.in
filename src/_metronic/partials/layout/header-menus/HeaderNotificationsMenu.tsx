@@ -2,7 +2,8 @@ import clsx from 'clsx'
 import {FC, useState, useEffect} from 'react'
 import {Link} from 'react-router-dom'
 import {KTIcon, toAbsoluteUrl} from '../../../helpers'
-import { Notification, notificationsApi } from '../../../../app/modules/auth/core/_requests'
+import { Notification} from '../../../../app/modules/auth/core/_models'
+import {  notificationsApi } from '../../../../app/modules/auth/core/_requests'
 
 const HeaderNotificationsMenu: FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([])

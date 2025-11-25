@@ -47,8 +47,8 @@ export const FreshLeadFilters: React.FC<FreshLeadFiltersProps> = ({
     return Array.from(
       new Map(
         leads
-          .filter((l) => l.user)
-          .map((l) => [l.user.usermid, l.user])
+          .filter((l) => l)
+          .map((l) => [l.usermid, l])
       ).values()
     );
   }, [leads]);

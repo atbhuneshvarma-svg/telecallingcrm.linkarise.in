@@ -11,8 +11,9 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend)
 
-// <<< ADD TYPES HERE
-// In LeadCallsChart component file
+/* ------------------------------------------
+   TYPES (Correct & Strict)
+-------------------------------------------*/
 export interface LeadCallsChartProps {
   data: {
     months: string[]
@@ -21,17 +22,26 @@ export interface LeadCallsChartProps {
     totalLeads: number[]
     convertedClients: number[]
   }
-  loading?: boolean // Add this as optional
+  loading?: boolean
 }
-// >>>
 
-export default function LeadCallsChart({ data }: LeadCallsChartProps) {
+/* ------------------------------------------
+   COMPONENT
+-------------------------------------------*/
+export default function LeadCallsChart({ data, loading }: LeadCallsChartProps) {
+  // Safe fallback values to prevent crashes while loading
+  const months = data?.months ?? []
+  const totalCalls = data?.totalCallsData ?? []
+  const confirmedCalls = data?.confirmedCallsData ?? []
+  const totalLeads = data?.totalLeads ?? []
+  const converted = data?.convertedClients ?? []
+
   const chartData = {
-    labels: data.months,
+    labels: months,
     datasets: [
       {
         label: 'Total Calls',
-        data: data.totalCallsData,
+        data: totalCalls,
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.35)',
         fill: true,
@@ -39,7 +49,7 @@ export default function LeadCallsChart({ data }: LeadCallsChartProps) {
       },
       {
         label: 'Confirmed Calls',
-        data: data.confirmedCallsData,
+        data: confirmedCalls,
         borderColor: '#22c55e',
         backgroundColor: 'rgba(34, 197, 94, 0.35)',
         fill: true,
@@ -47,7 +57,7 @@ export default function LeadCallsChart({ data }: LeadCallsChartProps) {
       },
       {
         label: 'Total Leads',
-        data: data.totalLeads,
+        data: totalLeads,
         borderColor: '#a855f7',
         backgroundColor: 'rgba(168, 85, 247, 0.35)',
         fill: true,
@@ -55,7 +65,7 @@ export default function LeadCallsChart({ data }: LeadCallsChartProps) {
       },
       {
         label: 'Converted Clients',
-        data: data.convertedClients,
+        data: converted,
         borderColor: '#ef4444',
         backgroundColor: 'rgba(239, 68, 68, 0.35)',
         fill: true,
@@ -67,6 +77,14 @@ export default function LeadCallsChart({ data }: LeadCallsChartProps) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+  }
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: 350 }}>
+        <div className="spinner-border text-primary"></div>
+      </div>
+    )
   }
 
   return (

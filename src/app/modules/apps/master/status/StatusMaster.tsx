@@ -37,15 +37,15 @@ const StatusMaster: React.FC = () => {
       console.log('🔄 StatusMaster: Loading statuses...');
       setLoading(true);
       setError(null);
-      
+
       const response = await statusApi.getStatusesPaginated(currentPage, entriesPerPage);
-      console.log('✅ StatusMaster: API Response received', { 
+      console.log('✅ StatusMaster: API Response received', {
         dataLength: response.data.length,
         current_page: response.current_page,
         total_records: response.total_records,
         total_pages: response.total_pages
       });
-      
+
       setStatuses(response.data);
       setPagination({
         current_page: response.current_page,
@@ -53,7 +53,7 @@ const StatusMaster: React.FC = () => {
         total_records: response.total_records,
         total_pages: response.total_pages,
       });
-      
+
       console.log('✅ StatusMaster: State updated successfully');
     } catch (err) {
       console.error('❌ StatusMaster: Error loading statuses:', err);
@@ -73,7 +73,7 @@ const StatusMaster: React.FC = () => {
     try {
       console.log('🔄 StatusMaster: Saving status...', { modalMode, currentStatus });
       setError(null);
-      
+
       if (modalMode === 'add') {
         const newStatus = await statusApi.createStatus({
           name: currentStatus.name,
@@ -97,11 +97,11 @@ const StatusMaster: React.FC = () => {
       // Then reload data - IMPORTANT: Don't await, let it happen in background
       console.log('🔄 StatusMaster: Triggering data reload after save...');
       loadStatuses();
-      
+
     } catch (err) {
       console.error('❌ StatusMaster: Error saving status:', err);
-      const errorMessage = modalMode === 'add' 
-        ? 'Failed to create status. Please try again.' 
+      const errorMessage = modalMode === 'add'
+        ? 'Failed to create status. Please try again.'
         : 'Failed to update status. Please try again.';
       setError(errorMessage);
     }
@@ -115,11 +115,11 @@ const StatusMaster: React.FC = () => {
       setError(null);
       await statusApi.deleteStatus(id);
       console.log('✅ StatusMaster: Status deleted');
-      
+
       // Reload data immediately
       console.log('🔄 StatusMaster: Triggering data reload after delete...');
       await loadStatuses();
-      
+
     } catch (err) {
       console.error('❌ StatusMaster: Error deleting status:', err);
       setError('Failed to delete status. Please try again.');
@@ -194,7 +194,7 @@ const StatusMaster: React.FC = () => {
           <div className="card-title">
             <h3 className="fw-bold m-0">Statuses</h3>
           </div>
-          
+
           <div className="card-toolbar">
             <div className="d-flex align-items-center gap-4">
               {/* Search Input */}
@@ -244,15 +244,15 @@ const StatusMaster: React.FC = () => {
               <div className="d-flex align-items-center">
                 <i className="bi bi-exclamation-triangle-fill me-2"></i>
                 <div className="flex-grow-1">{error}</div>
-                <button 
-                  type="button" 
-                  className="btn-close" 
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={() => setError(null)}
                   aria-label="Close"
                 ></button>
               </div>
               <div className="mt-2">
-                <button 
+                <button
                   className="btn btn-sm btn-outline-danger"
                   onClick={handleRetry}
                 >
@@ -285,7 +285,7 @@ const StatusMaster: React.FC = () => {
               `Showing ${showingCount} of ${totalCount} entries`
             )}
           </div>
-          
+
           {/* Pagination */}
           {pagination.total_pages > 1 && (
             <nav>
@@ -342,6 +342,8 @@ const StatusMaster: React.FC = () => {
         onClose={handleCloseModal}
         onSave={handleAddOrUpdateStatus}
         onStatusChange={setCurrentStatus}
+        isLoading={loading}        // ✅ add this
+        error={error}              // ✅ add this
       />
     </div>
   );

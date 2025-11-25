@@ -20,6 +20,7 @@ export interface Lead {
   usermid: number;
   cmpmid: number;
   sourceofinquiry: string | null;
+  updatedon: string | null;
 }
 
 export interface User {

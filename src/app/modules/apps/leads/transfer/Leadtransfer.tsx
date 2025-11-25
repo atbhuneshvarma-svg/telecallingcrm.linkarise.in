@@ -26,7 +26,7 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
 
   const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
-  const [bulkTransferModalOpen, setBulkTransferModalOpen] = useState(false); // New state for bulk transfer modal
+  const [bulkTransferModalOpen, setBulkTransferModalOpen] = useState(false);
   const [targetUser, setTargetUser] = useState<number | ''>('');
   const [targetTeam, setTargetTeam] = useState<number | ''>('');
 
@@ -43,7 +43,6 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
   const [tempSelectedStage, setTempSelectedStage] = useState('All');
   const [tempSelectedStatus, setTempSelectedStatus] = useState('All');
   const [tempSearchTerm, setTempSearchTerm] = useState('');
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   // Applied filter states
   const [appliedFilters, setAppliedFilters] = useState({
@@ -54,31 +53,74 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
     search: ''
   });
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   const { transferLeads: transferApi, loading: transferLoading, error: transferError } = useTransferLead();
 
-  // Fetch data on component mount
+  // Fetch data function
+  const fetchData = async (page: number = currentPage, pageSize: number = perPage) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Build query parameters for server-side filtering
+      const queryParams: any = {
+        page,
+        perPage: pageSize
+      };
+
+      // Add applied filters to query params for server-side filtering
+      if (appliedFilters.team !== 'All') queryParams.team = appliedFilters.team;
+      if (appliedFilters.user !== 'All') queryParams.user = appliedFilters.user;
+      if (appliedFilters.stage !== 'All') queryParams.stage = appliedFilters.stage;
+      if (appliedFilters.status !== 'All') queryParams.status = appliedFilters.status;
+      if (appliedFilters.search) queryParams.search = appliedFilters.search;
+
+      const response = await leadTransferApi.getLeadsForTransfer(queryParams);
+
+      setLeads(response.data || []);
+      setTotalRecords(response.total_records || 0);
+      setTotalPages(response.total_pages || 1);
+
+      // Set dropdown data (only on initial load or when needed)
+      if (!users.length) setUsers(response.users || []);
+      if (!teams.length) setTeams(response.teams || []);
+      if (!statuses.length) setStatuses(response.status || []);
+      if (!campaigns.length) setCampaigns(response.campaigns || []);
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch leads data');
+      console.error('Error fetching leads:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data on component mount and when pagination changes
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await leadTransferApi.getLeadsForTransfer();
+    fetchData(1, perPage); // Always start from page 1 when filters change
+  }, [perPage]); // Remove currentPage from dependencies to avoid double fetching
 
-        setLeads(response.data || []);
-        setUsers(response.users || []);
-        setTeams(response.teams || []);
-        setStatuses(response.status || []);
-        setCampaigns(response.campaigns || []);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch leads data');
-        console.error('Error fetching leads:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch data when currentPage changes
+  useEffect(() => {
+    if (currentPage > 1) { // Don't fetch on initial load (handled by above useEffect)
+      fetchData(currentPage, perPage);
+    }
+  }, [currentPage]);
 
-    fetchData();
-  }, []);
+  // Reset to page 1 when filters are applied
+  useEffect(() => {
+    if (appliedFilters.team !== 'All' || appliedFilters.user !== 'All' ||
+      appliedFilters.stage !== 'All' || appliedFilters.status !== 'All' ||
+      appliedFilters.search) {
+      setCurrentPage(1);
+      fetchData(1, perPage);
+    }
+  }, [appliedFilters]);
 
   // Calculate bulk transfer leads count when filters change
   useEffect(() => {
@@ -116,7 +158,7 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
   // Handle bulk transfer
   const handleBulkTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!bulkToUser) {
       alert('Please select a target user for bulk transfer');
       return;
@@ -157,7 +199,7 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
       });
 
       setBulkTransferModalOpen(false);
-      
+
       // Reset bulk transfer form
       setBulkFromUser('');
       setBulkFromStatus('All');
@@ -168,8 +210,7 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
       onTransferComplete();
 
       // Refresh data after transfer
-      const response = await leadTransferApi.getLeadsForTransfer();
-      setLeads(response.data || []);
+      await fetchData(currentPage, perPage);
 
       alert(`Successfully transferred ${leadsToTransfer.length} leads`);
     } catch (err: any) {
@@ -197,55 +238,19 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
       status: tempSelectedStatus,
       search: tempSearchTerm
     });
+    // Reset to page 1 when applying new filters
+    setCurrentPage(1);
   };
 
-  // Filter leads based on APPLIED filters
-  const filteredLeads = leads.filter(lead => {
-    // Team filter
-    if (appliedFilters.team !== 'All' && lead.username !== appliedFilters.team) {
-      return false;
-    }
-
-    // User filter
-    if (appliedFilters.user !== 'All' && lead.username !== appliedFilters.user) {
-      return false;
-    }
-
-    // Stage filter
-    if (appliedFilters.stage !== 'All' && lead.stage !== appliedFilters.stage) {
-      return false;
-    }
-
-    // Status filter
-    if (appliedFilters.status !== 'All' && lead.statusname !== appliedFilters.status) {
-      return false;
-    }
-
-    // Search filter
-    if (appliedFilters.search) {
-      const searchLower = appliedFilters.search.toLowerCase();
-      return (
-        lead.leadname.toLowerCase().includes(searchLower) ||
-        lead.phone.includes(appliedFilters.search) ||
-        lead.campaignname.toLowerCase().includes(searchLower) ||
-        (lead.purpose && lead.purpose.toLowerCase().includes(searchLower)) ||
-        (lead.detail && lead.detail.toLowerCase().includes(searchLower)) ||
-        (lead.email && lead.email.toLowerCase().includes(searchLower))
-      );
-    }
-
-    return true;
-  });
-
   // Get unique values for dropdowns from actual data
-  const uniqueTeams = ['All', ...new Set(leads.map(lead => lead.username))];
-  const uniqueUsers = ['All', ...new Set(leads.map(lead => lead.username))];
+  const uniqueTeams = ['All', ...new Set(users.map(user => user.username))];
+  const uniqueUsers = ['All', ...new Set(users.map(user => user.username))];
   const uniqueStages = ['All', ...new Set(statuses.map(status => status.stage))];
   const uniqueStatuses = ['All', ...new Set(statuses.map(status => status.statusname))];
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelectedLeads(filteredLeads.map(lead => lead.leadmid));
+      setSelectedLeads(leads.map(lead => lead.leadmid));
     } else {
       setSelectedLeads([]);
     }
@@ -279,8 +284,7 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
         alert('Leads deleted successfully');
         setSelectedLeads([]);
         // Refresh data
-        const response = await leadTransferApi.getLeadsForTransfer();
-        setLeads(response.data || []);
+        await fetchData(currentPage, perPage);
       } catch (err: any) {
         alert(`Failed to delete leads: ${err.message}`);
       }
@@ -307,8 +311,7 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
       onTransferComplete();
 
       // Refresh data after transfer
-      const response = await leadTransferApi.getLeadsForTransfer();
-      setLeads(response.data || []);
+      await fetchData(currentPage, perPage);
     } catch (err) {
       console.error('Transfer failed:', err);
     }
@@ -329,6 +332,14 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
       search: ''
     });
     setSelectedLeads([]);
+    setCurrentPage(1);
+    // Fetch fresh data without filters
+    fetchData(1, perPage);
+  };
+
+  const handlePerPageChange = (newPerPage: number) => {
+    setPerPage(newPerPage);
+    setCurrentPage(1); // Reset to first page when changing page size
   };
 
   if (loading) {
@@ -393,20 +404,25 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
           {appliedFilters.stage !== 'All' && ` Stage: ${appliedFilters.stage}`}
           {appliedFilters.status !== 'All' && ` Status: ${appliedFilters.status}`}
           {appliedFilters.search && ` Search: "${appliedFilters.search}"`}
-          {` (Showing ${filteredLeads.length} of ${leads.length} leads)`}
+          {` (Page ${currentPage} of ${totalPages}, Total: ${totalRecords} leads)`}
         </Alert>
       )}
 
-      {/* Leads Table */}
+      {/* Leads Table with Pagination */}
       <LeadsTable
-        leads={filteredLeads.slice(0, entriesPerPage)}
+        leads={leads} // Pass the current page's leads (no client-side filtering)
         selectedLeads={selectedLeads}
         onSelectAll={handleSelectAll}
         onSelectLead={handleSelectLead}
-        totalLeads={filteredLeads.length}
-        showingLeads={Math.min(filteredLeads.length, entriesPerPage)}
-        entriesPerPage={entriesPerPage}
-        onEntriesChange={setEntriesPerPage}
+        totalLeads={leads.length}
+        entriesPerPage={perPage}
+        onEntriesChange={handlePerPageChange}
+        // Pagination props
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+        onPageChange={setCurrentPage}
+        onPerPageChange={handlePerPageChange}
       />
 
       {/* Individual Transfer Modal */}
@@ -445,7 +461,7 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
                     <div className="card-body">
                       <h6 className="mb-3">Transfer Data</h6>
                       <p className="text-muted small mb-4">
-                        Transfer leads from one telecaller to another telecaller.  
+                        Transfer leads from one telecaller to another telecaller.
                         Whenever a telecaller leaves, you can allocate their leads to another telecaller.
                       </p>
 
@@ -453,9 +469,9 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
                         <div className="col-md-6">
                           <div className="form-group">
                             <label><strong>From User</strong></label>
-                            <select 
+                            <select
                               className="form-select"
-                              value={bulkFromUser} 
+                              value={bulkFromUser}
                               onChange={(e) => setBulkFromUser(e.target.value)}
                             >
                               <option value="">Select User</option>
@@ -470,9 +486,9 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
                         <div className="col-md-6">
                           <div className="form-group">
                             <label><strong>From Status</strong></label>
-                            <select 
+                            <select
                               className="form-select"
-                              value={bulkFromStatus} 
+                              value={bulkFromStatus}
                               onChange={(e) => setBulkFromStatus(e.target.value)}
                             >
                               <option value="All">All</option>
@@ -486,9 +502,9 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
                         <div className="col-md-6">
                           <div className="form-group">
                             <label><strong>To User</strong></label>
-                            <select 
+                            <select
                               className="form-select"
-                              value={bulkToUser} 
+                              value={bulkToUser}
                               onChange={(e) => setBulkToUser(e.target.value)}
                               required
                             >
@@ -505,9 +521,9 @@ const LeadTransfer: React.FC<LeadTransferProps> = ({ onTransferComplete = () => 
                         <div className="col-md-6">
                           <div className="form-group">
                             <label><strong>From Campaign</strong></label>
-                            <select 
+                            <select
                               className="form-select"
-                              value={bulkFromCampaign} 
+                              value={bulkFromCampaign}
                               onChange={(e) => setBulkFromCampaign(e.target.value)}
                             >
                               <option value="All">All</option>

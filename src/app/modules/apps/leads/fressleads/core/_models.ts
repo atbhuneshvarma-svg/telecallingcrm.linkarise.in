@@ -4,7 +4,7 @@ export interface FreshLead {
   leadmid: number;
   cmpmid: number;
   campaignmid: number | null;
-  name: string;
+  leadname: string;
   phone: string;
   email: string;
   gender?: string | null;
@@ -21,7 +21,7 @@ export interface FreshLead {
   kyc_status?: string | null;
   statusname: string;
   statuscolor: string;
-  activityname: string;
+  activity: string;
   followup: number;
   followupdate?: string | null;
   iscalled: number;
@@ -30,34 +30,10 @@ export interface FreshLead {
   extra_field1?: string | null;
   extra_field2?: string | null;
   extra_field3?: string | null;
-  created_at: string;
-  updated_at: string;
-  company: {
-    cmpmid: number;
-    cname: string;
-    cemail: string;
-    cmobile: string;
-    cstatus: boolean;
-    cexpierydate: string;
-    ctotaluser: number;
-    caddress: string;
-    ccity: string;
-    created_at: string;
-    updated_at: string;
-  };
-  campaign?: {
-    campaignmid: number;
-    cmpmid: number;
-    campaignname: string;
-    campaigndate: string;
-    created_at: string;
-    updated_at: string;
-  } | null;
-  user: {
-    usermid: number;
-    username: string;
-    useremail?: string;
-  };
+  createdat: string;
+  updatedat: string;
+  campaignname?: string | null;
+  username: string;
   sourceofinquiry: string;
   purpose: string;
 }

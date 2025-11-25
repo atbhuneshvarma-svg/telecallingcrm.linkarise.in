@@ -100,29 +100,34 @@ const AllLeads: React.FC = () => {
   }, []);
 
   const handleDeleteClick = useCallback(
-    async (lead: Lead) => {
-      if (
-        window.confirm(
-          `Are you sure you want to delete "${
-            lead.leadname || 'this lead'
-          }"? This action cannot be undone.`
-        )
-      ) {
-        try {
-          const result = await deleteLeadFromHook(lead.leadmid);
-          if (result.success) {
-            showSuccess(result.message || 'Lead deleted successfully!');
-            refreshLeads();
-          } else {
-            showError(result.message || 'Failed to delete lead');
-          }
-        } catch (err: any) {
-          showError(err);
-        }
+  async (lead: Lead) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${lead.leadname || 'this lead'}"? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const result = await deleteLeadFromHook(lead.leadmid);
+
+      if (result.success) {
+        showSuccess(result.message || 'Lead deleted successfully!');
+
+        // ⬇️ HARD REFRESH ensures UI updates immediately
+        await refreshLeads();  
+      } else {
+        showError(result.message || 'Failed to delete lead');
       }
-    },
-    [deleteLeadFromHook, refreshLeads, showSuccess, showError]
-  );
+    } catch (err: any) {
+      showError(err || 'Something went wrong');
+    } finally {
+      // ⬇️ ALWAYS refresh even if API failed (optional)
+      refreshLeads();
+    }
+  },
+  [deleteLeadFromHook, refreshLeads, showSuccess, showError]
+);
+
 
   const handleStatusClick = useCallback((lead: Lead) => {
     setSelectedLead(lead);

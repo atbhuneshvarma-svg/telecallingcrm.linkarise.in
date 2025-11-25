@@ -63,7 +63,7 @@ export interface CreateLeadRequest {
   campaignmid: number;
   purposemid: number;
   sourceofinquirymid: number;
-  activityname: string;
+  activityname: string;    // ✅ ADD THIS
   statusname: string;
   usermid: number;
   detail?: string;
@@ -79,4 +79,9 @@ export interface CreateLeadRequest {
 }
 
 // Add this to your existing _models.ts
-export type UpdateLeadRequest = Partial<Omit<Lead, 'leadmid' | 'created_at'>>;
+export type UpdateLeadRequest = Partial<
+  Omit<Lead, 'leadmid' | 'created_at'>
+> & {
+  activityname?: string;
+};
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useLocation } from 'react-router-dom';
 import FollowupFilters from './components/FollowupFilters';
 import FollowupTable from './components/FollowupTable';
 import FollowupPagination from './components/FollowupPagination';
@@ -10,6 +11,7 @@ import { Lead } from '../allleads/core/_models';
 import { FollowupLead } from './core/_models';
 
 const LeadFollowup: React.FC = () => {
+  const location = useLocation();
   const [followupLeads, setFollowupLeads] = useState<FollowupLead[]>([]);
   const [loading, setLoading] = useState(false);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -19,74 +21,106 @@ const LeadFollowup: React.FC = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState<FollowupLead | null>(null);
 
-  const [filters, setFilters] = useState({
-    user: 'All',
-    campaign: 'All',
-    status: 'All',
-    followupDate: '',
-  });
+  // Parse URL parameters for initial filters
+  const getInitialFilters = () => {
+    const searchParams = new URLSearchParams(location.search);
+    
+    return {
+      user: searchParams.get('user_filter') || 'All',
+      campaign: searchParams.get('campaign_filter') || 'All',
+      status: searchParams.get('status_filter') || 'All',
+      followupDate: searchParams.get('followup_date') || '',
+    };
+  };
 
+  const [filters, setFilters] = useState(getInitialFilters());
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
 
-  // Memoized fetch function
+  // Memoized fetch function with all filters
   const fetchFollowups = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getLeadFollowupList(currentPage, entriesPerPage);
+      console.log('Fetching with filters:', filters);
+      
+      const res = await getLeadFollowupList(
+        currentPage,
+        entriesPerPage,
+        filters.followupDate,
+        filters.user,
+        filters.campaign,
+        filters.status
+      );
+
       if (res.result) {
         setFollowupLeads(res.data || []);
         setTotalPages(res.total_pages || 1);
         setTotalRecords(res.total_records || 0);
+        
         if (res.data?.length === 0 && currentPage > 1) {
-          // If no data on current page, go to previous page
           setCurrentPage((prev) => Math.max(1, prev - 1));
+        }
+        
+        const activeFilters = Object.values(filters).filter(val => 
+          val && val !== 'All'
+        ).length;
+        
+        if (activeFilters > 0) {
+          toast.success(`Found ${res.data?.length || 0} leads with current filters`);
         }
       } else {
         setFollowupLeads([]);
-        toast.error('Failed to load follow-up leads');
+        toast.error(res.message || 'Failed to load follow-up leads');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching followups:', err);
       setFollowupLeads([]);
-      toast.error('Error loading follow-up leads');
+      toast.error(err.response?.data?.message || 'Error loading follow-up leads');
     } finally {
       setLoading(false);
     }
-  }, [currentPage, entriesPerPage]);
+  }, [currentPage, entriesPerPage, filters]);
 
   // Initial load and when dependencies change
   useEffect(() => {
     fetchFollowups();
   }, [fetchFollowups]);
 
-  // Handle opening modal
+  // Handle URL changes
+  useEffect(() => {
+    const newFilters = getInitialFilters();
+    setFilters(newFilters);
+    setCurrentPage(1);
+  }, [location.search]);
+
+  // ✅ ADD MISSING HANDLER FUNCTIONS
   const handleStatusClick = useCallback((lead: FollowupLead) => {
     setSelectedLead(lead);
     setShowStatusModal(true);
   }, []);
 
-  // Handle view click
   const handleViewClick = useCallback((lead: FollowupLead) => {
-    // You can implement view functionality here
     console.log('View lead:', lead);
     toast.info('View lead functionality to be implemented');
   }, []);
 
-  // Handle edit click
   const handleEditClick = useCallback((lead: FollowupLead) => {
-    // You can implement edit functionality here
     console.log('Edit lead:', lead);
     toast.info('Edit lead functionality to be implemented');
   }, []);
 
-  // Handle call click
   const handleCallClick = useCallback((lead: FollowupLead) => {
     if (lead.phone) {
       window.open(`tel:${lead.phone}`, '_self');
     } else {
       toast.warning('No phone number available for this lead');
     }
+  }, []);
+
+  const handleSearch = useCallback((searchTerm: string) => {
+    // Implement server-side search if needed
+    console.log('Search term:', searchTerm);
+    toast.info('Search functionality to be implemented');
   }, []);
 
   // Refresh leads after update
@@ -98,13 +132,13 @@ const LeadFollowup: React.FC = () => {
   // Handle entries per page change
   const handleEntriesPerPageChange = useCallback((value: number) => {
     setEntriesPerPage(value);
-    setCurrentPage(1); // Reset to first page when changing entries per page
+    setCurrentPage(1);
   }, []);
 
   // Handle filter changes
   const handleFiltersChange = useCallback((newFilters: typeof filters) => {
     setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1);
   }, []);
 
   // Handle reset filters
@@ -123,47 +157,35 @@ const LeadFollowup: React.FC = () => {
     setCurrentPage(page);
   }, []);
 
-  // ✅ Client-side filtering with useMemo for performance
-  const filteredData = useMemo(() => {
-    return followupLeads.filter(
-      (lead) =>
-        (filters.user === 'All' || lead.username === filters.user) &&
-        (filters.campaign === 'All' || lead.campaignname === filters.campaign) &&
-        (filters.status === 'All' || lead.statusname === filters.status) &&
-        (filters.followupDate === '' || lead.followupdate === filters.followupDate)
-    );
-  }, [followupLeads, filters]);
-
   // Calculate pagination data
   const paginationData = useMemo(() => {
     const startIndex = (currentPage - 1) * entriesPerPage;
-    const paginatedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
-    const totalFilteredPages = Math.ceil(filteredData.length / entriesPerPage);
+    const showingFrom = startIndex + 1;
+    const showingTo = Math.min(startIndex + followupLeads.length, totalRecords);
 
     return {
-      data: paginatedData,
+      data: followupLeads,
       startIndex,
-      showingFrom: startIndex + 1,
-      showingTo: startIndex + paginatedData.length,
-      totalFilteredPages,
-      totalFilteredRecords: filteredData.length,
+      showingFrom,
+      showingTo,
+      totalFilteredPages: totalPages,
+      totalFilteredRecords: totalRecords,
     };
-  }, [filteredData, currentPage, entriesPerPage]);
+  }, [followupLeads, currentPage, entriesPerPage, totalPages, totalRecords]);
 
-  // Auto-refresh every 2 minutes for real-time updates
+  // Auto-refresh every 2 minutes
   useEffect(() => {
     const interval = setInterval(() => {
       if (!loading) {
         fetchFollowups();
       }
-    }, 120000); // 2 minutes
+    }, 120000);
 
     return () => clearInterval(interval);
   }, [fetchFollowups, loading]);
 
   return (
     <div className="container-fluid py-4">
-      {/* Toast Notifications */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -178,6 +200,9 @@ const LeadFollowup: React.FC = () => {
       />
 
       <div className="card shadow-sm">
+        {/* Active Filters Badge */}
+        
+
         {/* Filters */}
         <FollowupFilters
           filters={filters}
@@ -196,7 +221,7 @@ const LeadFollowup: React.FC = () => {
           />
         )}
 
-        {/* Table */}
+        {/* Table - PASS THE HANDLER FUNCTIONS */}
         <FollowupTable
           data={paginationData.data}
           loading={loading}
@@ -207,6 +232,7 @@ const LeadFollowup: React.FC = () => {
           onViewClick={handleViewClick}
           onEditClick={handleEditClick}
           onEntriesPerPageChange={handleEntriesPerPageChange}
+          onSearch={handleSearch}
           showingFrom={paginationData.showingFrom}
           showingTo={paginationData.showingTo}
           totalRecords={paginationData.totalFilteredRecords}

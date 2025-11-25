@@ -278,7 +278,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
                           </span>
                           <span>
                             <i className="bi bi-person me-1"></i>
-                            {'username' in lead ? lead.username : ('user' in lead && lead.user?.username) ? lead.user.username : 'Unassigned'}
+                            {'username' in lead ? lead.username : ('user' in lead && lead?.username) ? lead.username : 'Unassigned'}
                           </span>
                         </div>
                       </div>

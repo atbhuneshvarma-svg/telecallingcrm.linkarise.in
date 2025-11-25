@@ -1,13 +1,12 @@
-import React from 'react'
-
 interface StatCardProps {
   title: string
   value: string | number
-  color: 'primary' | 'success' | 'warning' | 'danger' | 'info'
+  color: string
   icon: string
   loading?: boolean
-  actionText?: string // Add this line
-  onAction?: () => void // Add this line
+  actionText?: string
+  onAction?: () => void
+  onClick?: () => void   // Add onClick for card click
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -16,20 +15,17 @@ export const StatCard: React.FC<StatCardProps> = ({
   color,
   icon,
   loading = false,
-  actionText, // Add this
-  onAction // Add this
+  actionText,
+  onAction,
+  onClick
 }) => {
   if (loading) {
     return (
       <div className={`card bg-light-${color} hoverable`}>
         <div className='card-body'>
-          <div className='d-flex align-items-center'>
-            <div className='flex-grow-1'>
-              <div className='placeholder-glow'>
-                <span className='placeholder col-6'></span>
-                <span className='placeholder col-4'></span>
-              </div>
-            </div>
+          <div className='placeholder-glow'>
+            <span className='placeholder col-6 mb-2'></span>
+            <span className='placeholder col-4'></span>
           </div>
         </div>
       </div>
@@ -37,24 +33,34 @@ export const StatCard: React.FC<StatCardProps> = ({
   }
 
   return (
-    <div className={`card bg-light-${color} hoverable`}>
+    <div
+      className={`card bg-light-${color} hoverable`}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
+      onClick={onClick}
+    >
       <div className='card-body'>
         <div className='d-flex align-items-center'>
           <div className='flex-grow-1'>
-            <span className='text-gray-900 fw-bolder d-block fs-2x'>{value}</span>
-            <span className='text-gray-700 fw-bold fs-6'>{title}</span>
-            
-            {/* Add action button if provided */}
+            <span className='text-gray-900 fw-bolder d-block fs-2x'>
+              {value}
+            </span>
+            <span className='text-gray-700 fw-bold fs-6'>
+              {title}
+            </span>
+
             {actionText && (
-              <button 
+              <button
                 className={`btn btn-sm btn-${color} mt-2`}
-                onClick={onAction}
+                onClick={e => {
+                  e.stopPropagation()  // Prevent card onClick when button clicked
+                  onAction?.()
+                }}
               >
                 {actionText}
               </button>
             )}
           </div>
-          
+
           <div className='symbol symbol-50px'>
             <div className={`symbol-label bg-${color}`}>
               <i className={`${icon} fs-2x text-white`}></i>

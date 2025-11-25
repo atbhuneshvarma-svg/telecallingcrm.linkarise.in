@@ -184,10 +184,10 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
 
     const searchLower = localSearchTerm.toLowerCase()
     return leads.filter(lead =>
-      (lead.name?.toLowerCase().includes(searchLower)) ||
+      (lead.leadname?.toLowerCase().includes(searchLower)) ||
       (lead.email?.toLowerCase().includes(searchLower)) ||
       (lead.phone?.toLowerCase().includes(searchLower)) ||
-      (lead.campaign?.campaignname?.toLowerCase().includes(searchLower)) ||
+      (lead.campaignname?.toLowerCase().includes(searchLower)) ||
       (lead.sourceofinquiry?.toLowerCase().includes(searchLower)) ||
       false
     )
@@ -203,8 +203,8 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
 
       switch (sortField) {
         case 'name':
-          aValue = (a.name || 'Unnamed Lead').toLowerCase()
-          bValue = (b.name || 'Unnamed Lead').toLowerCase()
+          aValue = (a.leadname || 'Unnamed Lead').toLowerCase()
+          bValue = (b.leadname || 'Unnamed Lead').toLowerCase()
           break
         case 'phone':
           aValue = a.phone || ''
@@ -215,8 +215,8 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
           bValue = b.email || ''
           break
         case 'campaign':
-          aValue = (a.campaign?.campaignname || 'N/A').toLowerCase()
-          bValue = (b.campaign?.campaignname || 'N/A').toLowerCase()
+          aValue = (a.campaignname || 'N/A').toLowerCase()
+          bValue = (b.campaignname || 'N/A').toLowerCase()
           break
         case 'source':
           aValue = (a.sourceofinquiry || 'N/A').toLowerCase()
@@ -231,18 +231,18 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
           bValue = (b.statusname || 'N/A').toLowerCase()
           break
         case 'assigned':
-          aValue = (a.user?.username || 'Unassigned').toLowerCase()
-          bValue = (b.user?.username || 'Unassigned').toLowerCase()
+          aValue = (a.username || 'Unassigned').toLowerCase()
+          bValue = (b.username || 'Unassigned').toLowerCase()
           break
         case 'activity':
-          aValue = (a.activityname || 'No activity').toLowerCase()
-          bValue = (b.activityname || 'No activity').toLowerCase()
+          aValue = (a.activity || 'No activity').toLowerCase()
+          bValue = (b.activity || 'No activity').toLowerCase()
           break
         case 'created':
-          aValue = new Date(a.created_at).getTime()
-          bValue = new Date(b.created_at).getTime()
+          aValue = new Date(a.createdat).getTime()
+          bValue = new Date(b.createdat).getTime()
           break
-        default:
+        default:  
           return 0
       }
 
@@ -476,7 +476,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                         <div className="symbol symbol-45px me-3">
                           <div className="symbol-label bg-light-primary">
                             <span className="text-primary fw-bold fs-6">
-                              {lead.name
+                              {lead.leadname
                                 ?.split(' ')
                                 .map((n) => n[0])
                                 .join('')
@@ -490,7 +490,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                             onClick={() => onViewClick?.(lead)}
                             style={{ cursor: onViewClick ? 'pointer' : 'default' }}
                           >
-                            {lead.name || 'Unnamed Lead'}
+                            {lead.leadname || 'Unnamed Lead'}
                           </span>
                           {lead.address && (
                             <div className="text-muted fs-8 mt-1 d-flex align-items-center gap-1">
@@ -540,7 +540,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                     <td>
                       <span className="badge badge-light-info fs-8 px-3 py-2">
                         <i className="bi bi-megaphone me-1"></i>
-                        {lead.campaign?.campaignname || 'N/A'}
+                        {lead.campaignname || 'N/A'}
                       </span>
                     </td>
 
@@ -584,7 +584,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                       <div className="d-flex align-items-center">
                         <div className="d-flex flex-column">
                           <span className="fw-semibold text-gray-800">
-                            {lead.user?.username || 'Unassigned'}
+                            {lead.username || 'Unassigned'}
                           </span>
                         </div>
                       </div>
@@ -593,7 +593,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                     {/* Activity */}
                     <td>
                       <span className="text-muted fs-8">
-                        {lead.activityname || 'No activity'}
+                        {lead.activity || 'No activity'}
                       </span>
                     </td>
 
@@ -601,7 +601,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                     <td>
                       <div className="d-flex flex-column">
                         <span className="text-muted fs-8">
-                          {getTimeAgo(lead.created_at)}
+                          {getTimeAgo(lead.createdat)}
                         </span>
                       </div>
                     </td>

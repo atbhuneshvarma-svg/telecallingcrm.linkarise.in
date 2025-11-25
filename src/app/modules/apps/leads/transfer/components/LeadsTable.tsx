@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Card, Table, Form, Badge, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import { Lead } from '../core/types';
+import CustomPagination from './Pagination';
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -8,9 +9,14 @@ interface LeadsTableProps {
   onSelectAll: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectLead: (leadId: number) => void;
   totalLeads: number;
-  showingLeads: number;
   entriesPerPage: number;
   onEntriesChange: (value: number) => void;
+  // Pagination props - for server-side pagination
+  currentPage?: number;
+  totalPages?: number;
+  totalRecords?: number;
+  onPageChange?: (page: number) => void;
+  onPerPageChange?: (perPage: number) => void;
 }
 
 const LeadsTable: React.FC<LeadsTableProps> = ({
@@ -19,22 +25,33 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
   onSelectAll,
   onSelectLead,
   totalLeads,
-  showingLeads,
   entriesPerPage,
-  onEntriesChange
+  onEntriesChange,
+  // Pagination props
+  currentPage = 1,
+  totalPages = 1,
+  totalRecords = 0,
+  onPageChange = () => {},
+  onPerPageChange = () => {},
 }) => {
   const selectAllCheckboxRef = useRef<HTMLInputElement>(null);
   const [tableSearchTerm, setTableSearchTerm] = useState('');
 
   // Handle indeterminate state for select all checkbox
   useEffect(() => {
-    if (selectAllCheckboxRef.current) {
+    if (selectAllCheckboxRef.current && leads.length > 0) {
+      const visibleLeadIds = leads.map(lead => lead.leadmid);
+      const selectedVisibleLeads = selectedLeads.filter(id => 
+        visibleLeadIds.includes(id)
+      );
+      
       selectAllCheckboxRef.current.indeterminate =
-        selectedLeads.length > 0 && selectedLeads.length < filteredLeads.length;
+        selectedVisibleLeads.length > 0 && 
+        selectedVisibleLeads.length < leads.length;
     }
-  }, [selectedLeads, leads.length]);
+  }, [selectedLeads, leads]);
 
-  // Filter leads for table search
+  // Filter leads for table search (client-side filtering within current page)
   const filteredLeads = leads.filter(lead => {
     if (!tableSearchTerm) return true;
 
@@ -51,6 +68,10 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
       (lead.stage && lead.stage.toLowerCase().includes(searchLower))
     );
   });
+
+  // Calculate showing range for SERVER-SIDE pagination
+  const showingFrom = totalRecords > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0;
+  const showingTo = Math.min(currentPage * entriesPerPage, totalRecords);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -79,40 +100,31 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
     setTableSearchTerm('');
   };
 
+  const handlePerPageChange = (newPerPage: number) => {
+    onPerPageChange(newPerPage);
+    onPageChange(1); // Reset to first page when changing page size
+  };
+
   return (
     <Card>
-      <Card.Body className="p-5">
-        {/* Table Controls Header */}
-        <div className="p-3 border-bottom">
+      <Card.Body className="p-0"> {/* Remove padding from Card.Body */}
+        
+        {/* Table Controls Header - REMOVED THE EXTRA ENTRIES PER PAGE HERE */}
+        <div className="p-3 border-bottom bg-light">
           <Row className="align-items-center">
-            <Col md={4}>
-              <Row className="align-items-center g-3">
-                <Col md="auto">
-                  <Form.Group className="mb-0">
-                    <Form.Label className="fw-semibold text-dark mb-0 me-2">
-                      Show:
-                    </Form.Label>
-                  </Form.Group>
-                </Col>
-                <Col md="auto">
-                  <Form.Select
-                    value={entriesPerPage}
-                    onChange={(e) => onEntriesChange(Number(e.target.value))}
-                    className="border-2 shadow-sm"
-                    style={{ width: '120px' }}
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </Form.Select>
-                </Col>
-                <Col md="auto">
-                  <span className="text-muted">entries</span>
-                </Col>
-              </Row>
+            <Col>
+              <div className="d-flex align-items-center">
+                <span className="fw-semibold text-dark me-2">
+                  Total Leads: {totalRecords}
+                </span>
+                {tableSearchTerm && (
+                  <span className="text-muted ms-2">
+                    (Filtered: {filteredLeads.length})
+                  </span>
+                )}
+              </div>
             </Col>
-            <Col md={8} className="text-end">
+            <Col className="text-end">
               <div className="d-flex justify-content-end">
                 <InputGroup style={{ width: '300px' }}>
                   <InputGroup.Text>
@@ -120,7 +132,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
                   </InputGroup.Text>
                   <Form.Control
                     type="text"
-                    placeholder="Search in table..."
+                    placeholder="Search in current page..."
                     value={tableSearchTerm}
                     onChange={(e) => setTableSearchTerm(e.target.value)}
                   />
@@ -138,87 +150,106 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
           </Row>
         </div>
 
-        <Table responsive striped hover>
-          <thead>
-            <tr>
-              <th>
-                <Form.Check
-                  type="checkbox"
-                  ref={selectAllCheckboxRef}
-                  checked={filteredLeads.length > 0 && selectedLeads.length === filteredLeads.length}
-                  onChange={onSelectAll}
-                />
-              </th>
-              <th>Sr.No</th>
-              <th>Campaign</th>
-              <th>User</th>
-              <th>Name</th>
-              <th>Mobile</th>
-              <th>Purpose</th>
-              <th>Detail</th>
-              <th>Stage</th>
-              <th>Status</th>
-              <th>Act</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredLeads.map((lead, index) => (
-              <tr key={lead.leadmid}>
-                <td>
+        {/* Table */}
+        <div className="table-responsive">
+          <Table responsive striped hover className="mb-0">
+            <thead className="bg-light">
+              <tr>
+                <th style={{ width: '50px' }}>
                   <Form.Check
                     type="checkbox"
-                    checked={selectedLeads.includes(lead.leadmid)}
-                    onChange={() => onSelectLead(lead.leadmid)}
+                    ref={selectAllCheckboxRef}
+                    checked={leads.length > 0 && selectedLeads.length === leads.length}
+                    onChange={onSelectAll}
                   />
-                </td>
-                <td>{index + 1}</td>
-                <td>{lead.campaignname}</td>
-                <td>{lead.username}</td>
-                <td>{lead.leadname}</td>
-                <td>{lead.phone}</td>
-                <td>{lead.purpose || '-'}</td>
-                <td>{lead.detail || '-'}</td>
-                <td>
-                  {lead.stage && (
-                    <Badge bg={getStageVariant(lead.stage)}>
-                      {lead.stage}
+                </th>
+                <th style={{ width: '70px' }}>Sr.No</th>
+                <th>Campaign</th>
+                <th>User</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Purpose</th>
+                <th>Detail</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th>Activity</th>
+                <th>Remarks</th>
+                <th>Updated On</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLeads.map((lead, index) => (
+                <tr key={lead.leadmid}>
+                  <td>
+                    <Form.Check
+                      type="checkbox"
+                      checked={selectedLeads.includes(lead.leadmid)}
+                      onChange={() => onSelectLead(lead.leadmid)}
+                    />
+                  </td>
+                  <td className="text-muted">{(currentPage - 1) * entriesPerPage + index + 1}</td>
+                  <td>{lead.campaignname}</td>
+                  <td>{lead.username}</td>
+                  <td>
+                    <strong>{lead.leadname}</strong>
+                    {lead.email && (
+                      <div className="small text-muted">{lead.email}</div>
+                    )}
+                  </td>
+                  <td>{lead.phone}</td>
+                  <td>{lead.purpose || '-'}</td>
+                  <td>{lead.detail || '-'}</td>
+                  <td>
+                    {lead.stage && (
+                      <Badge bg={getStageVariant(lead.stage)}>
+                        {lead.stage}
+                      </Badge>
+                    )}
+                  </td>
+                  <td>
+                    <Badge bg={getStatusVariant(lead.statusname)}>
+                      {lead.statusname}
                     </Badge>
-                  )}
-                </td>
-                <td>
-                  <Badge bg={getStatusVariant(lead.statusname)}>
-                    {lead.statusname}
-                  </Badge>
-                </td>
-                <td>
-                  <Button size="sm" variant="outline-primary">
-                    Actions
-                  </Button>
-                </td>
-              </tr>
-            ))}
-            {filteredLeads.length === 0 && (
-              <tr>
-                <td colSpan={11} className="text-center py-4">
-                  {tableSearchTerm ? 'No leads found matching your search.' : 'No leads found matching your filters.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-
-        {/* Table Footer */}
-        <div className="p-3 border-top">
-          <Row className="align-items-center">
-            <Col>
-              Showing {Math.min(filteredLeads.length, showingLeads)} of {filteredLeads.length} entries
-              {tableSearchTerm && (
-                <span className="text-muted ms-2">
-                  (Search: "{tableSearchTerm}")
-                </span>
+                  </td>
+                  <td>
+                    {lead.activity || '-'}
+                  </td>
+                  <td>
+                    {lead.leadremarks || '-'}
+                  </td>
+                  <td>
+                    <small className="text-muted">
+                      {lead.updatedon || '-'}
+                    </small>
+                  </td>
+                </tr>
+              ))}
+              {filteredLeads.length === 0 && (
+                <tr>
+                  <td colSpan={13} className="text-center py-4">
+                    {tableSearchTerm 
+                      ? 'No leads found matching your search in the current page.' 
+                      : 'No leads found in the current page.'
+                    }
+                  </td>
+                </tr>
               )}
-            </Col>
-          </Row>
+            </tbody>
+          </Table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="p-3 border-top">
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalRecords={totalRecords}
+            perPage={entriesPerPage}
+            onPageChange={onPageChange}
+            onPerPageChange={handlePerPageChange}
+            showingFrom={showingFrom}
+            showingTo={showingTo}
+          />
         </div>
       </Card.Body>
     </Card>

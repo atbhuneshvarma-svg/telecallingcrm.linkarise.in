@@ -1,5 +1,5 @@
 import React from 'react'
-import { DashboardStats } from '../../../modules/auth/core/_requests'
+import { DashboardStats } from '../../../modules/auth/core/_models'
 import { StatCard } from './StatCard'
 
 interface StatsGridProps {
@@ -8,66 +8,54 @@ interface StatsGridProps {
 }
 
 export const StatsGrid: React.FC<StatsGridProps> = ({ stats, loading }) => {
-  // Calculate today's calls from leadscalltodaypf
-  const getTodaysCalls = () => {
-    if (!stats?.leadscalltodaypf) return 0 // Fallback to 3 if no data
-    let totalCalls = 0
-    Object.values(stats.leadscalltodaypf).forEach(userCalls => {
-      totalCalls += userCalls.length
-    })
-    return totalCalls
+  // === ALL STATS IN SINGLE GROUP ===
+  const allStats = [
+    { label: 'Fresh Leads', value: stats?.freshLeadsToday ?? 0, icon: 'bi-lightning-charge', color: 'success' },
+    { label: 'Interested', value: stats?.interested ?? 0, icon: 'bi-hand-thumbs-up', color: 'info' },
+    { label: 'Converted', value: stats?.converted ?? 0, icon: 'bi-star-fill', color: 'warning' },
+    { label: 'Not Interested', value: stats?.notInterested ?? 0, icon: 'bi-x-circle', color: 'danger' },
+
+    {
+      label: 'Total Leads',
+      value: stats?.totalLeads ?? 0,
+      icon: 'bi-bar-chart',
+      color: 'primary',
+      onClick: () => {
+        window.location.href = '/telecallingcrm.linkarise.in/leads/allleads'
+      },
+    },
+
+    { label: 'Follow-ups', value: stats?.todayFollowup ?? 0, icon: 'bi-arrow-repeat', color: 'dark' },
+    { label: 'Calls', value: stats?.todayCalls ?? 0, icon: 'bi-telephone', color: 'info' },  
+    { label: 'Answered', value: stats?.todayAnswered ?? 0, icon: 'bi-check-circle', color: 'success' },
+  ]
+
+
+  // Split into chunks of 4
+  const chunkedStats: typeof allStats[] = []
+  for (let i = 0; i < allStats.length; i += 4) {
+    chunkedStats.push(allStats.slice(i, i + 4))
   }
 
-  // Use the actual data from your API response
-  const freshLeads = stats?.leadCount ?? 0
-  const todaysFollowup = stats?.todayLeadCount ?? 0
-  const todaysCalls = getTodaysCalls()
-  const convertedToClient = stats?.thismonthclientCount ?? 0
   return (
-    <div className='row g-5 g-xl-10 mb-5 mb-xl-10'>
-      {/* Fresh Leads - 5981 */}
-      <div className='col-md-6 col-lg-3 col-xl-3 col-xxl-3 mb-md-5 mb-xl-10'>
-        <StatCard
-          title='Fresh Leads'
-          value={freshLeads}
-          color='primary'
-          icon='bi-lightning-charge'
-          loading={loading}
-        />
-      </div>
+    <div className='mb-5'>
 
-      {/* Today's Followup - 3 */}
-      <div className='col-md-6 col-lg-3 col-xl-3 col-xxl-3 mb-md-5 mb-xl-10'>
-        <StatCard
-          title="Today's Followup"
-          value={todaysFollowup}
-          color='warning'
-          icon='bi-clock-history'
-          loading={loading}
-        />
-      </div>
-
-      {/* Today's Calls - Calculated from leadscalltodaypf */}
-      <div className='col-md-6 col-lg-3 col-xl-3 col-xxl-3 mb-md-5 mb-xl-10'>
-        <StatCard
-          title="Today's Calls"
-          value={todaysCalls}
-          color='info'
-          icon='bi-telephone'
-          loading={loading}
-        />
-      </div>
-
-      {/* Converted to Client - 4 */}
-      <div className='col-md-6 col-lg-3 col-xl-3 col-xxl-3 mb-md-5 mb-xl-10'>
-        <StatCard
-          title='All Client'
-          value={convertedToClient}
-          color='success'
-          icon='bi-check-circle'
-          loading={loading}
-        />
-      </div>
+      {chunkedStats.map((chunk, idx) => (
+        <div className='row g-5 mb-5 p-3' key={idx}>
+          {chunk.map((item, index) => (
+            <div key={index} className='col-md-6 col-lg-3'>
+              <StatCard
+                title={item.label}
+                value={item.value}
+                icon={item.icon}
+                color={item.color}
+                loading={loading}
+                onClick={item.onClick}   // <-- here
+              />
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   )
 }
