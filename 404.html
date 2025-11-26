@@ -1,57 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
-    <script>
-        // Get current path and clean it up
-        var path = window.location.pathname;
-        var repoBase = '/telecallingcrm.linkarise.in/';
-        
-        console.log('Current path:', path);
-        console.log('Repo base:', repoBase);
-        
-        // Remove the repo base from path
-        var cleanPath = path.replace(repoBase, '');
-        
-        // Remove leading and trailing slashes, and remove .html if present
-        cleanPath = cleanPath.replace(/^\/|\/$/g, '').replace(/\.html$/, '');
-        
-        console.log('Clean path:', cleanPath);
-        
-        // Build the new URL
-        var newUrl = repoBase;
-        
-        if (cleanPath && cleanPath !== 'index' && cleanPath !== '404') {
-            newUrl += 'index.html#/' + cleanPath;
-        } else {
-            newUrl += 'index.html';
-        }
-        
-        // Add search parameters and hash if they exist
-        if (window.location.search) {
-            newUrl += window.location.search;
-        }
-        if (window.location.hash) {
-            newUrl += window.location.hash;
-        }
-        
-        console.log('Redirecting to:', newUrl);
-        
-        // Perform redirect
-        window.location.replace(newUrl);
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found</title>
+  <script>
+    // Redirect all 404 requests to index.html preserving the path
+    (function() {
+      var pathname = window.location.pathname;
+      var repoBase = '/telecallingcrm.linkarise.in/'; // <-- your repo path
+      if (pathname !== repoBase) {
+        window.location.href = repoBase + '#' + pathname.replace(repoBase, '/');
+      }
+    })();
+  </script>
 </head>
 <body>
-    <h1>Redirecting to Application...</h1>
-    <p>If you are not redirected automatically, <a href="/telecallingcrm.linkarise.in/">click here</a>.</p>
-    
-    <script>
-        // Fallback redirect after 3 seconds
-        setTimeout(function() {
-            window.location.href = '/telecallingcrm.linkarise.in/';
-        }, 3000);
-    </script>
+  <h1>404 - Page Not Found</h1>
+  <p>Redirecting to the app...</p>
 </body>
 </html>
