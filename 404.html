@@ -3,20 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Page Not Found</title>
+  <title>Redirecting...</title>
   <script>
-    // Redirect all 404 requests to index.html preserving the path
     (function() {
+      // Get the current path and hash
       var pathname = window.location.pathname;
-      var repoBase = '/telecallingcrm.linkarise.in/'; // <-- your repo path
-      if (pathname !== repoBase) {
-        window.location.href = repoBase + '#' + pathname.replace(repoBase, '/');
+      var hash = window.location.hash;
+      var search = window.location.search;
+      
+      // Your repo base path
+      var repoBase = '/telecallingcrm.linkarise.in/';
+      
+      // If we're already at the base path but missing the hash, redirect to index
+      if (pathname === repoBase && !hash) {
+        window.location.href = repoBase + 'index.html#/';
+        return;
+      }
+      
+      // If we're at a 404 path, redirect to index.html with proper hash routing
+      if (pathname !== repoBase && pathname !== repoBase + 'index.html') {
+        var newPath = pathname.replace(repoBase, '');
+        window.location.href = repoBase + 'index.html#' + newPath + search + hash;
       }
     })();
   </script>
 </head>
 <body>
-  <h1>404 - Page Not Found</h1>
-  <p>Redirecting to the app...</p>
+  <h1>Redirecting...</h1>
+  <p>Please wait while we redirect you to the application.</p>
 </body>
 </html>
