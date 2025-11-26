@@ -8,7 +8,8 @@ interface CallDetailsFiltersProps {
     user: string;
     campaign: string;
     status: string;
-    date: string;
+    startDate: string;
+    endDate: string;
   };
   onFiltersChange: (filters: any) => void;
   onReset: () => void;
@@ -26,16 +27,19 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
   totalRecords = 0,
 }) => {
   const { dropdowns } = useLeads();
-  const [localDate, setLocalDate] = useState(filters.date);
+  const [localStartDate, setLocalStartDate] = useState(filters.startDate || '');
+  const [localEndDate, setLocalEndDate] = useState(filters.endDate || '');
 
   // Set default to current date on component mount
   useEffect(() => {
-    if (!filters.date) {
+    if (!filters.startDate && !filters.endDate) {
       const today = new Date().toISOString().split('T')[0];
-      setLocalDate(today);
+      setLocalStartDate(today);
+      setLocalEndDate(today);
       onFiltersChange({
         ...filters,
-        date: today
+        startDate: today,
+        endDate: today
       });
     }
   }, []);
@@ -50,23 +54,40 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
       [key]: value,
     };
     onFiltersChange(newFilters);
-    
-    // Update local date state
-    if (key === 'date') {
-      setLocalDate(value);
+  };
+
+  const handleDateRangeChange = (type: 'start' | 'end', value: string) => {
+    if (type === 'start') {
+      setLocalStartDate(value);
+      onFiltersChange({
+        ...filters,
+        startDate: value
+      });
+    } else {
+      setLocalEndDate(value);
+      onFiltersChange({
+        ...filters,
+        endDate: value
+      });
     }
   };
 
   const handleResetAll = () => {
     const today = new Date().toISOString().split('T')[0];
-    setLocalDate(today);
+    setLocalStartDate(today);
+    setLocalEndDate(today);
     onReset();
   };
 
   const clearDateFilter = () => {
     const today = new Date().toISOString().split('T')[0];
-    setLocalDate(today);
-    handleFilterChange('date', today);
+    setLocalStartDate(today);
+    setLocalEndDate(today);
+    onFiltersChange({
+      ...filters,
+      startDate: today,
+      endDate: today
+    });
   };
 
   // Get unique users from dropdowns
@@ -75,11 +96,34 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
   const statuses = dropdowns?.statuses || [];
 
   // Check if any filters are active (excluding default date)
+  const today = new Date().toISOString().split('T')[0];
   const hasActiveFilters = 
     filters.user !== 'All' || 
     filters.campaign !== 'All' || 
     filters.status !== 'All' ||
-    (filters.date && filters.date !== new Date().toISOString().split('T')[0]);
+    filters.startDate !== today ||
+    filters.endDate !== today;
+
+  // Format date for display
+  const formatDisplayDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  // Find display names for IDs
+  const getUserDisplayName = (usermid: string) => {
+    const user = users.find(u => u.usermid?.toString() === usermid);
+    return user?.username || usermid;
+  };
+
+  const getCampaignDisplayName = (campaignId: string) => {
+    const campaign = campaigns.find(c => c.id?.toString() === campaignId);
+    return campaign?.name || campaignId;
+  };
+
+  const getStatusDisplayName = (statusId: string) => {
+    const status = statuses.find(s => s.statusmid?.toString() === statusId);
+    return status?.statusname || statusId;
+  };
 
   return (
     <div className="card card-flush mb-6">
@@ -113,7 +157,7 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
             >
               <option value="All">All Telecallers</option>
               {users.map((user) => (
-                <option key={user.usermid} value={user.username}>
+                <option key={user.usermid} value={user.usermid?.toString()}>
                   {user.username}
                 </option>
               ))}
@@ -131,7 +175,7 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
             >
               <option value="All">All Campaigns</option>
               {campaigns.map((campaign) => (
-                <option key={campaign.id} value={campaign.name}>
+                <option key={campaign.id} value={campaign.id?.toString()}>
                   {campaign.name}
                 </option>
               ))}
@@ -139,7 +183,7 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
           </div>
 
           {/* Status Filter */}
-          <div className="col-md-3">
+          <div className="col-md-2">
             <label className="form-label">Status</label>
             <select
               value={filters.status}
@@ -149,25 +193,39 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
             >
               <option value="All">All Statuses</option>
               {statuses.map((status) => (
-                <option key={status.statusmid} value={status.statusname}>
+                <option key={status.statusmid} value={status.statusmid?.toString()}>
                   {status.statusname}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Date Filter */}
-          <div className="col-md-3">
-            <label className="form-label">Date</label>
+          {/* Start Date Filter */}
+          <div className="col-md-2">
+            <label className="form-label">Start Date</label>
             <div className="input-group">
               <input
                 type="date"
-                value={localDate}
-                onChange={(e) => handleFilterChange('date', e.target.value)}
+                value={localStartDate}
+                onChange={(e) => handleDateRangeChange('start', e.target.value)}
                 className="form-control"
                 disabled={loading}
               />
-              {filters.date && filters.date !== new Date().toISOString().split('T')[0] && (
+            </div>
+          </div>
+
+          {/* End Date Filter */}
+          <div className="col-md-2">
+            <label className="form-label">End Date</label>
+            <div className="input-group">
+              <input
+                type="date"
+                value={localEndDate}
+                onChange={(e) => handleDateRangeChange('end', e.target.value)}
+                className="form-control"
+                disabled={loading}
+              />
+              {(filters.startDate !== today || filters.endDate !== today) && (
                 <button
                   className="btn btn-outline-secondary"
                   type="button"
@@ -182,7 +240,6 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
           </div>
         </div>
 
-
         {/* Active Filters Indicator */}
         {hasActiveFilters && (
           <div className="row mt-3">
@@ -191,17 +248,23 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
                 <i className="bi bi-funnel text-primary"></i>
                 <span className="text-primary fw-medium">Active Filters:</span>
                 {filters.user !== 'All' && (
-                  <span className="badge bg-primary">Telecaller: {filters.user}</span>
+                  <span className="badge bg-primary">
+                    Telecaller: {getUserDisplayName(filters.user)}
+                  </span>
                 )}
                 {filters.campaign !== 'All' && (
-                  <span className="badge bg-primary">Campaign: {filters.campaign}</span>
+                  <span className="badge bg-primary">
+                    Campaign: {getCampaignDisplayName(filters.campaign)}
+                  </span>
                 )}
                 {filters.status !== 'All' && (
-                  <span className="badge bg-primary">Status: {filters.status}</span>
-                )}
-                {filters.date && filters.date !== new Date().toISOString().split('T')[0] && (
                   <span className="badge bg-primary">
-                    Date: {new Date(filters.date).toLocaleDateString()}
+                    Status: {getStatusDisplayName(filters.status)}
+                  </span>
+                )}
+                {(filters.startDate !== today || filters.endDate !== today) && (
+                  <span className="badge bg-primary">
+                    Date Range: {formatDisplayDate(filters.startDate)} to {formatDisplayDate(filters.endDate)}
                   </span>
                 )}
               </div>

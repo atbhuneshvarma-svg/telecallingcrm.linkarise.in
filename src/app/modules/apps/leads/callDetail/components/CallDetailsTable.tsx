@@ -18,7 +18,8 @@ interface CallDetailsTableProps {
     user: string;
     campaign: string;
     status: string;
-    date: string;
+    startDate: string; // Changed from 'date' to 'startDate'
+    endDate: string;   // Added 'endDate'
     callType?: string;
     activity?: string;
   };
@@ -218,11 +219,14 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
   const hasActiveFilters = useMemo(() => {
     if (!filters) return false;
     
+    const today = new Date().toISOString().split('T')[0];
+    
     return (
       filters.user !== 'All' ||
       filters.campaign !== 'All' ||
       filters.status !== 'All' ||
-      (filters.date && filters.date !== new Date().toISOString().split('T')[0]) ||
+      filters.startDate !== today ||
+      filters.endDate !== today ||
       (filters.callType && filters.callType !== 'All') ||
       (filters.activity && filters.activity !== 'All')
     );
@@ -236,9 +240,13 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
     if (filters.user !== 'All') activeFilters.push(`Telecaller: ${filters.user}`);
     if (filters.campaign !== 'All') activeFilters.push(`Campaign: ${filters.campaign}`);
     if (filters.status !== 'All') activeFilters.push(`Status: ${filters.status}`);
-    if (filters.date && filters.date !== new Date().toISOString().split('T')[0]) {
-      activeFilters.push(`Date: ${new Date(filters.date).toLocaleDateString()}`);
+    
+    // Check date range filter
+    const today = new Date().toISOString().split('T')[0];
+    if (filters.startDate !== today || filters.endDate !== today) {
+      activeFilters.push(`Date: ${new Date(filters.startDate).toLocaleDateString()} to ${new Date(filters.endDate).toLocaleDateString()}`);
     }
+    
     if (filters.callType && filters.callType !== 'All') activeFilters.push(`Call Type: ${filters.callType}`);
     if (filters.activity && filters.activity !== 'All') activeFilters.push(`Activity: ${filters.activity}`);
 

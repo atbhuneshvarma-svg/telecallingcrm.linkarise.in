@@ -99,7 +99,6 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
   const token = localStorage.getItem('kt-auth-react-v')
   const isAuthenticated = !!token
 
-  console.log('🧩 LeadsProvider mount | Authenticated:', isAuthenticated)
 
   // ✅ Campaigns
   const { data: campaigns, isLoading: campaignsLoading, error: campaignsError } = useQuery({

@@ -168,7 +168,6 @@ const LeadAllocation: React.FC = () => {
     return uniqueCampaigns
   }, [campaigns])
 
-  console.log("hello",leads);
   // ✅ Get unique campaigns from leads for bulk allocation modal
   const leadCampaigns: Campaign[] = useMemo(() => {
     const campaignsFromLeads = leads

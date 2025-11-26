@@ -60,7 +60,6 @@ export const sourceOfInquiryApi = {
   async getAllSourceOfInquiries(): Promise<SourceOfInquiry[]> {
     try {
       const response = await axios.post(GET_SOURCE_OF_INQUIRY_URL);
-      console.log("Get All Source of Inquiries Response:", response.data);
 
       if (!isApiSuccess(response.data)) {
         throw new Error(response.data.message || "API returned failure");

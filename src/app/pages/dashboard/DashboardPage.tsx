@@ -61,13 +61,17 @@ const DashboardPage: React.FC = () => {
 
         {/* Performance + Recent Converted */}
         <div className='row g-5 gx-xl-10 mb-5 mb-xl-10'>
+
           {/* Left: Performance Table */}
           <div className='col-xl-6'>
             <div className='card h-100'>
               <div className='card-header border-0 pt-7'>
                 <h3 className='card-title fw-bold fs-3'>TODAY PERFORMANCE</h3>
               </div>
-              <div className='card-body py-3'>
+              <div 
+                className='card-body py-3'
+                style={{ height: '350px', overflowY: 'auto' }} // added scroll
+              >
                 <PerformanceTable stats={stats} loading={loading} />
               </div>
             </div>
@@ -79,7 +83,10 @@ const DashboardPage: React.FC = () => {
               <div className='card-header border-0 pt-7'>
                 <h3 className='card-title fw-bold fs-3'>RECENT CONVERTED</h3>
               </div>
-              <div className='card-body py-3'>
+              <div 
+                className='card-body py-3'
+                style={{ height: '350px', overflowY: 'auto' }} // added scroll
+              >
                 <ConvertedClientsTable stats={stats} loading={loading} />
               </div>
             </div>
