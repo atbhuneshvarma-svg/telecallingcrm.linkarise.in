@@ -14,7 +14,7 @@ const UsersListSkeleton = () => (
   <div className="card">
     <div className="card-body p-0">
       <div className="table-responsive">
-        <table className="table table-hover table-rounded table-striped border gy-7 gs-7">
+        <table className="table table-hover  table-rounded table-striped border gy-7 gs-7">
           <thead>
             <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
               <th>Sr.No</th>
@@ -101,7 +101,7 @@ const UsersList: React.FC<UsersListProps> = ({ users, onEdit, onDelete, loading 
         {/* Desktop Table */}
         <div className="d-none d-lg-block">
           <div className="table-responsive">
-            <table className="table table-hover table-rounded table-striped border gy-7 gs-7">
+            <table className="table table-hover table-bordered table-rounded table-striped border">
               <thead>
                 <tr className=" fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
                   <th className="px-4 py-3 text-uppercase font-sm text-muted">Sr.No</th>

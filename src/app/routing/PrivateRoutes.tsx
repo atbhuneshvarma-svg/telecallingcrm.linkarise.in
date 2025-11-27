@@ -14,12 +14,12 @@ import SourceOfInquiryMaster from '../modules/apps/master/sourceOFinquiry/Source
 import WhatsAppTemplatesMaster from '../modules/apps/master/whatsapp/WhatsAppTemplatesMaster'
 import RemarksTemplatesMaster from '../modules/apps/master/remarks/RemarksTemplatesMaster'
 import AllLeads from '../modules/apps/leads/allleads/AllLeads'
-import LeadAllocation from '../modules/apps/leads/allocation/LeadAllocation'
 import LeadCallDetails from '../modules/apps/leads/callDetail/LeadCallDetails'
 import LeadFollowup from '../modules/apps/leads/followup/LeadFollowup'
 import { FreshLeadsPage } from '../modules/apps/leads/fressleads/pages/FreshLeadsPage'
 import { ActivityLogsPage } from '../modules/apps/reports/activity/ActivityLogsPage'
 import LeadAllocationRoutes from '../modules/apps/leads/allocation/LeadAllocationRoutes'
+import NotificationsPage from '../pages/dashboard/components/NotificationsPage'
 
 const PrivateRoutes = () => {
   const ProfilePage = lazy(() => import('../modules/profile/ProfilePage'))
@@ -213,6 +213,14 @@ const PrivateRoutes = () => {
           element={
             <SuspensedView>
               <ActivityLogsPage />
+            </SuspensedView>
+          }
+        />
+        <Route
+          path='notifications/*'
+          element={
+            <SuspensedView>
+              <NotificationsPage />
             </SuspensedView>
           }
         />

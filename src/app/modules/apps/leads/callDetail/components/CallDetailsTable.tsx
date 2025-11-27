@@ -469,7 +469,7 @@ const CallDetailsTable: React.FC<CallDetailsTableProps> = ({
         {/* Table */}
         <div className="table-responsive">
           <table
-            className="table table-hover align-middle gs-0 gy-2"
+            className="table table-hover table-bordered table-rounded align-middle gs-0 gy-2"
             style={{ fontSize: '0.875rem', lineHeight: '1.5' }}
           >
             <thead

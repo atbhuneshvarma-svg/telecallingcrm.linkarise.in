@@ -242,7 +242,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
           aValue = new Date(a.createdat).getTime()
           bValue = new Date(b.createdat).getTime()
           break
-        default:  
+        default:
           return 0
       }
 
@@ -409,7 +409,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
 
           {/* Table */}
           <div className="table-responsive">
-            <table className="table table-hover align-middle gs-0 gy-2">
+            <table className="table table-hover table-bordered table-rounded  align-middle gs-0 gy-1">
               <thead className="bg-light">
                 <tr>
                   <th className="ps-4" style={{ width: '60px' }}>
@@ -492,12 +492,6 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                           >
                             {lead.leadname || 'Unnamed Lead'}
                           </span>
-                          {lead.address && (
-                            <div className="text-muted fs-8 mt-1 d-flex align-items-center gap-1">
-                              <i className="bi bi-geo-alt"></i>
-                              {lead.address.substring(0, 35)}...
-                            </div>
-                          )}
                         </div>
                       </div>
                     </td>
@@ -510,27 +504,16 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                             <i className="bi bi-telephone text-muted fs-8"></i>
                             <a
                               href={`tel:${lead.phone}`}
-                              className="text-gray-700 text-decoration-none fs-8"
+                              className=" text-black text-decoration-none fs-8"
                               onClick={(e) => e.stopPropagation()}
                             >
                               {lead.phone}
                             </a>
                           </div>
                         )}
-                        {lead.email && (
-                          <div className="d-flex align-items-center gap-1">
-                            <i className="bi bi-envelope text-muted fs-8"></i>
-                            <a
-                              href={`mailto:${lead.email}`}
-                              className="text-primary text-decoration-none fs-8 text-truncate"
-                              onClick={(e) => e.stopPropagation()}
-                              style={{ maxWidth: '150px' }}
-                            >
-                              {lead.email}
-                            </a>
-                          </div>
-                        )}
-                        {!lead.phone && !lead.email && (
+                        
+
+                        {!lead.phone && (
                           <span className="text-muted fs-8">No contact info</span>
                         )}
                       </div>
@@ -538,7 +521,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
 
                     {/* Campaign */}
                     <td>
-                      <span className="badge badge-light-info fs-8 px-3 py-2">
+                      <span className="badge fs-8 px-3 py-2">
                         <i className="bi bi-megaphone me-1"></i>
                         {lead.campaignname || 'N/A'}
                       </span>
@@ -546,12 +529,12 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
 
                     {/* Source */}
                     <td>
-                      <small className="text-muted">{lead.sourceofinquiry || 'N/A'}</small>
+                      <small>{lead.sourceofinquiry || '-'}</small>
                     </td>
 
                     {/* Purpose */}
                     <td>
-                      <small className="text-muted">{lead.purpose || 'N/A'}</small>
+                      <small>{lead.purpose || '-'}</small>
                     </td>
 
                     {/* Status */}
@@ -568,13 +551,13 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                           style={{
                             backgroundColor: getStatusColor(lead.statusname, lead.statuscolor),
                             color: '#fff',
-                            minWidth: '110px',
+                            minWidth: '70px',
                             fontSize: '0.75rem',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                           }}
                         >
                           {lead.statusname || 'N/A'}
-                          {(onStatusClick || onStatusUpdate) && <i className="bi bi-pencil fs-9 opacity-75"></i>}
+                          <i className="bi bi-pencil-fill"></i>
                         </span>
                       </button>
                     </td>
@@ -592,7 +575,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
 
                     {/* Activity */}
                     <td>
-                      <span className="text-muted fs-8">
+                      <span className=" fs-8">
                         {lead.activity || 'No activity'}
                       </span>
                     </td>
@@ -600,7 +583,7 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
                     {/* Created */}
                     <td>
                       <div className="d-flex flex-column">
-                        <span className="text-muted fs-8">
+                        <span className=" fs-8">
                           {getTimeAgo(lead.createdat)}
                         </span>
                       </div>

@@ -115,11 +115,11 @@ const LeadCallDetails: React.FC = () => {
     setApiStatus('Testing API connection...');
     try {
       const workingUrl = 'https://crmtelecalling.linkarise.in/api/calldetails?daterange=26-11-2025+-+26-11-2025&campaignid=49&usermid=69&status=';
-      
+
       console.log('🔗 Testing working URL:', workingUrl);
-      
+
       const response = await fetch(workingUrl);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ API test successful:', data);
@@ -216,7 +216,7 @@ const LeadCallDetails: React.FC = () => {
     const initializeData = async () => {
       // First test with the exact working URL
       const workingData = await testWorkingUrl();
-      
+
       if (workingData) {
         // If working URL succeeds, load data with current filters
         await fetchCallDetails(1);
@@ -296,31 +296,22 @@ const LeadCallDetails: React.FC = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h1 className="fw-bold text-gray-800 mb-0">Lead Call Details</h1>
-              <small className={`badge ${apiStatus.includes('Error') ? 'bg-danger' : apiStatus.includes('Loaded') ? 'bg-success' : 'bg-warning'}`}>
-                {apiStatus}
-              </small>
             </div>
-            <div className="d-flex align-items-center gap-2">
-              <button
-                className="btn btn-sm btn-light-primary"
-                onClick={handleRefresh}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="spinner-border spinner-border-sm me-2" />
-                ) : (
-                  <i className="bi bi-arrow-clockwise me-2"></i>
-                )}
-                Refresh
-              </button>
-              <button
-                className="btn btn-sm btn-light-info"
-                onClick={testWorkingUrl}
-                disabled={loading}
-              >
-                Test API
-              </button>
-            </div>
+          </div>
+          <div className="d-flex align-items-center gap-2">
+            <button
+              className="btn btn-sm btn-light-primary"
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="spinner-border spinner-border-sm me-2" />
+              ) : (
+                <i className="bi bi-arrow-clockwise me-2"></i>
+              )}
+              Refresh
+            </button>
+
           </div>
         </div>
 

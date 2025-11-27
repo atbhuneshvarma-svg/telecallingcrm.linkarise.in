@@ -1,9 +1,9 @@
 import clsx from 'clsx'
-import {FC, useState, useEffect} from 'react'
-import {Link} from 'react-router-dom'
-import {KTIcon, toAbsoluteUrl} from '../../../helpers'
-import { Notification} from '../../../../app/modules/auth/core/_models'
-import {  notificationsApi } from '../../../../app/modules/auth/core/_requests'
+import { FC, useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { KTIcon, toAbsoluteUrl } from '../../../helpers'
+import { Notification } from '../../../../app/modules/auth/core/_models'
+import { notificationsApi } from '../../../../app/modules/auth/core/_requests'
 
 const HeaderNotificationsMenu: FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -42,7 +42,7 @@ const HeaderNotificationsMenu: FC = () => {
     if (diffMins < 60) return `${diffMins}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays < 7) return `${diffDays}d ago`
-    
+
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
 
@@ -92,7 +92,7 @@ const HeaderNotificationsMenu: FC = () => {
             <a
               className={`nav-link text-white opacity-75 opacity-state-100 pb-4 ${activeTab === 'updates' ? 'active' : ''}`}
               onClick={() => setActiveTab('updates')}
-              style={{cursor: 'pointer'}}
+              style={{ cursor: 'pointer' }}
             >
               Updates
               {leadNotifications.length > 0 && (
@@ -104,18 +104,9 @@ const HeaderNotificationsMenu: FC = () => {
           </li>
           <li className='nav-item'>
             <a
-              className={`nav-link text-white opacity-75 opacity-state-100 pb-4 ${activeTab === 'alerts' ? 'active' : ''}`}
-              onClick={() => setActiveTab('alerts')}
-              style={{cursor: 'pointer'}}
-            >
-              Alerts
-            </a>
-          </li>
-          <li className='nav-item'>
-            <a
               className={`nav-link text-white opacity-75 opacity-state-100 pb-4 ${activeTab === 'activity' ? 'active' : ''}`}
               onClick={() => setActiveTab('activity')}
-              style={{cursor: 'pointer'}}
+              style={{ cursor: 'pointer' }}
             >
               Activity
             </a>
@@ -145,8 +136,8 @@ const HeaderNotificationsMenu: FC = () => {
               leadNotifications.map((notification) => {
                 const config = getNotificationConfig(notification.type, notification.is_read)
                 return (
-                  <div 
-                    key={notification.notimid} 
+                  <div
+                    key={notification.notimid}
                     className={clsx(
                       'd-flex flex-stack py-4 transition-all rounded-3 px-3',
                       notification.is_read === 0 && 'bg-light-primary bg-opacity-10'
@@ -188,6 +179,12 @@ const HeaderNotificationsMenu: FC = () => {
               <Link
                 to='/notifications'
                 className='btn btn-color-gray-700 btn-active-color-primary btn-sm'
+                onClick={(e) => {
+                  e.preventDefault();
+                  setTimeout(() => {
+                    window.location.href = ' /telecallingcrm.linkarise.in/notifications';
+                  }, 10);
+                }}
               >
                 View All Notifications
                 <KTIcon iconName='arrow-right' className='fs-5 ms-2' />
@@ -196,38 +193,24 @@ const HeaderNotificationsMenu: FC = () => {
           )}
         </div>
 
-        {/* Alerts Tab */}
-        <div className={`tab-pane fade ${activeTab === 'alerts' ? 'show active' : ''}`}>
-          <div className='d-flex flex-column align-items-center text-center py-10 px-8'>
-            <KTIcon iconName='shield-tick' className='fs-2x text-success opacity-50 mb-3' />
-            <h4 className='text-gray-800 fw-bold mb-2'>No Active Alerts</h4>
-            <p className='text-gray-600 fs-6'>
-              You're all set! No urgent alerts at this time.
-            </p>
-          </div>
-        </div>
-
         {/* Activity Tab */}
         <div className={`tab-pane fade ${activeTab === 'activity' ? 'show active' : ''}`}>
           <div className='d-flex flex-column align-items-center text-center py-10 px-8'>
             <KTIcon iconName='chart-simple' className='fs-2x text-info opacity-50 mb-3' />
             <h4 className='text-gray-800 fw-bold mb-2'>Activity Summary</h4>
-            <p className='text-gray-600 fs-6 mb-4'>
-              Recent system activity and performance metrics
-            </p>
-            <div className='w-100'>
-              <div className='d-flex justify-content-between text-gray-600 fs-7 mb-2'>
-                <span>Leads Processed</span>
-                <span className='fw-bold text-gray-800'>1,897</span>
-              </div>
-              <div className='d-flex justify-content-between text-gray-600 fs-7 mb-2'>
-                <span>Team Activity</span>
-                <span className='fw-bold text-gray-800'>Active</span>
-              </div>
-              <div className='d-flex justify-content-between text-gray-600 fs-7'>
-                <span>System Status</span>
-                <span className='fw-bold text-success'>Optimal</span>
-              </div>
+            <div className='text-gray-600 fs-6 mb-5'>
+              Review your recent activity and performance metrics to stay updated.
+              <span>
+              </span>
+            </div>
+            <div>
+              <Link
+                to='/activity-summary'
+                className='btn btn-info btn-sm'
+              >
+                View Activity Summary
+                <KTIcon iconName='arrow-right' className='fs-5 ms-2' />
+              </Link>
             </div>
           </div>
         </div>
@@ -236,4 +219,4 @@ const HeaderNotificationsMenu: FC = () => {
   )
 }
 
-export {HeaderNotificationsMenu}
+export { HeaderNotificationsMenu }

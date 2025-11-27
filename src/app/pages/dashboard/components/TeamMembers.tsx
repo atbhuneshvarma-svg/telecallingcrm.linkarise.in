@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DashboardStats } from '../../../modules/auth/core/_models'
 
 interface TeamMembersProps {
@@ -7,6 +8,11 @@ interface TeamMembersProps {
 }
 
 export const TeamMembers: React.FC<TeamMembersProps> = ({ stats, loading }) => {
+  const navigate = useNavigate()
+
+  const handleViewAll = () => {
+    navigate('/manage/user-management/users')
+  }
 
   // -----------------------------
   // Build dynamic team members list
@@ -16,7 +22,9 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({ stats, loading }) => {
         username: u.username ?? "Unknown",
         dialCall: u.dialCall ?? 0,
         ansCall: u.ansCall ?? 0,
-        converted: u.converted ?? 0,
+        converted: u.converted_to_client ?? 0, // Fixed: use converted_to_client
+        interested: u.interested ?? 0,
+        notinterested: u.notinterested ?? 0,
       }))
     : []
 
@@ -34,7 +42,12 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({ stats, loading }) => {
         </h3>
 
         <div className='card-toolbar'>
-          <button className='btn btn-sm btn-light'>View All</button>
+          <button 
+            className='btn btn-sm btn-light'
+            onClick={handleViewAll}
+          >
+            View All
+          </button>
         </div>
       </div>
 
@@ -60,8 +73,8 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({ stats, loading }) => {
               
               <div className='symbol symbol-50px me-4'>
                 <div className='symbol-label bg-light-primary'>
-                  <span className='fs-2x text-primary'>
-                    {member.username.charAt(0)}
+                  <span className='fs-2x text-primary fw-bold'>
+                    {member.username?.charAt(0)?.toUpperCase() || 'U'}
                   </span>
                 </div>
               </div>
@@ -71,9 +84,12 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({ stats, loading }) => {
                   {member.username}
                 </span>
 
-                <span className='text-gray-500 fw-semibold fs-7'>
-                  {member.dialCall} Dial • {member.ansCall} Answered • {member.converted} Converted
-                </span>
+                <div className='d-flex gap-2 text-gray-500 fw-semibold fs-7'>
+                  <span className='badge badge-light-primary'>{member.dialCall} Dialed</span>
+                  <span className='badge badge-light-success'>{member.ansCall} Answered</span>
+                  <span className='badge badge-light-info'>{member.interested} Interested</span>
+                  <span className='badge badge-light-success'>{member.converted} Converted</span>
+                </div>
               </div>
 
               <span className="badge badge-sm badge-light-success">
@@ -85,6 +101,7 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({ stats, loading }) => {
           {/* EMPTY STATE */}
           {!loading && teamMembers.length === 0 && (
             <div className="text-muted text-center fs-7 py-5">
+              <i className="bi bi-people display-4 opacity-50 d-block mb-2"></i>
               No team member data found
             </div>
           )}

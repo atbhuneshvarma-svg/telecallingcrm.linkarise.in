@@ -65,7 +65,7 @@ export const TelecallerPerformanceTable: React.FC<TelecallerPerformanceTableProp
       </Card.Header>
       <Card.Body className="p-0">
         <div className="table-responsive">
-          <Table striped hover className="mb-0 align-middle">
+          <Table striped hover className="mb-0 align-middle table-bordered">
             <thead className="bg-light">
               <tr>
                 <th className="ps-4">Sr.No</th>

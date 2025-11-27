@@ -15,12 +15,12 @@ const SourceOfInquiryList: React.FC<SourceOfInquiryListProps> = ({
 }) => {
   return (
     <div className="table-responsive">
-      <table className="table table-hover table-rounded table-striped border gy-7 gs-7">
+      <table className="table table-hover table-bordered table-rounded table-striped border">
         <thead>
-          <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+          <tr className="text-center fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
             <th>Sr.No</th>
             <th>Source of Inquiry Name</th>
-            <th className="text-end">Actions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -35,7 +35,7 @@ const SourceOfInquiryList: React.FC<SourceOfInquiryListProps> = ({
             </tr>
           ) : (
             sourceOfInquiries.map((sourceOfInquiry, index) => (
-              <tr key={sourceOfInquiry.id}>
+              <tr className='text-center' key={sourceOfInquiry.id}>
                 <td>
                   <span className="text-gray-600">{index + 1}</span>
                 </td>
@@ -44,7 +44,7 @@ const SourceOfInquiryList: React.FC<SourceOfInquiryListProps> = ({
                     <span className="fw-bold text-gray-800">{sourceOfInquiry.name}</span>
                   </div>
                 </td>
-                <td className="text-end">
+                <td>
                   <div className="dropdown">
                     <button
                       className="btn btn-sm btn-light btn-active-light-primary"

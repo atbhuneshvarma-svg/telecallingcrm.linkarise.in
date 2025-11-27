@@ -17,33 +17,92 @@ const ConvertedClientsTable: React.FC<ConvertedClientsTableProps> = ({ stats, lo
     )
   }
 
-  const convertedClients = stats?.recentConfirmed ?? []
+  // Use performanceTop5 data for the telecaller performance table
+  const performanceData = stats?.performanceTop5 ?? []
 
   return (
     <div className="table-responsive">
-      {convertedClients.length > 0 ? (
+      {performanceData.length > 0 ? (
         <table className="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
           <thead>
-            <tr className="fw-bold text-muted">
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Stage Date</th>
-              <th>Status</th>
+            <tr className="fw-bold text-muted bg-light">
+              <th className="ps-4">User</th>
+              <th>Total Leads</th>
+              <th>Fresh Leads</th>
+              <th>Dialed</th>
+              <th>Answered</th>
+              <th>Interested</th>
+              <th>Converted</th>
+              <th>Not Interested</th>
+              <th className="pe-4">Call Duration</th>
             </tr>
           </thead>
           <tbody>
-            {convertedClients.map((lead) => (
-              <tr key={lead.leadmid}>
-                <td>{lead.name}</td>
-                <td>{lead.phone}</td>
-                <td>{new Date(lead.stagedate).toLocaleString()}</td>
-                <td>{lead.stage}</td>
+            {performanceData.map((user, index) => (
+              <tr key={user.username || index}>
+                <td className="ps-4">
+                  <div className="d-flex align-items-center">
+                    <div className="symbol symbol-40px symbol-circle me-3">
+                      <div className="symbol-label bg-light-primary">
+                        <span className="text-primary fw-bold fs-6">
+                          {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="d-flex justify-content-start flex-column">
+                      <span className="fw-bold text-dark fs-6">{user.username}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className="text-dark fw-bold fs-6">
+                    {user.totalLeads?.toLocaleString() || 0}
+                  </span>
+                </td>
+                <td>
+                  <span className="text-primary fw-semibold fs-6">
+                    {user.freshLeads?.toLocaleString() || 0}
+                  </span>
+                </td>
+                <td>
+                  <span className="text-dark fw-semibold fs-6">
+                    {user.dialCall?.toLocaleString() || 0}
+                  </span>
+                </td>
+                <td>
+                  <span className="text-success fw-semibold fs-6">
+                    {user.ansCall?.toLocaleString() || 0}
+                  </span>
+                </td>
+                <td>
+                  <span className="text-info fw-semibold fs-6">
+                    {user.interested?.toLocaleString() || 0}
+                  </span>
+                </td>
+                <td>
+                  <span className="text-success fw-bold fs-6">
+                    {user.converted_to_client?.toLocaleString() || 0}
+                  </span>
+                </td>
+                <td>
+                  <span className="text-danger fw-semibold fs-6">
+                    {user.notinterested?.toLocaleString() || 0}
+                  </span>
+                </td>
+                <td className="pe-4">
+                  <span className="text-muted fw-semibold fs-7">
+                    {user.callDuration || '00:00'}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       ) : (
-        <p className='text-muted'>No recent converted</p>
+        <div className="text-center py-8">
+          <i className="bi bi-graph-up display-1 text-muted opacity-50"></i>
+          <p className="text-muted mt-3">No performance data available</p>
+        </div>
       )}
     </div>
   )

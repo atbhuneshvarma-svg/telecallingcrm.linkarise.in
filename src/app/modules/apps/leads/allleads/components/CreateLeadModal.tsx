@@ -87,7 +87,7 @@ export const AddEditLeadModal: React.FC<AddEditLeadModalProps> = ({ show, onHide
         statusmid: leadToEdit.statusmid ?? Number(statuses[0]?.value) ?? 0,
         usermid: leadToEdit.usermid ?? Number(users[0]?.value) ?? 0,
         statusname: leadToEdit.statusname ?? statuses[0]?.label ?? '',
-       activityname: leadToEdit.activity || activities[0]?.value || '',
+        activityname: leadToEdit.activity || activities[0]?.value || '',
         detail: leadToEdit.detail || '',
         leadremarks: leadToEdit.leadremarks || '',
         extra_field1: leadToEdit.extra_field1 || '',
@@ -207,53 +207,158 @@ export const AddEditLeadModal: React.FC<AddEditLeadModalProps> = ({ show, onHide
             {error && <Alert variant="danger">{error}</Alert>}
             {/* --- FORM FIELDS (no styling changed) --- */}
             <div className="row">
+              {/* Campaign & Purpose Group */}
+              <div className="col-md-6 mb-3">
+                <SelectField
+                  label="Campaign"
+                  name="campaignmid"
+                  value={formData.campaignmid}
+                  options={campaigns}
+                  onChange={handleChange}
+                  isRequired
+                  validation={fieldValidations.campaignmid}
+                  isTouched={touched.has('campaignmid')}
+                />
+              </div>
+              <div className="col-md-6 mb-3">
+                <SelectField
+                  label="Purpose"
+                  name="purposemid"
+                  value={formData.purposemid}
+                  options={purposes}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Source & Activity Group */}
+              <div className="col-md-6 mb-3">
+                <SelectField
+                  label="Source"
+                  name="sourceofinquirymid"
+                  value={formData.sourceofinquirymid}
+                  options={sources}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="col-md-6 mb-3">
+                <SelectField
+                  label="Activity"
+                  name="activityname"
+                  value={formData.activityname}
+                  options={activities}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Status & Assigned To Group */}
+              <div className="col-md-6 mb-3">
+                <SelectField
+                  label="Status"
+                  name="statusmid"
+                  value={formData.statusmid}
+                  options={statuses}
+                  onChange={handleChange}
+                  isRequired
+                  validation={fieldValidations.statusmid}
+                  isTouched={touched.has('statusmid')}
+                />
+              </div>
+              <div className="col-md-6 mb-3">
+                <SelectField
+                  label="Assigned To"
+                  name="usermid"
+                  value={formData.usermid}
+                  options={users}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Contact Information Group */}
               <div className="col-md-4 mb-3">
-                <SelectField label="Campaign" name="campaignmid" value={formData.campaignmid} options={campaigns} onChange={handleChange} isRequired validation={fieldValidations.campaignmid} isTouched={touched.has('campaignmid')} />
+                <InputField
+                  label="Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  isRequired
+                  validation={fieldValidations.name}
+                  isTouched={touched.has('name')}
+                />
               </div>
               <div className="col-md-4 mb-3">
-                <SelectField label="Purpose" name="purposemid" value={formData.purposemid} options={purposes} onChange={handleChange} />
+                <InputField
+                  label="Phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  isRequired
+                  validation={fieldValidations.phone}
+                  isTouched={touched.has('phone')}
+                />
               </div>
               <div className="col-md-4 mb-3">
-                <SelectField label="Source" name="sourceofinquirymid" value={formData.sourceofinquirymid} options={sources} onChange={handleChange} />
+                <InputField
+                  label="Email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  isRequired
+                  validation={fieldValidations.email}
+                  isTouched={touched.has('email')}
+                />
               </div>
-              <div className="col-md-4 mb-3">
-                <SelectField label="Activity" name="activityname" value={formData.activityname} options={activities} onChange={handleChange} />
+
+              {/* Text Areas - Compact */}
+              <div className="col-md-12 mb-2">
+                <InputField
+                  label="Address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  as="textarea"
+                  rows={1}
+                  isRequired
+                  validation={fieldValidations.address}
+                  isTouched={touched.has('address')}
+                />
               </div>
-              <div className="col-md-4 mb-3">
-                <SelectField label="Status" name="statusmid" value={formData.statusmid} options={statuses} onChange={handleChange} isRequired validation={fieldValidations.statusmid} isTouched={touched.has('statusmid')} />
+              <div className="col-md-12 mb-2">
+                <InputField
+                  label="Detail"
+                  name="detail"
+                  value={formData.detail}
+                  onChange={handleChange}
+                  as="textarea"
+                  rows={1}
+                />
               </div>
-              <div className="col-md-4 mb-3">
-                <SelectField label="Assigned To" name="usermid" value={formData.usermid} options={users} onChange={handleChange} />
+
+              {/* Extra Fields - Inline */}
+              <div className="col-md-4 mb-2">
+                <InputField
+                  label="Extra Field 1"
+                  name="extra_field1"
+                  value={formData.extra_field1}
+                  onChange={handleChange}
+                />
               </div>
-              <div className="col-md-4 mb-3">
-                <InputField label="Name" name="name" value={formData.name} onChange={handleChange} isRequired validation={fieldValidations.name} isTouched={touched.has('name')} />
+              <div className="col-md-4 mb-2">
+                <InputField
+                  label="Extra Field 2"
+                  name="extra_field2"
+                  value={formData.extra_field2}
+                  onChange={handleChange}
+                />
               </div>
-              <div className="col-md-4 mb-3">
-                <InputField label="Phone" name="phone" value={formData.phone} onChange={handleChange} isRequired validation={fieldValidations.phone} isTouched={touched.has('phone')} />
-              </div>
-              <div className="col-md-4 mb-3">
-                <InputField label="Email" name="email" value={formData.email} onChange={handleChange} isRequired validation={fieldValidations.email} isTouched={touched.has('email')} />
-              </div>
-              <div className="col-md-12 mb-3">
-                <InputField label="Address" name="address" value={formData.address} onChange={handleChange} as="textarea" rows={3} isRequired validation={fieldValidations.address} isTouched={touched.has('address')} />
-              </div>
-              <div className="col-md-12 mb-3">
-                <InputField label="Detail" name="detail" value={formData.detail} onChange={handleChange} as="textarea" rows={2} />
-              </div>
-              <div className="col-md-12 mb-3">
-                <InputField label="Lead Remarks" name="leadremarks" value={formData.leadremarks} onChange={handleChange} as="textarea" rows={2} />
-              </div>
-              <div className="col-md-4 mb-3">
-                <InputField label="Extra Field 1" name="extra_field1" value={formData.extra_field1} onChange={handleChange} />
-              </div>
-              <div className="col-md-4 mb-3">
-                <InputField label="Extra Field 2" name="extra_field2" value={formData.extra_field2} onChange={handleChange} />
-              </div>
-              <div className="col-md-4 mb-3">
-                <InputField label="Extra Field 3" name="extra_field3" value={formData.extra_field3} onChange={handleChange} />
+              <div className="col-md-4 mb-2">
+                <InputField
+                  label="Extra Field 3"
+                  name="extra_field3"
+                  value={formData.extra_field3}
+                  onChange={handleChange}
+                />
               </div>
             </div>
-
             <div className="d-flex justify-content-between mt-3 border-top pt-3">
               <small>Completion: {completionPercentage}%</small>
               <div className="d-flex gap-2">

@@ -9,7 +9,6 @@ import LeadsPagination from './components/LeadsPagination';
 import { AddEditLeadModal } from './components/CreateLeadModal';
 import LeadStatusUpdateModal from './components/LeadStatusUpdateModal';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { useTeamManagement } from '../../manage/teams';
 import { useToast } from './hooks/useToast'; // Import your toast hook
 

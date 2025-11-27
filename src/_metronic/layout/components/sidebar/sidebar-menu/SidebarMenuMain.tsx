@@ -7,11 +7,21 @@ const SidebarMenuMain = () => {
   const intl = useIntl();
   const { currentUser } = useAuth();
 
-  const userRole = currentUser?.user?.userrole || 'telecaller';
+
+
+  // Debug the full structure first
+
+  const userData = currentUser?.user;
+  const userRole = userData?.userrole || 'telecaller';
   const isAdmin = userRole === 'admin';
   const isManager = userRole === 'manager';
   const isTelecaller = userRole === 'telecaller';
   const isTeamleader = userRole === "teamleader";
+
+  // Try different paths for company data
+  const res = localStorage.getItem('kt-auth-react-v')
+  const hasTeamAccess = res ? JSON.parse(res)?.user?.company?.teamleader === 1 : false;
+
 
   return (
     <>
@@ -23,7 +33,6 @@ const SidebarMenuMain = () => {
         fontIcon="bi-speedometer2"
       />
 
-
       {(isAdmin || isManager) && (
         <>
           <SidebarMenuItem
@@ -34,6 +43,7 @@ const SidebarMenuMain = () => {
           />
         </>
       )}
+
       {/* ===== LEAD MANAGEMENT ===== */}
       <SidebarMenuItem
         to="/leads/allleads"
@@ -41,6 +51,7 @@ const SidebarMenuMain = () => {
         title="Lead Management"
         fontIcon="bi-list-ul"
       />
+
       {(isAdmin || isManager) && (
         <>
           <SidebarMenuItem
@@ -73,9 +84,7 @@ const SidebarMenuMain = () => {
         fontIcon="bi-telephone"
       />
 
-
-
-      {isTelecaller || isTeamleader && (
+      {(isTelecaller || isTeamleader) && (
         <>
           <SidebarMenuItem
             to="/reports/converted"
@@ -93,35 +102,34 @@ const SidebarMenuMain = () => {
         </>
       )}
 
-
-
       {/* ===== USER MANAGEMENT ===== */}
       {(isAdmin || isManager) && (
-        <>
-          <SidebarMenuItemWithSub
-            to="/manage"
-            title="User Management"
-            icon="profile-user"
-            fontIcon="bi-people"
-          >
-            {isAdmin && (
-              <SidebarMenuItem
-                to="manage/user-management/users"
-                title="Users"
-                icon="user-square"
-                fontIcon="bi-person"
-                hasBullet={true}
-              />
-            )}
+        <SidebarMenuItemWithSub
+          to="/manage"
+          title="User Management"
+          icon="profile-user"
+          fontIcon="bi-people"
+        >
+          {isAdmin && (
             <SidebarMenuItem
-              to="manage/teams"
+              to="/manage/user-management/users"
+              title="Users"
+              icon="user-square"
+              fontIcon="bi-person"
+              hasBullet={true}
+            />
+          )}
+          {/* Teams menu - only show if hasTeamAccess is true */}
+          {hasTeamAccess && (
+            <SidebarMenuItem
+              to="/manage/teams"
               title="Teams"
               icon="people"
               fontIcon="bi-diagram-3"
               hasBullet={true}
             />
-          </SidebarMenuItemWithSub>
-        </>
+          )}
+        </SidebarMenuItemWithSub>
       )}
 
       {/* ===== MASTER DATA MANAGEMENT ===== */}
@@ -165,30 +173,27 @@ const SidebarMenuMain = () => {
 
       {/* ===== ADMIN REPORTS & ANALYTICS ===== */}
       {(isAdmin || isManager) && (
-        <>
-
-          <SidebarMenuItemWithSub
-            to="/reports"
-            title="Reports & Analytics"
-            icon="chart-line"
-            fontIcon="bi-graph-up"
-          >
-            <SidebarMenuItem
-              to="/reports/performance"
-              title="Performance Report"
-              icon="user-tick"
-              fontIcon="bi-person-check"
-              hasBullet={true}
-            />
-            <SidebarMenuItem
-              to="/reports/allactivity"
-              title="Activity Logs"
-              icon="abstract-42"
-              fontIcon="bi-activity"
-              hasBullet={true}
-            />
-          </SidebarMenuItemWithSub>
-        </>
+        <SidebarMenuItemWithSub
+          to="/reports"
+          title="Reports & Analytics"
+          icon="chart-line"
+          fontIcon="bi-graph-up"
+        >
+          <SidebarMenuItem
+            to="/reports/performance"
+            title="Performance Report"
+            icon="user-tick"
+            fontIcon="bi-person-check"
+            hasBullet={true}
+          />
+          <SidebarMenuItem
+            to="/reports/allactivity"
+            title="Activity Logs"
+            icon="abstract-42"
+            fontIcon="bi-activity"
+            hasBullet={true}
+          />
+        </SidebarMenuItemWithSub>
       )}
     </>
   );

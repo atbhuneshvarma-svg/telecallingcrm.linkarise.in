@@ -28,8 +28,12 @@ export const PerformanceTable: React.FC<PerformanceTableProps> = ({ stats, loadi
         username: item?.username ?? 'Unknown',
         dialCall: item?.dialCall ?? 0,
         ansCall: item?.ansCall ?? 0,
-        converted: item?.converted ?? 0,
-        callDuration: item?.callDuration ?? 0,
+        converted: item?.converted_to_client ?? 0, // Use converted_to_client from API
+        callDuration: item?.callDuration ?? '00:00',
+        interested: item?.interested ?? 0,
+        notinterested: item?.notinterested ?? 0,
+        freshLeads: item?.freshLeads ?? 0,
+        totalLeads: item?.totalLeads ?? 0,
       }))
     : []
 
@@ -55,7 +59,9 @@ export const PerformanceTable: React.FC<PerformanceTableProps> = ({ stats, loadi
             <th className="min-w-150px">Telecaller</th>
             <th className="min-w-100px">Dial Calls</th>
             <th className="min-w-100px">Answered</th>
+            <th className="min-w-100px">Interested</th>
             <th className="min-w-100px">Converted</th>
+            <th className="min-w-100px">Not Interested</th>
             <th className="min-w-120px">Call Duration</th>
           </tr>
         </thead>
@@ -76,20 +82,32 @@ export const PerformanceTable: React.FC<PerformanceTableProps> = ({ stats, loadi
               </td>
 
               <td>
-                <span className="text-dark fw-bold d-block fs-6">
+                <span className="text-success fw-bold d-block fs-6">
                   {item.ansCall}
                 </span>
               </td>
 
               <td>
-                <span className="text-dark fw-bold d-block fs-6">
+                <span className="text-info fw-bold d-block fs-6">
+                  {item.interested}
+                </span>
+              </td>
+
+              <td>
+                <span className="text-success fw-bold d-block fs-6">
                   {item.converted}
                 </span>
               </td>
 
               <td>
+                <span className="text-danger fw-bold d-block fs-6">
+                  {item.notinterested}
+                </span>
+              </td>
+
+              <td>
                 <span className="text-dark fw-bold d-block fs-6">
-                  {item.callDuration} sec
+                  {item.callDuration}
                 </span>
               </td>
             </tr>

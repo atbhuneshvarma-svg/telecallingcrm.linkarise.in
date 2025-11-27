@@ -394,9 +394,9 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
 
         {/* Table */}
         <div className="table-responsive">
-          <table className="table table-hover align-middle gs-0 gy-2">
+          <table className="table table-hover table-bordered table-rounded align-middle gs-0 gy-2">
             <thead className="bg-light">
-              <tr>
+              <tr>  
                 <th className="ps-4" style={{ width: '60px' }}>
                   <span className="text-muted fw-semibold fs-7">#</span>
                 </th>
@@ -523,7 +523,7 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                         <div className="d-flex align-items-center">
                           <div className="d-flex flex-column">
                             <span
-                              className="fw-semibold text-gray-700"
+                              className="fw-semibold"
                               style={{ fontSize: '0.875rem' }}
                             >
                               {lead.username || 'Unassigned'}
@@ -538,24 +538,7 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                       {/* Campaign */}
                       <td>
                         <span
-                          className="badge px-3 py-2 transition-all"
-                          style={{
-                            backgroundColor: 'rgba(54, 153, 255, 0.1)',
-                            color: '#3699ff',
-                            border: '1px solid rgba(54, 153, 255, 0.2)',
-                            borderRadius: '6px',
-                            fontSize: '0.75rem',
-                            fontWeight: '600',
-                            transition: 'all 0.2s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(54, 153, 255, 0.2)';
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(54, 153, 255, 0.1)';
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }}
+                          className="badge"
                         >
                           <i className="bi bi-megaphone me-1"></i>
                           {lead.campaignname || 'N/A'}
@@ -612,7 +595,7 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                             style={{
                               backgroundColor: getStatusColor(lead.statusname || ''),
                               color: '#fff',
-                              minWidth: '110px',
+                              minWidth: '70px',
                               fontSize: '0.75rem',
                               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                               border: '2px solid transparent',
@@ -633,11 +616,9 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                               }
                             }}
                           >
-                            <i className="bi bi-circle-fill fs-9" style={{ opacity: 0.9 }}></i>
                             {lead.statusname || 'N/A'}
-                            {onStatusClick && (
-                              <i className="bi bi-pencil fs-9 ms-1" style={{ opacity: 0.8 }}></i>
-                            )}
+                          
+                            <i className="bi bi-pencil-fill" style={{ opacity: 0.9 }}></i>
                           </span>
                         </button>
                       </td>
@@ -656,25 +637,6 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                           >
                             {lead.detail || 'No details provided'}
                           </span>
-                          {lead.leadremarks && (
-                            <small
-                              className="text-muted fs-9 mt-1 d-flex align-items-center gap-1 transition-all"
-                              style={{
-                                transition: 'color 0.2s ease',
-                                }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.color = '#009ef7';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.color = '#7e8299';
-                              }}
-                            >
-                              <i className="bi bi-chat-left-text"></i>
-                              <span className="text-truncate" style={{ maxWidth: '180px' }}>
-                                {lead.leadremarks}
-                              </span>
-                            </small>
-                          )}
                         </div>
                       </td>
 
@@ -702,23 +664,6 @@ const FollowupTable: React.FC<FollowupTableProps> = ({
                                 day: 'numeric',
                               })}
                             </span>
-                            {new Date(lead.followupdate) < new Date() && (
-                              <span
-                                className="badge bg-danger fs-9 mt-1 px-2 py-1 transition-all"
-                                style={{
-                                  borderRadius: '4px',
-                                  transition: 'all 0.2s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = 'scale(1.05)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = 'scale(1)';
-                                }}
-                              >
-                                Overdue
-                              </span>
-                            )}
                           </div>
                         ) : (
                           <span

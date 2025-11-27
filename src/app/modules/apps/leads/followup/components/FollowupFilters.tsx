@@ -46,7 +46,40 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
             <h1 className="fw-bold text-gray-800 mb-2">Follow-up Leads</h1>
           </div>
 
-          <div className="d-flex gap-3">
+          <div className="d-flex gap-3"> 
+               <div className="d-flex gap-2 flex-wrap">
+              <button
+                type="button"
+                className={`btn btn-sm ${
+                  filters.followupDate === getCurrentDate()
+                    ? "btn-primary"
+                    : "btn-light"
+                }`}
+                onClick={() => updateFilter("followupDate", getCurrentDate())}
+                disabled={loading}
+              >
+                Today
+              </button>
+
+              <button
+                type="button"
+                className={`btn btn-sm ${
+                  filters.followupDate ===
+                  new Date(Date.now() + 86400000).toISOString().split("T")[0]
+                    ? "btn-primary"
+                    : "btn-light"
+                }`}
+                onClick={() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  updateFilter("followupDate", tomorrow.toISOString().split("T")[0]);
+                }}
+                disabled={loading}
+              >
+                Tomorrow
+              </button>
+
+            </div>
             <button
               className="btn btn-light btn-active-light-primary"
               onClick={handleResetAll}
@@ -128,55 +161,7 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
           </div>
         </div>
 
-        {/* Quick Date filters */}
-        <div className="row mt-4">
-          <div className="col-12">
-            <label className="form-label mb-2">Quick Dates</label>
-            <div className="d-flex gap-2 flex-wrap">
-              <button
-                type="button"
-                className={`btn btn-sm ${
-                  filters.followupDate === getCurrentDate()
-                    ? "btn-primary"
-                    : "btn-light"
-                }`}
-                onClick={() => updateFilter("followupDate", getCurrentDate())}
-                disabled={loading}
-              >
-                Today
-              </button>
-
-              <button
-                type="button"
-                className={`btn btn-sm ${
-                  filters.followupDate ===
-                  new Date(Date.now() + 86400000).toISOString().split("T")[0]
-                    ? "btn-primary"
-                    : "btn-light"
-                }`}
-                onClick={() => {
-                  const tomorrow = new Date();
-                  tomorrow.setDate(tomorrow.getDate() + 1);
-                  updateFilter("followupDate", tomorrow.toISOString().split("T")[0]);
-                }}
-                disabled={loading}
-              >
-                Tomorrow
-              </button>
-
-              {filters.followupDate && (
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-secondary"
-                  onClick={() => updateFilter("followupDate", "")}
-                  disabled={loading}
-                >
-                  Clear Date
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+      
       </div>
     </div>
   );

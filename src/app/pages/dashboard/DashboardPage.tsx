@@ -17,11 +17,24 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [activeChart, setActiveChart] = useState<'weekly' | 'telecaller-performance'>('weekly')
 
   useEffect(() => {
     fetchDashboardData()
     const interval = setInterval(fetchDashboardData, 300000) // every 5 min
     return () => clearInterval(interval)
+  }, [])
+
+  // Add this useEffect to handle chart type changes
+  useEffect(() => {
+    const handleChartTypeChange = (event: CustomEvent) => {
+      setActiveChart(event.detail)
+    }
+
+    window.addEventListener('chartTypeChange', handleChartTypeChange as EventListener)
+    return () => {
+      window.removeEventListener('chartTypeChange', handleChartTypeChange as EventListener)
+    }
   }, [])
 
   const fetchDashboardData = async () => {
@@ -68,7 +81,7 @@ const DashboardPage: React.FC = () => {
               <div className='card-header border-0 pt-7'>
                 <h3 className='card-title fw-bold fs-3'>TODAY PERFORMANCE</h3>
               </div>
-              <div 
+              <div
                 className='card-body py-3'
                 style={{ height: '350px', overflowY: 'auto' }} // added scroll
               >
@@ -83,7 +96,7 @@ const DashboardPage: React.FC = () => {
               <div className='card-header border-0 pt-7'>
                 <h3 className='card-title fw-bold fs-3'>RECENT CONVERTED</h3>
               </div>
-              <div 
+              <div
                 className='card-body py-3'
                 style={{ height: '350px', overflowY: 'auto' }} // added scroll
               >
@@ -117,15 +130,12 @@ const DashboardPage: React.FC = () => {
             </span>
           </div>
           <div className='card-body'>
-            <div style={{ height: '350px' }}>
+            <div style={{ width: '100%' }}>
               <LeadCallsChart
-                data={{
-                  months: stats?.weekly?.weekNames ?? [],
-                  totalCallsData: stats?.weekly?.total ?? [],
-                  confirmedCallsData: stats?.weekly?.converted ?? [],
-                  totalLeads: stats?.weekly?.total ?? [],
-                  convertedClients: stats?.weekly?.converted ?? [],
-                }}
+                stats={stats}
+                loading={loading}
+                chartType={activeChart}
+                onChartTypeChange={setActiveChart}
               />
             </div>
           </div>

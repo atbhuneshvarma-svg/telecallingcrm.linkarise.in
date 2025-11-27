@@ -33,6 +33,11 @@ export interface Lead {
   created_at?: string;
   updated_at?: string;
   isSelected?: boolean;
+  updatedon?: string;
+  addedon?: string;
+  addedby?: string;
+  updatedby?: string; 
+  followupdate?: string;
 }
 
 // src/app/modules/apps/leads/core/_models.ts

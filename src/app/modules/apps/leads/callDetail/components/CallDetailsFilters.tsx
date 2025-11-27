@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLeads } from '../../allleads/core/LeadsContext';
+import { DateRangePicker } from 'react-date-range';
+import { format } from 'date-fns';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
 
 interface CallDetailsFiltersProps {
   entriesPerPage: number;
@@ -27,15 +31,37 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
   totalRecords = 0,
 }) => {
   const { dropdowns } = useLeads();
-  const [localStartDate, setLocalStartDate] = useState(filters.startDate || '');
-  const [localEndDate, setLocalEndDate] = useState(filters.endDate || '');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection'
+    }
+  ]);
+  const datePickerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false);
+      }
+    };
+
+    if (showDatePicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDatePicker]);
 
   // Set default to current date on component mount
   useEffect(() => {
     if (!filters.startDate && !filters.endDate) {
       const today = new Date().toISOString().split('T')[0];
-      setLocalStartDate(today);
-      setLocalEndDate(today);
       onFiltersChange({
         ...filters,
         startDate: today,
@@ -43,6 +69,19 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
       });
     }
   }, []);
+
+  // Update dateRange when filters change
+  useEffect(() => {
+    if (filters.startDate && filters.endDate) {
+      setDateRange([
+        {
+          startDate: new Date(filters.startDate),
+          endDate: new Date(filters.endDate),
+          key: 'selection'
+        }
+      ]);
+    }
+  }, [filters.startDate, filters.endDate]);
 
   const handleEntriesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onEntriesPerPageChange(Number(e.target.value));
@@ -56,33 +95,56 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
     onFiltersChange(newFilters);
   };
 
-  const handleDateRangeChange = (type: 'start' | 'end', value: string) => {
-    if (type === 'start') {
-      setLocalStartDate(value);
-      onFiltersChange({
-        ...filters,
-        startDate: value
-      });
-    } else {
-      setLocalEndDate(value);
-      onFiltersChange({
-        ...filters,
-        endDate: value
-      });
-    }
+  const handleDateRangeChange = (ranges: any) => {
+    const range = ranges.selection;
+    setDateRange([range]);
+
+    const startDate = format(range.startDate, 'yyyy-MM-dd');
+    const endDate = format(range.endDate, 'yyyy-MM-dd');
+
+    onFiltersChange({
+      ...filters,
+      startDate,
+      endDate
+    });
+  };
+
+  const handleQuickDateRange = (days: number) => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days);
+
+    setDateRange([{
+      startDate,
+      endDate,
+      key: 'selection'
+    }]);
+
+    onFiltersChange({
+      ...filters,
+      startDate: format(startDate, 'yyyy-MM-dd'),
+      endDate: format(endDate, 'yyyy-MM-dd')
+    });
+    setShowDatePicker(false);
   };
 
   const handleResetAll = () => {
     const today = new Date().toISOString().split('T')[0];
-    setLocalStartDate(today);
-    setLocalEndDate(today);
+    setDateRange([{
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection'
+    }]);
     onReset();
   };
 
   const clearDateFilter = () => {
     const today = new Date().toISOString().split('T')[0];
-    setLocalStartDate(today);
-    setLocalEndDate(today);
+    setDateRange([{
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection'
+    }]);
     onFiltersChange({
       ...filters,
       startDate: today,
@@ -95,11 +157,11 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
   const campaigns = dropdowns?.campaigns || [];
   const statuses = dropdowns?.statuses || [];
 
-  // Check if any filters are active (excluding default date)
+  // Check if any filters are active
   const today = new Date().toISOString().split('T')[0];
-  const hasActiveFilters = 
-    filters.user !== 'All' || 
-    filters.campaign !== 'All' || 
+  const hasActiveFilters =
+    filters.user !== 'All' ||
+    filters.campaign !== 'All' ||
     filters.status !== 'All' ||
     filters.startDate !== today ||
     filters.endDate !== today;
@@ -125,6 +187,13 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
     return status?.statusname || statusId;
   };
 
+  const getDisplayDateRange = () => {
+    if (filters.startDate === filters.endDate) {
+      return formatDisplayDate(filters.startDate);
+    }
+    return `${formatDisplayDate(filters.startDate)} - ${formatDisplayDate(filters.endDate)}`;
+  };
+
   return (
     <div className="card card-flush mb-6">
       <div className="card-body">
@@ -132,7 +201,7 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex align-items-center gap-3">
             {hasActiveFilters && (
-              <button 
+              <button
                 className="btn btn-sm btn-light-danger"
                 onClick={handleResetAll}
                 disabled={loading}
@@ -144,18 +213,74 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
           </div>
         </div>
 
+        {/* Date Range Filter */}
         {/* Filters Row */}
         <div className="row g-4">
+          <div className="col-md-4 position-relative" ref={datePickerRef}>
+            <label className="form-label">Date Range</label>
+            <div className="input-group">
+              <button
+                className="form-control text-start"
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                disabled={loading}
+                style={{ cursor: 'pointer' }}
+              >
+                <i className="bi bi-calendar me-2"></i>
+                {getDisplayDateRange()}
+              </button>
+              {(filters.startDate !== today || filters.endDate !== today) && (
+                <button
+                  className="btn btn-outline-secondary"
+                  type="button"
+                  onClick={clearDateFilter}
+                  disabled={loading}
+                  title="Reset to today"
+                >
+                  <i className="bi bi-arrow-clockwise"></i>
+                </button>
+              )}
+              {/* Date Range Picker */}
+              {showDatePicker && (
+                <div
+                  className="position-absolute top-100 start-0 mt-1 bg-white border rounded shadow-lg"
+                  style={{
+                    zIndex: 9999,
+                    width: 'max-content',
+                    transform: 'scale(0.8)', // Scale it down
+                    transformOrigin: 'top left' // Keep it positioned correctly
+                  }}
+                >
+                  <DateRangePicker
+                    onChange={handleDateRangeChange}
+                    moveRangeOnFirstSelection={false}
+                    months={1} // Show only 1 month instead of 2
+                    ranges={dateRange}
+                    direction="horizontal"
+                    showDateDisplay={false}
+                  />
+                  <div className="p-2 border-top">
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={() => setShowDatePicker(false)}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
           {/* User Filter */}
           <div className="col-md-3">
-            <label className="form-label">Telecaller</label>
+            <label className="form-label">User</label>
             <select
               value={filters.user}
               onChange={(e) => handleFilterChange('user', e.target.value)}
               className="form-select"
               disabled={loading}
             >
-              <option value="All">All Telecallers</option>
+              <option value="All">All Users</option>
               {users.map((user) => (
                 <option key={user.usermid} value={user.usermid?.toString()}>
                   {user.username}
@@ -200,44 +325,7 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
             </select>
           </div>
 
-          {/* Start Date Filter */}
-          <div className="col-md-2">
-            <label className="form-label">Start Date</label>
-            <div className="input-group">
-              <input
-                type="date"
-                value={localStartDate}
-                onChange={(e) => handleDateRangeChange('start', e.target.value)}
-                className="form-control"
-                disabled={loading}
-              />
-            </div>
-          </div>
 
-          {/* End Date Filter */}
-          <div className="col-md-2">
-            <label className="form-label">End Date</label>
-            <div className="input-group">
-              <input
-                type="date"
-                value={localEndDate}
-                onChange={(e) => handleDateRangeChange('end', e.target.value)}
-                className="form-control"
-                disabled={loading}
-              />
-              {(filters.startDate !== today || filters.endDate !== today) && (
-                <button
-                  className="btn btn-outline-secondary"
-                  type="button"
-                  onClick={clearDateFilter}
-                  disabled={loading}
-                  title="Reset to today"
-                >
-                  <i className="bi bi-arrow-clockwise"></i>
-                </button>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Active Filters Indicator */}
@@ -264,7 +352,7 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
                 )}
                 {(filters.startDate !== today || filters.endDate !== today) && (
                   <span className="badge bg-primary">
-                    Date Range: {formatDisplayDate(filters.startDate)} to {formatDisplayDate(filters.endDate)}
+                    Date: {getDisplayDateRange()}
                   </span>
                 )}
               </div>

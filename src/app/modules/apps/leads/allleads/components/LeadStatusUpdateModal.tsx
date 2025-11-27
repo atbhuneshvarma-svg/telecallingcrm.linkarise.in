@@ -35,7 +35,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
     statusname: '',
     activityname: '',
     followupremark: '',
-    followup: false,
+    followup: true,
     followupdate: '',
     isclient: false
   })
@@ -67,8 +67,9 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
     dropdowns?.activities?.filter(a => a.activityname) || [],
     [dropdowns?.activities]
   )
+  const selectedStatus = statusOptions.find(status => status.statusname === formData.statusname);
 
-  const isStatusNEW = lead?.statusname.toLowerCase() === 'new';
+  const isStatusNEW = selectedStatus?.statusname.toLowerCase() === 'new';
   // Reset form when modal opens/closes or lead changes
   useEffect(() => {
     if (show && lead) {
@@ -78,7 +79,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
         statusname: lead.statusname || '',
         activityname: defaultActivity,
         followupremark: '',
-        followup: false,
+        followup: true,
         followupdate: currentDateTime.today,
         isclient: false
       })
@@ -240,7 +241,9 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
   return (
     <Modal show={show} onHide={handleClose} centered backdrop="static" size="lg">
       <Form onSubmit={handleSubmit} noValidate>
-        <Modal.Header closeButton className="bg-primary text-white">
+        <Modal.Header closeButton style={{
+          background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)'
+        }} className="text-white">
           <Modal.Title className="d-flex align-items-center gap-2">
             <i className="bi bi-pencil-square"></i>
             Update Lead Status
@@ -252,188 +255,228 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
           </Modal.Title>
         </Modal.Header>
 
-        <Modal.Body className="bg-light">
+        <Modal.Body className="p-0">
           {!lead ? (
             <div className="text-center py-5 text-muted">
               <i className="bi bi-person-x display-4 d-block mb-3"></i>
               No lead selected
             </div>
           ) : (
-            <Card className="border-0 shadow-sm">
-              <Card.Body>
-                {/* Lead Information Summary */}
-                <div className="row mb-4">
-                  <div className="col-12">
-                    <div className="d-flex justify-content-between align-items-start p-3 bg-primary bg-opacity-10 rounded">
-                      <div>
-                        <h6 className="fw-bold text-primary mb-1">{'leadname' in lead ? lead.leadname : lead.name}</h6>
-                        <div className="d-flex gap-3 text-muted fs-7">
-                          <span>
-                            <i className="bi bi-telephone me-1"></i>
-                            {lead.phone || 'N/A'}
-                          </span>
-                          <span>
-                            <i className="bi bi-envelope me-1"></i>
-                            {lead.email || 'N/A'}
-                          </span>
-                          <span>
-                            <i className="bi bi-person me-1"></i>
-                            {'username' in lead ? lead.username : ('user' in lead && lead?.username) ? lead.username : 'Unassigned'}
+            <div className="p-4">
+              {/* ========== INFO SECTION ========== */}
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Header className="bg-light border-bottom">
+                  <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <i className="bi bi-info-circle text-primary"></i>
+                    Lead Information
+                  </h6>
+                </Card.Header>
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-center p-3 bg-light-primary bg-opacity-10 rounded-2">
+                    <div className="d-flex flex-column flex-md-row align-items-md-center gap-1 gap-md-2">
+                      {/* Lead Name */}
+                      <div className="d-inline-flex align-items-center bg-light rounded px-2 py-1">
+                        <i className="bi bi-person-badge me-1 text-primary fs-7"></i>
+                        <span className="fw-medium text-dark fs-7">
+                          {'leadname' in lead ? lead.leadname : lead.name}
+                        </span>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div className="d-flex flex-wrap gap-1">
+                        {/* Phone */}
+                        <div className="d-inline-flex align-items-center bg-light rounded px-2 py-1">
+                          <i className="bi bi-telephone me-1 text-success fs-7"></i>
+                          <span className="text-dark fs-7">{lead.phone || 'N/A'}</span>
+                        </div>
+
+                        {/* Email */}
+                        <div className="d-inline-flex align-items-center bg-light rounded px-2 py-1">
+                          <i className="bi bi-envelope me-1 text-warning fs-7"></i>
+                          <span className="text-dark fs-7">{lead.email || 'N/A'}</span>
+                        </div>
+
+                        {/* Assigned User */}
+                        <div className="d-inline-flex align-items-center bg-light rounded px-2 py-1">
+                          <i className="bi bi-person me-1 text-info fs-7"></i>
+                          <span className="text-dark fs-7">
+                            {'username' in lead ? lead.username :
+                              ('user' in lead && lead?.username) ? lead?.username : 'Unassigned'}
                           </span>
                         </div>
                       </div>
-                      <Badge bg="secondary" className="fs-7">
-                        Current: {lead.statusname || 'No Status'}
-                      </Badge>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="ms-2">
+                      <span className={`badge ${getStatusColorClass(lead.statusname)} px-3 py-2 fs-7 fw-semibold`}>
+                        <i className="bi bi-circle-fill me-1 fs-8"></i>
+                        {lead.statusname || 'No Status'}
+                      </span>
                     </div>
                   </div>
-                </div>
+                </Card.Body>
+              </Card>
 
-                {/* Status and Activity Selection */}
-                <Row className="mb-3">
-                  <Col md={6}>
+              {/* ========== INPUT SECTION ========== */}
+              <Card className="border-0 shadow-sm">
+                <Card.Header className="bg-light border-bottom">
+                  <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <i className="bi bi-pencil text-primary"></i>
+                    Update Details
+                  </h6>
+                </Card.Header>
+                <Card.Body>
+                  {/* Status and Activity Selection */}
+                  <Row className="mb-4">
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label className="fw-semibold d-flex align-items-center gap-2">
+                          <i className="bi bi-tag"></i>
+                          Select Status *
+                          {isFieldInvalid('statusname') && (
+                            <i className="bi bi-exclamation-circle text-danger"></i>
+                          )}
+                        </Form.Label>
+                        <Form.Select
+                          value={formData.statusname}
+                          onChange={(e) => handleFieldChange('statusname', e.target.value)}
+                          className={`${getStatusColorClass(formData.statusname)} rounded-3`}
+                          isInvalid={isFieldInvalid('statusname')}
+                          required
+                        >
+                          <option value="">-- Select Status --</option>
+                          {statusOptions.map((s, i) => (
+                            <option key={s.statusmid || `status-${i}`} value={s.statusname}>
+                              {s.statusname}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {isFieldInvalid('statusname') && (
+                          <Form.Control.Feedback type="invalid">
+                            {errors.statusname}
+                          </Form.Control.Feedback>
+                        )}
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label className="fw-semibold d-flex align-items-center gap-2">
+                          <i className="bi bi-activity"></i>
+                          Activity Type *
+                          {isFieldInvalid('activityname') && (
+                            <i className="bi bi-exclamation-circle text-danger"></i>
+                          )}
+                        </Form.Label>
+                        <Form.Select
+                          value={formData.activityname}
+                          onChange={(e) => handleFieldChange('activityname', e.target.value)}
+                          className={`${getActivityColorClass(formData.activityname)} rounded-3`}
+                          isInvalid={isFieldInvalid('activityname')}
+                          required
+                        >
+                          <option value="">-- Select Activity --</option>
+                          {activityOptions.map((a) => (
+                            <option key={a.activitymid} value={a.activityname}>
+                              {a.activityname}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {isFieldInvalid('activityname') && (
+                          <Form.Control.Feedback type="invalid">
+                            {errors.activityname}
+                          </Form.Control.Feedback>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  {/* Follow-up Remark */}
+                  <Form.Group className="mb-4">
                     <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                      <i className="bi bi-tag"></i>
-                      Select Status *
-                      {isFieldInvalid('statusname') && (
-                        <i className="bi bi-exclamation-circle text-danger"></i>
+                      <i className="bi bi-chat-left-text"></i>
+                      Follow-up Remark
+                      {formData.followupremark.length > 0 && (
+                        <span className={`badge bg-${formData.followupremark.length > 500 ? 'danger' : 'success'} ms-1`}>
+                          {formData.followupremark.length}/500
+                        </span>
                       )}
                     </Form.Label>
-                    <Form.Select
-                      value={formData.statusname}
-                      onChange={(e) => handleFieldChange('statusname', e.target.value)}
-                      className={`${getStatusColorClass(formData.statusname)} rounded-3`}
-                      isInvalid={isFieldInvalid('statusname')}
-                      required
-                    >
-                      <option value="">-- Select Status --</option>
-                      {statusOptions.map((s, i) => (
-                        <option key={s.statusmid || `status-${i}`} value={s.statusname}>
-                          {s.statusname}
-                        </option>
-                      ))}
-                    </Form.Select>
-                    {isFieldInvalid('statusname') && (
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={formData.followupremark}
+                      onChange={(e) => handleFieldChange('followupremark', e.target.value)}
+                      placeholder="Enter follow-up remark..."
+                      maxLength={500}
+                      isInvalid={isFieldInvalid('followupremark')}
+                    />
+                    {isFieldInvalid('followupremark') && (
                       <Form.Control.Feedback type="invalid">
-                        {errors.statusname}
+                        {errors.followupremark}
                       </Form.Control.Feedback>
-                    )}
-                  </Col>
-
-                  <Col md={6}>
-                    <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                      <i className="bi bi-activity"></i>
-                      Activity Type *
-                      {isFieldInvalid('activityname') && (
-                        <i className="bi bi-exclamation-circle text-danger"></i>
-                      )}
-                    </Form.Label>
-                    <Form.Select
-                      value={formData.activityname}
-                      onChange={(e) => handleFieldChange('activityname', e.target.value)}
-                      className={`${getActivityColorClass(formData.activityname)} rounded-3`}
-                      isInvalid={isFieldInvalid('activityname')}
-                      required
-                    >
-                      <option value="">-- Select Activity --</option>
-                      {activityOptions.map((a) => (
-                        <option key={a.activitymid} value={a.activityname}>
-                          {a.activityname}
-                        </option>
-                      ))}
-                    </Form.Select>
-                    {isFieldInvalid('activityname') && (
-                      <Form.Control.Feedback type="invalid">
-                        {errors.activityname}
-                      </Form.Control.Feedback>
-                    )}
-                  </Col>
-                </Row>
-
-                {/* Follow-up Remark */}
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                    <i className="bi bi-chat-left-text"></i>
-                    Follow-up Remark
-                    {formData.followupremark.length > 0 && (
-                      <span className={`badge bg-${formData.followupremark.length > 500 ? 'danger' : 'success'} ms-1`}>
-                        {formData.followupremark.length}/500
-                      </span>
-                    )}
-                  </Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={formData.followupremark}
-                    onChange={(e) => handleFieldChange('followupremark', e.target.value)}
-                    placeholder="Enter follow-up remark..."
-                    maxLength={500}
-                    isInvalid={isFieldInvalid('followupremark')}
-                  />
-                  {isFieldInvalid('followupremark') && (
-                    <Form.Control.Feedback type="invalid">
-                      {errors.followupremark}
-                    </Form.Control.Feedback>
-                  )}
-                </Form.Group>
-
-                {/* Follow-up Section */}
-                {(!isStatusNEW) && (
-                  <Form.Group className="mb-3">
-                    <Form.Label className="fw-semibold d-flex align-items-center gap-2">
-                      <i className="bi bi-calendar-check"></i>
-                      Schedule Follow-up?
-                    </Form.Label>
-                    <div className="d-flex gap-3">
-                      <Form.Check
-                        type="radio"
-                        label="No"
-                        name="followup"
-                        id="followup-no"
-                        checked={!formData.followup}
-                        onChange={() => handleFieldChange('followup', false)}
-                      />
-                      <Form.Check
-                        type="radio"
-                        label="Yes"
-                        name="followup"
-                        id="followup-yes"
-                        checked={formData.followup}
-                        onChange={() => handleFieldChange('followup', true)}
-                      />
-                    </div>
-
-                    {formData.followup && (
-                      <div className="mt-3 p-3 border rounded bg-light">
-                        <Row className="g-3">
-                          <Col md={6}>
-                            <Form.Label className="fw-semibold">
-                              Follow-up Date *
-                              {isFieldInvalid('followupdate') && (
-                                <i className="bi bi-exclamation-circle text-danger ms-2"></i>
-                              )}
-                            </Form.Label>
-                            <Form.Control
-                              type="date"
-                              value={formData.followupdate}
-                              onChange={(e) => handleFieldChange('followupdate', e.target.value)}
-                              min={currentDateTime.today}
-                              isInvalid={isFieldInvalid('followupdate')}
-                              required
-                            />
-                            {isFieldInvalid('followupdate') && (
-                              <Form.Control.Feedback type="invalid">
-                                {errors.followupdate}
-                              </Form.Control.Feedback>
-                            )}
-                          </Col>
-                        </Row>
-                      </div>
                     )}
                   </Form.Group>
-                )}
-              </Card.Body>
-            </Card>
+
+                  {/* Follow-up Section */}
+                  {(!isStatusNEW) && (
+                    <Form.Group className="mb-3">
+                      <Form.Label className="fw-semibold d-flex align-items-center gap-2">
+                        <i className="bi bi-calendar-check"></i>
+                        Schedule Follow-up?
+                      </Form.Label>
+                      <div className="d-flex gap-3">
+                        <Form.Check
+                          type="radio"
+                          label="No"
+                          name="followup"
+                          id="followup-no"
+                          checked={!formData.followup}
+                          onChange={() => handleFieldChange('followup', false)}
+                        />
+                        <Form.Check
+                          type="radio"
+                          label="Yes"
+                          name="followup"
+                          id="followup-yes"
+                          checked={formData.followup}
+                          onChange={() => handleFieldChange('followup', true)}
+                        />
+                      </div>
+
+                      {formData.followup && (
+                        <div className="mt-3 p-3 border rounded bg-light">
+                          <Row className="g-3">
+                            <Col md={6}>
+                              <Form.Label className="fw-semibold">
+                                Follow-up Date *
+                                {isFieldInvalid('followupdate') && (
+                                  <i className="bi bi-exclamation-circle text-danger ms-2"></i>
+                                )}
+                              </Form.Label>
+                              <Form.Control
+                                type="date"
+                                value={formData.followupdate}
+                                onChange={(e) => handleFieldChange('followupdate', e.target.value)}
+                                min={currentDateTime.today}
+                                isInvalid={isFieldInvalid('followupdate')}
+                                required
+                              />
+                              {isFieldInvalid('followupdate') && (
+                                <Form.Control.Feedback type="invalid">
+                                  {errors.followupdate}
+                                </Form.Control.Feedback>
+                              )}
+                            </Col>
+                          </Row>
+                        </div>
+                      )}
+                    </Form.Group>
+                  )}
+                </Card.Body>
+              </Card>
+            </div>
           )}
         </Modal.Body>
 
@@ -465,7 +508,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({
           </Button>
         </Modal.Footer>
       </Form>
-    </Modal >
+    </Modal>
   )
 }
 

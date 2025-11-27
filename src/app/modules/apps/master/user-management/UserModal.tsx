@@ -12,6 +12,7 @@ interface UserModalProps {
   onSubmit: () => void
 }
 
+
 const UserModal: React.FC<UserModalProps> = ({
   show,
   onClose,
@@ -20,6 +21,10 @@ const UserModal: React.FC<UserModalProps> = ({
   setUser,
   onSubmit
 }) => {
+
+  const res = localStorage.getItem('kt-auth-react-v')
+  const hasTeamAccess = res ? JSON.parse(res)?.user?.company?.teamleader === 1 : true;
+
   // Ensure all fields have defined values (not undefined)
   const safeUser = {
     usermid: user.usermid || 0,
@@ -131,7 +136,7 @@ const UserModal: React.FC<UserModalProps> = ({
               value={safeUser.userrole}
               onChange={handleInputChange}
             >
-              <option value="teamleader">Team Leader</option>
+             {hasTeamAccess&&<option value="teamleader">Team Leader</option>}
               <option value="manager">Manager</option>
               <option value="telecaller">Telecaller</option>
               <option value="admin">Admin</option>

@@ -32,6 +32,7 @@ interface Status {
   statusmid: number
   statusname: string
   statuscolor: string
+  stage: string
 }
 
 interface User {
@@ -210,6 +211,7 @@ export const LeadsProvider: React.FC<LeadsProviderProps> = ({ children }) => {
         statusmid: isNaN(statusmid) ? 0 : statusmid,
         statusname: item?.name || `Status ${index + 1}`,
         statuscolor: item?.color || '#6c757d',
+        stage: item?.stage || 'Fresh Lead',
       }
     })
 

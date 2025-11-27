@@ -118,7 +118,7 @@ export const TeamTable: React.FC = () => {
       <div className="card shadow">
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-hover mb-0">
+            <table className="table  table-bordered table-rounded table-hover mb-0">
               <thead className="table-light">
                 <tr>
                   <th className="ps-4">Sr.No</th>
