@@ -20,6 +20,7 @@ import { FreshLeadsPage } from '../modules/apps/leads/fressleads/pages/FreshLead
 import { ActivityLogsPage } from '../modules/apps/reports/activity/ActivityLogsPage'
 import LeadAllocationRoutes from '../modules/apps/leads/allocation/LeadAllocationRoutes'
 import NotificationsPage from '../pages/dashboard/components/NotificationsPage'
+import ReportsRoutes from '../modules/apps/reports/ReportsRoutes'
 
 const PrivateRoutes = () => {
   const ProfilePage = lazy(() => import('../modules/profile/ProfilePage'))
@@ -200,22 +201,14 @@ const PrivateRoutes = () => {
 
         {/* Reports Routes */}
         <Route
-          path='reports/performance/*'
+          path='reports/*'
           element={
             <SuspensedView>
-              <TelecallerPerformancePage />
+              <ReportsRoutes />
             </SuspensedView>
           }
         />
-        {/* Reports Routes */}
-        <Route
-          path='reports/allactivity/*'
-          element={
-            <SuspensedView>
-              <ActivityLogsPage />
-            </SuspensedView>
-          }
-        />
+     
         <Route
           path='notifications/*'
           element={

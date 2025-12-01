@@ -11,7 +11,7 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({ stats, loading }) => {
   const navigate = useNavigate()
 
   const handleViewAll = () => {
-    navigate('/manage/user-management/users')
+    navigate('/manage/user-management')
   }
 
   // -----------------------------

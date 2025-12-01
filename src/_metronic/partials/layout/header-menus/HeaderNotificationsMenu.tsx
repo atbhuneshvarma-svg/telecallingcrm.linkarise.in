@@ -1,14 +1,31 @@
 import clsx from 'clsx'
-import { FC, useState, useEffect } from 'react'
+import { FC, useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { KTIcon } from '../../../helpers'
+import { KTIcon, MenuComponent } from '../../../helpers'
 import { Notification } from '../../../../app/modules/auth/core/_models'
 import { notificationsApi } from '../../../../app/modules/auth/core/_requests'
+
+
 
 const HeaderNotificationsMenu: FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('updates')
+
+
+  const menuRef = useRef<HTMLDivElement | null>(null)
+
+  const closeMenu = () => {
+    if (!menuRef.current) return // ensure ref exists
+
+    const menu = MenuComponent.getInstance(menuRef.current)
+    if (!menu) return
+
+    // pass the menu root element to hide()
+    menu.hide(menu.getElement())
+  }
+
+
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -69,6 +86,7 @@ const HeaderNotificationsMenu: FC = () => {
 
   return (
     <div
+      ref={menuRef}
       className='menu menu-sub menu-sub-dropdown menu-column w-400px w-lg-475px'
       data-kt-menu='true'
     >
@@ -178,21 +196,16 @@ const HeaderNotificationsMenu: FC = () => {
             )}
           </div>
 
-            <div className='py-3 text-center border-top bg-light'>
-              <Link
-                to='/notifications'
-                className='btn btn-color-gray-700 btn-active-color-primary btn-sm'
-                onClick={(e) => {
-                  e.preventDefault();
-                  setTimeout(() => {
-                    window.location.href = ' /telecallingcrm.linkarise.in/notifications';
-                  }, 10);
-                }}
-              >
-                View All Notifications
-                <KTIcon iconName='arrow-right' className='fs-5 ms-2' />
-              </Link>
-            </div>
+          <div className='py-3 text-center border-top bg-light'>
+            <Link
+              to='/notifications'
+              className='btn btn-color-gray-700 btn-active-color-primary btn-sm'
+              onClick={closeMenu} // simplified
+            >
+              View All Notifications
+              <KTIcon iconName='arrow-right' className='fs-5 ms-2' />
+            </Link>
+          </div>
         </div>
 
         {/* Activity Tab */}

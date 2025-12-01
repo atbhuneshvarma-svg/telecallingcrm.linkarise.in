@@ -33,10 +33,19 @@ const SidebarMenuMain = () => {
         fontIcon="bi-speedometer2"
       />
 
+      <div className="p-7">
+        <span className="menu-section-text fw-bold text-uppercase fs-7 text-gray-600">
+          {intl.formatMessage({ id: 'MENUS', defaultMessage: 'Menus' })}
+        </span>
+      </div>
+
+
+      {/* ===== CAMPAIGNS ===== */}
+
       {(isAdmin || isManager) && (
         <>
           <SidebarMenuItem
-            to="/master/campaigns"
+            to="/campaigns"
             title="Campaigns"
             icon="abstract-26"
             fontIcon="bi-megaphone"
@@ -86,12 +95,6 @@ const SidebarMenuMain = () => {
 
       {(isTelecaller || isTeamleader) && (
         <>
-          <SidebarMenuItem
-            to="/reports/converted"
-            title="Converted Leads"
-            icon="arrow-right"
-            fontIcon="bi-person-check"
-          />
 
           <SidebarMenuItem
             to="/reports/allactivity"
@@ -112,7 +115,7 @@ const SidebarMenuMain = () => {
         >
           {isAdmin && (
             <SidebarMenuItem
-              to="/manage/user-management/users"
+              to="/manage/user-management"
               title="Users"
               icon="user-square"
               fontIcon="bi-person"
@@ -190,6 +193,20 @@ const SidebarMenuMain = () => {
             to="/reports/allactivity"
             title="Activity Logs"
             icon="abstract-42"
+            fontIcon="bi-activity"
+            hasBullet={true}
+          />
+          <SidebarMenuItem
+            to="/reports/stagewise"
+            title="StageWise Report"
+            icon="abstract-43"
+            fontIcon="bi-activity"
+            hasBullet={true}
+          />
+          <SidebarMenuItem
+            to="/reports/statuswise"
+            title="StatusWise Report"
+            icon="abstract-44"
             fontIcon="bi-activity"
             hasBullet={true}
           />
