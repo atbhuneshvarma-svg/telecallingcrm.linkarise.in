@@ -8,7 +8,7 @@ export const LOGIN_URL = `${API_URL}/api/loginweb`;
 export const REGISTER_URL = `${API_URL}/api/register`;
 export const REQUEST_PASSWORD_URL = `${API_URL}/api/forgot_password`;
 export const DASHBOARD_URL = `${API_URL}/api/webdashboard`;
-export const NOTIFICATIONS_URL = `${API_URL}/api/notifications`;
+export const NOTIFICATIONS_URL = `${API_URL}/api/notifications/all`;
 export const LATEST_NOTIFICATIONS_URL = `${API_URL}/api/notificationslatest`;
 
 

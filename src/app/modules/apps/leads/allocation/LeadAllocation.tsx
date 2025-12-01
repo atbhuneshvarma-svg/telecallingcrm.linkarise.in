@@ -9,6 +9,7 @@ import { Lead, Campaign } from './core/_models'
 import BulkAllocateModal from './components/BulkAllocateModal'
 import { ImportResultsModal } from './components/ImportResultsModal'
 import { useNavigate } from 'react-router-dom'
+import BulkAllocateToTeams from '../teamallocation/BulkAllocateToTeams' // ✅ Import the BulkAllocateToTeams modal
 
 // ✅ Add interface for import results
 interface ImportResults {
@@ -36,7 +37,10 @@ const LeadAllocation: React.FC = () => {
   const [assignTo, setAssignTo] = useState('')
   const [showImportModal, setShowImportModal] = useState(false)
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
-  
+
+  // ✅ NEW: State for Bulk Allocate to Teams modal
+  const [showBulkAllocateModal, setShowBulkAllocateModal] = useState(false)
+
   // ✅ Add state for import results
   const [importResults, setImportResults] = useState<ImportResults | null>(null)
   const [showImportResults, setShowImportResults] = useState(false)
@@ -72,21 +76,21 @@ const LeadAllocation: React.FC = () => {
   const handleImportWithResults = async (file: File, campaignmid: number) => {
     setIsImporting(true)
     setShowImportModal(false) // Close import modal
-    
+
     try {
       console.log("🔄 Starting import...")
-      
+
       // Use importLeads directly to get the detailed response
       const result = await importLeads(file, campaignmid)
       console.log("📊 Import result:", result)
-      
+
       // Store the results and show modal
       setImportResults(result)
       setShowImportResults(true)
-      
+
       // Refresh the data
       await refreshData()
-      
+
     } catch (error) {
       console.error("❌ Import failed:", error)
     } finally {
@@ -173,7 +177,7 @@ const LeadAllocation: React.FC = () => {
     const campaignsFromLeads = leads
       .map(lead => lead.campaign)
       .filter((campaign): campaign is Campaign => campaign !== undefined)
- 
+
     return [
       ...new Map(
         campaignsFromLeads.map(campaign => [campaign.campaignmid, campaign])
@@ -187,7 +191,7 @@ const LeadAllocation: React.FC = () => {
         <div className="card-header bg-transparent py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h1 className="h4 fw-bold text-dark mb-1">Lead Allocation</h1>
+              <h1 className="fw-bold text-dark mb-1 fs-2">Lead Allocation</h1>
               <p className="text-muted mb-0">
                 {selectedLeads.length > 0 && (
                   <span className="badge bg-primary">
@@ -196,20 +200,31 @@ const LeadAllocation: React.FC = () => {
                 )}
               </p>
             </div>
+
+
           </div>
-          
+
           {/* ✅ Action Buttons Group - Bulk Allocate, Import Leads & Transfer Leads */}
-          <div className="btn-group mt-2">
+          <div className="btn-group mt-3">
+            {/* ✅ NEW: Bulk Allocate to Teams Button in Header */}
             <button
               className="btn btn-primary"
+              onClick={() => setShowBulkAllocateModal(true)}
+              disabled={loading}
+            >
+              <i className="bi bi-people-fill me-2"></i>
+              Bulk Allocate Teams
+            </button>
+            <button
+              className="btn btn-outline-warning"
               onClick={handleOpenBulkModal}
               disabled={loading}
             >
               <i className="fas fa-users me-2"></i>
-              Bulk Allocate
+              Bulk Allocate Users
             </button>
             <button
-              className="btn btn-outline-primary"
+              className="btn btn-outline-success"
               onClick={() => setShowImportModal(true)}
               disabled={loading || isImporting}
             >
@@ -255,7 +270,7 @@ const LeadAllocation: React.FC = () => {
               ) : (
                 <>
                   <i className="fas fa-refresh me-2"></i>
-                  Refresh
+                  
                 </>
               )}
             </button>
@@ -326,6 +341,17 @@ const LeadAllocation: React.FC = () => {
         users={users}
         campaigns={leadCampaigns}
         loading={loading}
+      />
+
+      {/* ✅ NEW: Bulk Allocate to Teams Modal */}
+      <BulkAllocateToTeams
+        show={showBulkAllocateModal}
+        onHide={() => setShowBulkAllocateModal(false)}
+        onAllocationComplete={() => {
+          // Refresh data after allocation
+          refreshData();
+          setShowBulkAllocateModal(false);
+        }}
       />
 
       {/* ✅ Import Results Modal */}

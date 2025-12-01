@@ -56,7 +56,7 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
         <div className="card-body">
           <div className="row g-3 align-items-center mb-3">
             {/* 🔍 Search */}
-            <div className="col-md-3 col-sm-12">
+            <div className="col-md-4 col-sm-12">
               <label className="form-label fw-semibold">Search Leads</label>
               <input
                 type="text"
@@ -147,7 +147,7 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
             </div>
 
             {/* ⚙️ Actions */}
-            <div className="col-md-5 col-sm-12 d-flex align-items-end gap-2 justify-content-md-end justify-content-start">
+            <div className="col-md-4 col-sm-12 d-flex align-items-end gap-2 justify-content-md-end justify-content-start flex-wrap">
               {/* Allocate Button - Green */}
               <button
                 type="button"

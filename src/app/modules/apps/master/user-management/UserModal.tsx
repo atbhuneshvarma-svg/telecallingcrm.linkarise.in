@@ -150,6 +150,7 @@ const UserModal: React.FC<UserModalProps> = ({
               name="usertype"
               value={safeUser.usertype}
               onChange={handleInputChange}
+              disabled
             >
               <option value="User">User</option>
               <option value="Admin">Admin</option>

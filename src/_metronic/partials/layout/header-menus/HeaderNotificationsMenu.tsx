@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { FC, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { KTIcon, toAbsoluteUrl } from '../../../helpers'
+import { KTIcon } from '../../../helpers'
 import { Notification } from '../../../../app/modules/auth/core/_models'
 import { notificationsApi } from '../../../../app/modules/auth/core/_requests'
 
@@ -14,7 +14,7 @@ const HeaderNotificationsMenu: FC = () => {
   const fetchNotifications = async () => {
     setLoading(true)
     try {
-      const res = await notificationsApi.getNotifications(1, 10) // Fixed method name
+      const res = await notificationsApi.getAllNotifications() // Fixed method name
       if (res.result) {
         setNotifications(res.data || [])
       }
@@ -60,7 +60,11 @@ const HeaderNotificationsMenu: FC = () => {
   }
 
   // Filter notifications by type
-  const leadNotifications = notifications.filter(n => n.type === 'lead')
+  // Show only unread lead notifications
+  const leadNotifications = notifications.filter(
+    n => n.type === 'lead' && n.is_read === 0
+  )
+
   const unreadCount = notifications.filter(n => n.is_read === 0).length
 
   return (
@@ -174,7 +178,6 @@ const HeaderNotificationsMenu: FC = () => {
             )}
           </div>
 
-          {leadNotifications.length > 0 && (
             <div className='py-3 text-center border-top bg-light'>
               <Link
                 to='/notifications'
@@ -190,7 +193,6 @@ const HeaderNotificationsMenu: FC = () => {
                 <KTIcon iconName='arrow-right' className='fs-5 ms-2' />
               </Link>
             </div>
-          )}
         </div>
 
         {/* Activity Tab */}
