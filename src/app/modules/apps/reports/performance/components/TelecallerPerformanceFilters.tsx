@@ -1,20 +1,40 @@
-import React, { useState, useEffect } from 'react'
-import { Form, Row, Col, Button, Card } from 'react-bootstrap'
-import { DateRangePicker } from 'react-date-range'
-import { format } from 'date-fns'
-import 'react-date-range/dist/styles.css'
-import 'react-date-range/dist/theme/default.css'
-import { TelecallerPerformanceFilters as TelecallerPerformanceFiltersType, Telecaller } from '../core/_models'
-import { useLeads } from '../../../leads/allleads/core/LeadsContext'
+import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import { Popover } from 'antd';
+import {
+  Card,
+  Select,
+  Button,
+  DatePicker,
+  Input,
+  Space,
+  Row,
+  Col,
+  Typography
+} from 'antd';
+import {
+  CalendarOutlined,
+  FilterOutlined,
+  SearchOutlined,
+  ReloadOutlined,
+  UserOutlined
+} from '@ant-design/icons';
+import { TelecallerPerformanceFilters as TelecallerPerformanceFiltersType, Telecaller } from '../core/_models';
+import { useLeads } from '../../../leads/allleads/core/LeadsContext';
+
+const { RangePicker } = DatePicker;
+const { Option } = Select;
+const { Search } = Input;
+const { Title } = Typography;
 
 interface TelecallerPerformanceFiltersProps {
-  filters: TelecallerPerformanceFiltersType
-  telecallers: Telecaller[]
-  onFiltersChange: (filters: Partial<TelecallerPerformanceFiltersType>) => void
-  onReset: () => void
-  onRefresh: () => void
-  totalTelecallers: number
-  isLoading: boolean
+  filters: TelecallerPerformanceFiltersType;
+  telecallers: Telecaller[];
+  onFiltersChange: (filters: Partial<TelecallerPerformanceFiltersType>) => void;
+  onReset: () => void;
+  onRefresh: () => void;
+  totalTelecallers: number;
+  isLoading: boolean;
 }
 
 export const TelecallerPerformanceFilters: React.FC<TelecallerPerformanceFiltersProps> = ({
@@ -25,228 +45,272 @@ export const TelecallerPerformanceFilters: React.FC<TelecallerPerformanceFilters
   onRefresh,
   isLoading
 }) => {
-
   // Access dropdowns from leads context if needed
-  const { dropdowns } = useLeads()
+  const { dropdowns } = useLeads();
+  const useroptions = dropdowns.users || [];
 
-  const useroptions = dropdowns.users || []
-
-  const [showDatePicker, setShowDatePicker] = useState(false)
-  const [dateRange, setDateRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: new Date(),
-      key: 'selection'
-    }
-  ])
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Set default current date if no date is selected
   useEffect(() => {
     if (!filters.date_from && !filters.date_to) {
-      const currentDate = getCurrentDate()
+      const currentDate = dayjs().format('YYYY-MM-DD');
       onFiltersChange({
         date_from: currentDate,
         date_to: currentDate
-      })
+      });
     }
-  }, [filters.date_from, filters.date_to, onFiltersChange])
+  }, [filters.date_from, filters.date_to, onFiltersChange]);
 
-  // Update dateRange when filters change
-  useEffect(() => {
-    if (filters.date_from && filters.date_to) {
-      setDateRange([
-        {
-          startDate: new Date(filters.date_from),
-          endDate: new Date(filters.date_to),
-          key: 'selection'
-        }
-      ])
+  const handleDateRangeChange = (dates: any, dateStrings: [string, string]) => {
+    if (dates) {
+      onFiltersChange({
+        date_from: dateStrings[0],
+        date_to: dateStrings[1]
+      });
+      setShowDatePicker(false);
     }
-  }, [filters.date_from, filters.date_to])
-
-  // Function to get current date in YYYY-MM-DD format
-  const getCurrentDate = () => {
-    return new Date().toISOString().split('T')[0]
-  }
-
-
-  const handleDateRangeChange = (ranges: any) => {
-    const range = ranges.selection
-    setDateRange([range])
-
-    const date_from = format(range.startDate, 'yyyy-MM-dd')
-    const date_to = format(range.endDate, 'yyyy-MM-dd')
-
-    onFiltersChange({
-      date_from,
-      date_to
-    })
-  }
+  };
 
   const handleQuickDateRange = (days: number) => {
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(endDate.getDate() - days)
-
-    setDateRange([{
-      startDate,
-      endDate,
-      key: 'selection'
-    }])
+    const endDate = dayjs();
+    const startDate = dayjs().subtract(days, 'day');
 
     onFiltersChange({
-      date_from: format(startDate, 'yyyy-MM-dd'),
-      date_to: format(endDate, 'yyyy-MM-dd')
-    })
-    setShowDatePicker(false)
-  }
+      date_from: startDate.format('YYYY-MM-DD'),
+      date_to: endDate.format('YYYY-MM-DD')
+    });
+  };
 
   const clearDateFilter = () => {
-    const today = getCurrentDate()
-    setDateRange([{
-      startDate: new Date(),
-      endDate: new Date(),
-      key: 'selection'
-    }])
+    const today = dayjs().format('YYYY-MM-DD');
     onFiltersChange({
       date_from: today,
       date_to: today
-    })
-  }
+    });
+  };
 
   const getDisplayDateRange = () => {
-    if (!filters.date_from || !filters.date_to) return 'Select Date Range'
+    if (!filters.date_from || !filters.date_to) return 'Select Date Range';
 
     if (filters.date_from === filters.date_to) {
-      return format(new Date(filters.date_from), 'MMM dd, yyyy')
+      return dayjs(filters.date_from).format('MMM DD, YYYY');
     }
-    return `${format(new Date(filters.date_from), 'MMM dd, yyyy')} - ${format(new Date(filters.date_to), 'MMM dd, yyyy')}`
-  }
+    return `${dayjs(filters.date_from).format('MMM DD, YYYY')} - ${dayjs(filters.date_to).format('MMM DD, YYYY')}`;
+  };
 
   const isDefaultDate = () => {
-    const today = getCurrentDate()
-    return filters.date_from === today && filters.date_to === today
-  }
+    const today = dayjs().format('YYYY-MM-DD');
+    return filters.date_from === today && filters.date_to === today;
+  };
+
+  const hasActiveFilters =
+    !isDefaultDate() ||
+    (filters.usermid !== undefined && filters.usermid !== null) ||
+    (filters.telecaller_id !== undefined && filters.telecaller_id !== null) ||
+    (filters.search && filters.search.trim() !== '');
 
   return (
-    <Card className="mb-4">
-      <Card.Header>
-        <div className="d-flex justify-content-between align-items-center">
-          <h3 className="mb-0">Performance Report</h3>
-        </div>
-        <div className="d-flex justify-content-between align-items-center">
-
-          <div className="d-flex gap-2">
-            <Button variant="outline-secondary" size="sm" onClick={onReset} disabled={isLoading}>
-              Reset
+    <Card
+      title={
+        <Space>
+          <FilterOutlined />
+          <span>Performance Report Filters</span>
+          {hasActiveFilters && (
+            <Button
+              type="link"
+              size="small"
+              onClick={onReset}
+              icon={<ReloadOutlined />}
+            >
+              Clear Filters
             </Button>
-            <Button variant="primary" size="sm" onClick={onRefresh} disabled={isLoading}>
-              Refresh
-            </Button>
+          )}
+        </Space>
+      }
+      extra={
+        <Space>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={onReset}
+            disabled={isLoading}
+          >
+            Reset
+          </Button>
+          <Button
+            type="primary"
+            icon={<FilterOutlined />}
+            onClick={onRefresh}
+            loading={isLoading}
+          >
+            Refresh
+          </Button>
+        </Space>
+      }
+      style={{ marginBottom: 16 }}
+    >
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={8}>
+          <div style={{ marginBottom: 8 }}>
+            <strong>Date Range</strong>
           </div>
-        </div>
-      </Card.Header>
-      <Card.Body>
-        <Row className="g-3">
-          {/* Date Range Filter */}
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Date Range</Form.Label>
-              <div className="position-relative">
-                <div className="input-group">
-                  <button
-                    className="form-control text-start"
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    disabled={isLoading}
-                    style={{ cursor: 'pointer', border: '1px solid #dee2e6' }}
-                  >
-                    <i className="bi bi-calendar me-2"></i>
-                    {getDisplayDateRange()}
-                  </button>
-                  {!isDefaultDate() && (
-                    <button
-                      className="btn btn-outline-secondary"
-                      type="button"
-                      onClick={clearDateFilter}
-                      disabled={isLoading}
-                      title="Reset to today"
-                    >
-                      <i className="bi bi-arrow-clockwise"></i>
-                    </button>
-                  )}
-                </div>
+          <Space.Compact style={{ width: '100%' }}>
+            <Button
+              icon={<CalendarOutlined />}
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              style={{ width: '100%', textAlign: 'left' }}
+            >
+              {getDisplayDateRange()}
+            </Button>
+            {!isDefaultDate() && (
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={clearDateFilter}
+                title="Reset to today"
+              />
+            )}
+          </Space.Compact>
 
+          <Col xs={24} md={8}>
+            <div style={{ marginBottom: 8 }}>
+              <strong>Date Range</strong>
+            </div>
+            <Popover
+              content={
+                <div style={{ width: 280, padding: 8 }}>
+                  <RangePicker
+                    style={{ width: '100%' }}
+                    onChange={handleDateRangeChange}
+                    value={
+                      filters.date_from && filters.date_to
+                        ? [
+                          filters.date_from ? dayjs(filters.date_from) : null,
+                          filters.date_to ? dayjs(filters.date_to) : null
+                        ]
+                        : null
+                    }
+                    format="DD-MM-YYYY"
+                    size="small"
+                  />
 
-                {/* Date Range Picker */}
-                {showDatePicker && (
-                  <div
-                    className="position-absolute top-100 start-0 mt-1 bg-white border rounded shadow-lg"
-                    style={{
-                      zIndex: 9999,
-                      width: 'max-content',
-                      transform: 'scale(0.85)',
-                      transformOrigin: 'top left'
-                    }}
-                  >
-                    <DateRangePicker
-                      onChange={handleDateRangeChange}
-                      moveRangeOnFirstSelection={false}
-                      months={1}
-                      ranges={dateRange}
-                      direction="horizontal"
-                      showDateDisplay={false}
-                    />
-                    <div className="p-2 border-top">
-                      <button
-                        className="btn btn-sm btn-primary"
+                  <div style={{ marginTop: 12 }}>
+                    <Space wrap size={[4, 4]}>
+                      <Button
+                        size="small"
+                        onClick={() => handleQuickDateRange(0)}
+                      >
+                        Today
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() => handleQuickDateRange(7)}
+                      >
+                        7 Days
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() => handleQuickDateRange(30)}
+                      >
+                        30 Days
+                      </Button>
+                      <Button
+                        size="small"
+                        type="primary"
                         onClick={() => setShowDatePicker(false)}
                       >
                         Apply
-                      </button>
-                    </div>
+                      </Button>
+                    </Space>
                   </div>
-                )}
-              </div>
-            </Form.Group>
-          </Col>
-
-          {/* Telecaller Filter */}
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>User</Form.Label>
-              <Form.Select
-                value={filters.usermid || filters.telecaller_id || ''}
-                onChange={(e) => onFiltersChange({
-                  usermid: e.target.value ? Number(e.target.value) : undefined,
-                  telecaller_id: e.target.value ? Number(e.target.value) : undefined
-                })}
-                disabled={isLoading}
+                </div>
+              }
+              title="Select Date Range"
+              trigger="click"
+              open={showDatePicker}
+              onOpenChange={setShowDatePicker}
+              placement="bottomLeft"
+            >
+              <Button
+                icon={<CalendarOutlined />}
+                style={{ width: '100%', textAlign: 'left' }}
               >
-                <option value="">All Users</option>
-                {useroptions.map((telecaller) => (
-                  <option key={telecaller.usermid} value={telecaller.usermid}>
-                    {telecaller.username}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
+                {getDisplayDateRange()}
+              </Button>
+            </Popover>
           </Col>
+        </Col>
 
-          {/* Search Filter */}
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Search</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Search telecallers..."
-                value={filters.search || ''}
-                onChange={(e) => onFiltersChange({ search: e.target.value })}
-                disabled={isLoading}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-      </Card.Body>
+        {/* User Filter */}
+        <Col xs={24} md={8}>
+          <div style={{ marginBottom: 8 }}>
+            <strong>User</strong>
+          </div>
+          <Select
+            value={filters.usermid || filters.telecaller_id || undefined}
+            onChange={(value) => onFiltersChange({
+              usermid: value ? Number(value) : undefined,
+              telecaller_id: value ? Number(value) : undefined
+            })}
+            placeholder="All Users"
+            style={{ width: '100%' }}
+            suffixIcon={<UserOutlined />}
+            loading={isLoading}
+            allowClear
+          >
+            <Option value="">All Users</Option>
+            {useroptions.map((telecaller) => (
+              <Option key={telecaller.usermid} value={telecaller.usermid}>
+                {telecaller.username}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+
+        {/* Search Filter */}
+        <Col xs={24} md={8}>
+          <div style={{ marginBottom: 8 }}>
+            <strong>Search</strong>
+          </div>
+          <Search
+            placeholder="Search telecallers..."
+            value={filters.search || ''}
+            onChange={(e) => onFiltersChange({ search: e.target.value })}
+            onSearch={(value) => onFiltersChange({ search: value })}
+            allowClear
+            enterButton={<SearchOutlined />}
+            loading={isLoading}
+          />
+        </Col>
+      </Row>
+
+      {/* Active Filters Indicator */}
+      {hasActiveFilters && (
+        <div style={{ marginTop: 16, padding: 8, backgroundColor: '#f0f9ff', borderRadius: 4 }}>
+          <Space wrap>
+            <span style={{ fontWeight: 500 }}>Active Filters:</span>
+
+            {!isDefaultDate() && (
+              <Button size="small" type="text">
+                <CalendarOutlined /> Date: {getDisplayDateRange()}
+              </Button>
+            )}
+
+            {(filters.usermid || filters.telecaller_id) && (
+              <Button size="small" type="text">
+                <UserOutlined /> User: {
+                  useroptions.find(u => u.usermid === (filters.usermid || filters.telecaller_id))?.username
+                }
+              </Button>
+            )}
+
+            {filters.search && filters.search.trim() !== '' && (
+              <Button size="small" type="text">
+                <SearchOutlined /> Search: "{filters.search}"
+              </Button>
+            )}
+          </Space>
+        </div>
+      )}
     </Card>
-  )
-}
+  );
+};

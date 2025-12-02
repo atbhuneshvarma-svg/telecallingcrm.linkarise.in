@@ -1,9 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLeads } from '../../allleads/core/LeadsContext';
-import { DateRangePicker } from 'react-date-range';
+import dayjs from 'dayjs';
 import { format } from 'date-fns';
-import 'react-date-range/dist/styles.css';
-import 'react-date-range/dist/theme/default.css';
+import {
+  Card,
+  Select,
+  Button,
+  DatePicker,
+  Space,
+  Tag,
+  Row,
+  Col,
+  Input,
+  Alert
+} from 'antd';
+import {
+  CalendarOutlined,
+  FilterOutlined,
+  ReloadOutlined,
+  CloseOutlined,
+  UserOutlined,
+  ProjectOutlined,
+  CheckCircleOutlined
+} from '@ant-design/icons';
+
+const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 interface CallDetailsFiltersProps {
   entriesPerPage: number;
@@ -32,14 +54,19 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
 }) => {
   const { dropdowns } = useLeads();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateRange, setDateRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: new Date(),
-      key: 'selection'
-    }
-  ]);
   const datePickerRef = useRef<HTMLDivElement>(null);
+
+  // Set default to current date on component mount
+  useEffect(() => {
+    if (!filters.startDate && !filters.endDate) {
+      const today = new Date().toISOString().split('T')[0];
+      onFiltersChange({
+        ...filters,
+        startDate: today,
+        endDate: today
+      });
+    }
+  }, []);
 
   // Click outside handler
   useEffect(() => {
@@ -58,33 +85,8 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
     };
   }, [showDatePicker]);
 
-  // Set default to current date on component mount
-  useEffect(() => {
-    if (!filters.startDate && !filters.endDate) {
-      const today = new Date().toISOString().split('T')[0];
-      onFiltersChange({
-        ...filters,
-        startDate: today,
-        endDate: today
-      });
-    }
-  }, []);
-
-  // Update dateRange when filters change
-  useEffect(() => {
-    if (filters.startDate && filters.endDate) {
-      setDateRange([
-        {
-          startDate: new Date(filters.startDate),
-          endDate: new Date(filters.endDate),
-          key: 'selection'
-        }
-      ]);
-    }
-  }, [filters.startDate, filters.endDate]);
-
-  const handleEntriesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onEntriesPerPageChange(Number(e.target.value));
+  const handleEntriesChange = (value: number) => {
+    onEntriesPerPageChange(value);
   };
 
   const handleFilterChange = (key: string, value: string) => {
@@ -95,30 +97,21 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
     onFiltersChange(newFilters);
   };
 
-  const handleDateRangeChange = (ranges: any) => {
-    const range = ranges.selection;
-    setDateRange([range]);
-
-    const startDate = format(range.startDate, 'yyyy-MM-dd');
-    const endDate = format(range.endDate, 'yyyy-MM-dd');
-
-    onFiltersChange({
-      ...filters,
-      startDate,
-      endDate
-    });
+  const handleDateRangeChange = (dates: any, dateStrings: [string, string]) => {
+    if (dates) {
+      onFiltersChange({
+        ...filters,
+        startDate: dateStrings[0],
+        endDate: dateStrings[1]
+      });
+      setShowDatePicker(false);
+    }
   };
 
   const handleQuickDateRange = (days: number) => {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - days);
-
-    setDateRange([{
-      startDate,
-      endDate,
-      key: 'selection'
-    }]);
 
     onFiltersChange({
       ...filters,
@@ -130,21 +123,18 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
 
   const handleResetAll = () => {
     const today = new Date().toISOString().split('T')[0];
-    setDateRange([{
-      startDate: new Date(),
-      endDate: new Date(),
-      key: 'selection'
-    }]);
+    onFiltersChange({
+      user: 'All',
+      campaign: 'All',
+      status: 'All',
+      startDate: today,
+      endDate: today
+    });
     onReset();
   };
 
   const clearDateFilter = () => {
     const today = new Date().toISOString().split('T')[0];
-    setDateRange([{
-      startDate: new Date(),
-      endDate: new Date(),
-      key: 'selection'
-    }]);
     onFiltersChange({
       ...filters,
       startDate: today,
@@ -168,7 +158,11 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
 
   // Format date for display
   const formatDisplayDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
   // Find display names for IDs
@@ -195,172 +189,224 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
   };
 
   return (
-    <div className="card card-flush mb-6">
-      <div className="card-body">
-        {/* Header Section */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <div className="d-flex align-items-center gap-3">
-            {hasActiveFilters && (
-              <button
-                className="btn btn-sm btn-light-danger"
-                onClick={handleResetAll}
-                disabled={loading}
-              >
-                <i className="bi bi-x-circle me-2"></i>
-                Clear Filters
-              </button>
-            )}
-          </div>
-        </div>
-
+    <Card
+      className="mb-6"
+      size="small"
+      title={
+        <Space>
+          <FilterOutlined />
+          <span>Filters</span>
+          {hasActiveFilters && (
+            <Tag color="blue">
+              {totalRecords} records filtered
+            </Tag>
+          )}
+        </Space>
+      }
+      extra={
+        hasActiveFilters ? (
+          <Button
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={handleResetAll}
+            disabled={loading}
+          >
+            Clear All
+          </Button>
+        ) : null
+      }
+    >
+      <Row gutter={[16, 16]}>
         {/* Date Range Filter */}
-        {/* Filters Row */}
-        <div className="row g-4">
-          <div className="col-md-4 position-relative" ref={datePickerRef}>
-            <label className="form-label">Date Range</label>
-            <div className="input-group">
-              <button
-                className="form-control text-start"
-                onClick={() => setShowDatePicker(!showDatePicker)}
-                disabled={loading}
-                style={{ cursor: 'pointer' }}
-              >
-                <i className="bi bi-calendar me-2"></i>
-                {getDisplayDateRange()}
-              </button>
-              {(filters.startDate !== today || filters.endDate !== today) && (
-                <button
-                  className="btn btn-outline-secondary"
-                  type="button"
-                  onClick={clearDateFilter}
-                  disabled={loading}
-                  title="Reset to today"
-                >
-                  <i className="bi bi-arrow-clockwise"></i>
-                </button>
-              )}
-              {/* Date Range Picker */}
-              {showDatePicker && (
-                <div
-                  className="position-absolute top-100 start-0 mt-1 bg-white border rounded shadow-lg"
-                  style={{
-                    zIndex: 9999,
-                    width: 'max-content',
-                    transform: 'scale(0.8)', // Scale it down
-                    transformOrigin: 'top left' // Keep it positioned correctly
-                  }}
-                >
-                  <DateRangePicker
-                    onChange={handleDateRangeChange}
-                    moveRangeOnFirstSelection={false}
-                    months={1} // Show only 1 month instead of 2
-                    ranges={dateRange}
-                    direction="horizontal"
-                    showDateDisplay={false}
-                  />
-                  <div className="p-2 border-top">
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={() => setShowDatePicker(false)}
-                    >
-                      Apply
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
+        <Col xs={24} sm={12} md={6} ref={datePickerRef}>
+          <div className="mb-2">
+            <label className="ant-form-item-label">Date Range</label>
           </div>
-          {/* User Filter */}
-          <div className="col-md-3">
-            <label className="form-label">User</label>
-            <select
-              value={filters.user}
-              onChange={(e) => handleFilterChange('user', e.target.value)}
-              className="form-select"
-              disabled={loading}
+          <Space.Compact style={{ width: '100%' }}>
+            <Button
+              icon={<CalendarOutlined />}
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              style={{ width: '100%', textAlign: 'left' }}
             >
-              <option value="All">All Users</option>
-              {users.map((user) => (
-                <option key={user.usermid} value={user.usermid?.toString()}>
-                  {user.username}
-                </option>
-              ))}
-            </select>
-          </div>
+              {getDisplayDateRange()}
+            </Button>
+            {(filters.startDate !== today || filters.endDate !== today) && (
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={clearDateFilter}
+                title="Reset to today"
+              />
+            )}
+          </Space.Compact>
 
-          {/* Campaign Filter */}
-          <div className="col-md-3">
-            <label className="form-label">Campaign</label>
-            <select
-              value={filters.campaign}
-              onChange={(e) => handleFilterChange('campaign', e.target.value)}
-              className="form-select"
-              disabled={loading}
+          {showDatePicker && (
+            <Card
+              size="small"
+              style={{
+                position: 'absolute',
+                zIndex: 1000,
+                marginTop: 8,
+                width: 350
+              }}
             >
-              <option value="All">All Campaigns</option>
-              {campaigns.map((campaign) => (
-                <option key={campaign.id} value={campaign.id?.toString()}>
-                  {campaign.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <RangePicker
+                style={{ width: '100%' }}
+                onChange={handleDateRangeChange}
+                value={
+                  filters.startDate && filters.endDate
+                    ? [
+                      filters.startDate ? dayjs(filters.startDate) : null,
+                      filters.endDate ? dayjs(filters.endDate) : null
+                    ]
+                    : null
+                }
+                format="DD-MM-YYYY"
+              />
 
-          {/* Status Filter */}
-          <div className="col-md-2">
-            <label className="form-label">Status</label>
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="form-select"
-              disabled={loading}
-            >
-              <option value="All">All Statuses</option>
-              {statuses.map((status) => (
-                <option key={status.statusmid} value={status.statusmid?.toString()}>
-                  {status.statusname}
-                </option>
-              ))}
-            </select>
-          </div>
-
-
-        </div>
-
-        {/* Active Filters Indicator */}
-        {hasActiveFilters && (
-          <div className="row mt-3">
-            <div className="col-12">
-              <div className="d-flex align-items-center gap-2 p-3 bg-light-primary rounded">
-                <i className="bi bi-funnel text-primary"></i>
-                <span className="text-primary fw-medium">Active Filters:</span>
-                {filters.user !== 'All' && (
-                  <span className="badge bg-primary">
-                    Telecaller: {getUserDisplayName(filters.user)}
-                  </span>
-                )}
-                {filters.campaign !== 'All' && (
-                  <span className="badge bg-primary">
-                    Campaign: {getCampaignDisplayName(filters.campaign)}
-                  </span>
-                )}
-                {filters.status !== 'All' && (
-                  <span className="badge bg-primary">
-                    Status: {getStatusDisplayName(filters.status)}
-                  </span>
-                )}
-                {(filters.startDate !== today || filters.endDate !== today) && (
-                  <span className="badge bg-primary">
-                    Date: {getDisplayDateRange()}
-                  </span>
-                )}
+              <div style={{ marginTop: 16 }}>
+                <Space wrap>
+                  <Button size="small" onClick={() => handleQuickDateRange(0)}>
+                    Today
+                  </Button>
+                  <Button size="small" onClick={() => handleQuickDateRange(7)}>
+                    Last 7 Days
+                  </Button>
+                  <Button size="small" onClick={() => handleQuickDateRange(30)}>
+                    Last 30 Days
+                  </Button>
+                  <Button size="small" onClick={() => setShowDatePicker(false)}>
+                    Apply
+                  </Button>
+                </Space>
               </div>
-            </div>
+            </Card>
+          )}
+        </Col>
+
+        {/* User Filter */}
+        <Col xs={24} sm={12} md={4}>
+          <div className="mb-2">
+            <label className="ant-form-item-label">User</label>
           </div>
+          <Select
+            value={filters.user}
+            onChange={(value) => handleFilterChange('user', value)}
+            placeholder="All Users"
+            style={{ width: '100%' }}
+            suffixIcon={<UserOutlined />}
+            loading={loading}
+            allowClear
+          >
+            <Option value="All">All Users</Option>
+            {users.map((user) => (
+              <Option key={user.usermid} value={user.usermid?.toString()}>
+                {user.username}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+
+        {/* Campaign Filter */}
+        <Col xs={24} sm={12} md={4}>
+          <div className="mb-2">
+            <label className="ant-form-item-label">Campaign</label>
+          </div>
+          <Select
+            value={filters.campaign}
+            onChange={(value) => handleFilterChange('campaign', value)}
+            placeholder="All Campaigns"
+            style={{ width: '100%' }}
+            suffixIcon={<ProjectOutlined />}
+            loading={loading}
+            allowClear
+          >
+            <Option value="All">All Campaigns</Option>
+            {campaigns.map((campaign) => (
+              <Option key={campaign.id} value={campaign.id?.toString()}>
+                {campaign.name}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+
+        {/* Status Filter */}
+        <Col xs={24} sm={12} md={4}>
+          <div className="mb-2">
+            <label className="ant-form-item-label">Status</label>
+          </div>
+          <Select
+            value={filters.status}
+            onChange={(value) => handleFilterChange('status', value)}
+            placeholder="All Statuses"
+            style={{ width: '100%' }}
+            suffixIcon={<CheckCircleOutlined />}
+            loading={loading}
+            allowClear
+          >
+            <Option value="All">All Statuses</Option>
+            {statuses.map((status) => (
+              <Option key={status.statusmid} value={status.statusmid?.toString()}>
+                {status.statusname}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+
+        {/* Entries per page */}
+        <Col xs={24} sm={12} md={3}>
+          <div className="mb-2">
+            <label className="ant-form-item-label">Show</label>
+          </div>
+          <Select
+            value={entriesPerPage}
+            onChange={handleEntriesChange}
+            style={{ width: '100%' }}
+          >
+            <Option value={10}>10 entries</Option>
+            <Option value={25}>25 entries</Option>
+            <Option value={50}>50 entries</Option>
+            <Option value={100}>100 entries</Option>
+          </Select>
+        </Col>
+
+        {/* Active Filters Display */}
+        {hasActiveFilters && (
+          <Col span={24}>
+            <Alert
+              message="Active Filters"
+              description={
+                <Space wrap>
+                  {filters.user !== 'All' && (
+                    <Tag color="blue">
+                      <UserOutlined /> User: {getUserDisplayName(filters.user)}
+                    </Tag>
+                  )}
+                  {filters.campaign !== 'All' && (
+                    <Tag color="green">
+                      <ProjectOutlined /> Campaign: {getCampaignDisplayName(filters.campaign)}
+                    </Tag>
+                  )}
+                  {filters.status !== 'All' && (
+                    <Tag color="orange">
+                      <CheckCircleOutlined /> Status: {getStatusDisplayName(filters.status)}
+                    </Tag>
+                  )}
+                  {(filters.startDate !== today || filters.endDate !== today) && (
+                    <Tag color="purple">
+                      <CalendarOutlined /> Date: {getDisplayDateRange()}
+                    </Tag>
+                  )}
+                </Space>
+              }
+              type="info"
+              showIcon
+              closable
+              onClose={handleResetAll}
+            />
+          </Col>
         )}
-      </div>
-    </div>
+      </Row>
+    </Card>
   );
 };
 

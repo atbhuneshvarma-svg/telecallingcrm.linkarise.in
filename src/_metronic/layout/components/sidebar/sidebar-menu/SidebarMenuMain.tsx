@@ -183,17 +183,17 @@ const SidebarMenuMain = () => {
           fontIcon="bi-graph-up"
         >
           <SidebarMenuItem
+            to="/reports/allleadreport"
+            title="All Lead Report"
+            icon="abstract-45"
+            fontIcon="bi-activity"
+            hasBullet={true}
+          />
+          <SidebarMenuItem
             to="/reports/performance"
             title="Performance Report"
             icon="user-tick"
             fontIcon="bi-person-check"
-            hasBullet={true}
-          />
-          <SidebarMenuItem
-            to="/reports/allactivity"
-            title="Activity Logs"
-            icon="abstract-42"
-            fontIcon="bi-activity"
             hasBullet={true}
           />
           <SidebarMenuItem
@@ -210,8 +210,21 @@ const SidebarMenuMain = () => {
             fontIcon="bi-activity"
             hasBullet={true}
           />
+          <SidebarMenuItem
+            to="/reports/leadsummary"
+            title="Lead Summary Report"
+            icon="abstract-46"
+            fontIcon="bi-activity"
+            hasBullet={true}
+          />
         </SidebarMenuItemWithSub>
       )}
+      <SidebarMenuItem
+        to="/reports/allactivity"
+        title="Activity Logs"
+        icon="abstract-38"
+        fontIcon="bi-activity"
+      />
     </>
   );
 };

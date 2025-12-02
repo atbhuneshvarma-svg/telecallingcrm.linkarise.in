@@ -22,6 +22,17 @@ const StageWiseLeadPage = lazy(() =>
         default: module.StageWiseLeadPage,
     }))
 )
+// src/app/modules/apps/reports/ReportsRoutes.tsx
+const AllleadReportpage = lazy(() => 
+  import('./allreadreport/LeadReportPage').then(module => ({
+    default: module.default
+  }))
+);
+const LeadSummaryPage = lazy(() => 
+  import('./leadsummary/index').then(module => ({
+    default: module.LeadSummaryPage
+  }))
+);
 
 const StatusWiseLeadsPage = lazy(() => import('./statuswise/pages/StatusWiseLeadsPage'))
 
@@ -76,6 +87,22 @@ const ReportsRoutes: FC = () => {
                 element={
                     <SuspensedView>
                         <StatusWiseLeadsPage />
+                    </SuspensedView>
+                }
+            />
+            <Route
+                path="allleadreport"
+                element={
+                    <SuspensedView>
+                        <AllleadReportpage />
+                    </SuspensedView>
+                }
+            />
+            <Route
+                path="leadsummary"
+                element={
+                    <SuspensedView>
+                        <LeadSummaryPage />
                     </SuspensedView>
                 }
             />

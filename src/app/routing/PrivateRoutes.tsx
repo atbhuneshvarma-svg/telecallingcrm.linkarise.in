@@ -101,7 +101,7 @@ const PrivateRoutes = () => {
         
         {/* Master Routes */}
         <Route
-          path='master/campaigns/*'
+          path='campaigns/*'
           element={
             <SuspensedView>
               <CampaignsPage />
