@@ -52,7 +52,7 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
 
   return (
     <>
-      <div className="card shadow border-0">
+      <div className="container-fluid border-0">
         <div className="card-body">
           <div className="row g-3 align-items-center mb-3">
             {/* 🔍 Search */}

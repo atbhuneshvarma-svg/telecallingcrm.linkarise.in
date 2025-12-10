@@ -73,7 +73,7 @@ export const TelecallerPerformancePage: React.FC = () => {
   }, [isLoading, refetch])
 
   return (
-    <Container fluid className="py-4">
+    <Container fluid>
       <Row>
         <Col>
           {/* Filters Section */}

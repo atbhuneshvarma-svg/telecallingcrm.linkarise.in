@@ -28,7 +28,6 @@ const MasterLayout = () => {
           <div className='app-wrapper flex-column flex-row-fluid' id='kt_app_wrapper'>
             <span className='badge badge-secondary mb-5'>
 
-            <Breadcrumbs />
             </span>
 
             <Sidebar />

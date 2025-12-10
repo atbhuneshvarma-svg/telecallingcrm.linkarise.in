@@ -83,7 +83,7 @@ const PrivateRoutes = () => {
         
         {/* Management Routes */}
         <Route
-          path='manage/user-management/*'
+          path='manage/*'
           element={
             <SuspensedView>
               <UsersPage />
@@ -109,7 +109,7 @@ const PrivateRoutes = () => {
           }
         />
         <Route
-          path='master/status/*'
+          path='master/*'
           element={
             <SuspensedView>
               <StatusMaster />
@@ -159,7 +159,7 @@ const PrivateRoutes = () => {
         
         {/* Leads Routes */}
         <Route
-          path='leads/allleads/*'
+          path='leads/*'
           element={
             <SuspensedView>
               <AllLeads />

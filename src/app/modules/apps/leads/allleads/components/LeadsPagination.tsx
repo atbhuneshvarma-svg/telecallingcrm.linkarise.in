@@ -1,4 +1,7 @@
+import { Skeleton } from 'antd'
 import React, { useMemo } from 'react'
+
+
 
 interface LeadsPaginationProps {
   currentPage: number
@@ -29,12 +32,12 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
   showPageSizeSelector = true,
   compact = false
 }) => {
-  
+
   // Memoized visible pages calculation
   const visiblePages = useMemo(() => {
     const getVisiblePages = () => {
       if (totalPages <= 1) return []
-      
+
       const pages = []
       const maxVisible = compact ? 3 : 5
       let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
@@ -58,7 +61,7 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
   const paginationInfo = useMemo(() => {
     const hasRecords = totalRecords > 0
     const isFiltered = showingTo < totalRecords || showingFrom > 1
-    
+
     return {
       hasRecords,
       isFiltered,
@@ -110,8 +113,8 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
           {visiblePages[0] > 1 && (
             <>
               <li className="page-item">
-                <button 
-                  className="page-link" 
+                <button
+                  className="page-link"
                   onClick={() => onPageChange(1)}
                   disabled={loading}
                 >
@@ -132,8 +135,8 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
               key={page}
               className={`page-item ${currentPage === page ? 'active' : ''}`}
             >
-              <button 
-                className="page-link" 
+              <button
+                className="page-link"
                 onClick={() => onPageChange(page)}
                 disabled={loading}
                 aria-label={`Go to page ${page}`}
@@ -156,8 +159,8 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
                 </li>
               )}
               <li className="page-item">
-                <button 
-                  className="page-link" 
+                <button
+                  className="page-link"
                   onClick={() => onPageChange(totalPages)}
                   disabled={loading}
                 >
@@ -215,8 +218,7 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
         <div className="d-flex align-items-center gap-3">
           {loading ? (
             <div className="d-flex align-items-center text-muted">
-              <span className="spinner-border spinner-border-sm me-2"></span>
-              Loading...
+              <Skeleton.Button style={{ width: 80 }} active size="small" />
             </div>
           ) : (
             <>
@@ -230,7 +232,7 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
                   </span>
                 )}
               </div>
-              
+
               {/* Page Size Selector */}
               {showPageSizeSelector && onPageSizeChange && (
                 <div className="d-flex align-items-center gap-2">
@@ -274,8 +276,8 @@ const LeadsPagination: React.FC<LeadsPaginationProps> = ({
       {/* Loading Progress Bar */}
       {loading && (
         <div className="progress mt-3" style={{ height: '3px' }}>
-          <div 
-            className="progress-bar progress-bar-striped progress-bar-animated" 
+          <div
+            className="progress-bar progress-bar-striped progress-bar-animated"
             style={{ width: '100%' }}
           ></div>
         </div>

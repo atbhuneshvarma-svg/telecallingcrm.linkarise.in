@@ -1,15 +1,27 @@
 import React from 'react';
 import { Lead } from '../../../core/_models';
+import { Skeleton } from 'antd';
 
 interface LeadInfoColumnProps {
   lead: Lead;
+  loading?: boolean;
   onViewClick: (lead: Lead) => void;
 }
 
 export const LeadInfoColumn: React.FC<LeadInfoColumnProps> = ({
   lead,
+  loading = false,
   onViewClick
 }) => {
+  if (loading) {
+    return (
+      <td className='d-flex align-items-center'>
+        <Skeleton.Avatar active size="large" shape="circle" className="me-3" />
+        <Skeleton.Input style={{ width: '80px'}} active size="small" />
+      </td>
+    );
+  }
+
   return (
     <td>
       <div className="d-flex align-items-center">

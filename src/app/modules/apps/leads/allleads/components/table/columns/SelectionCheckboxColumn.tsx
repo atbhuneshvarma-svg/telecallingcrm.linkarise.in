@@ -1,4 +1,5 @@
 import React from 'react';
+import { Skeleton } from 'antd';
 import { Lead } from '../../../core/_models';
 
 interface SelectionCheckboxColumnProps {
@@ -17,18 +18,22 @@ export const SelectionCheckboxColumn: React.FC<SelectionCheckboxColumnProps> = (
   onSelectLead
 }) => {
   if (!selectable) return null;
-  
+
   return (
     <td>
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          checked={isLeadSelected(lead.leadmid)}
-          onChange={() => onSelectLead(lead)}
-          disabled={loading}
-        />
-      </div>
+      {loading ? (
+        <Skeleton.Input style={{ width: 20 }} active size="small" />
+      ) : (
+        <div className="form-check">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            checked={isLeadSelected(lead.leadmid)}
+            onChange={() => onSelectLead(lead)}
+            disabled={loading}
+          />
+        </div>
+      )}
     </td>
   );
 };

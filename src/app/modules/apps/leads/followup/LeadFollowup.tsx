@@ -185,7 +185,7 @@ const LeadFollowup: React.FC = () => {
   }, [fetchFollowups, loading]);
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid">
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -238,6 +238,8 @@ const LeadFollowup: React.FC = () => {
           totalRecords={paginationData.totalFilteredRecords}
         />
 
+      <div className="p-2">
+
         {/* Pagination */}
         <FollowupPagination
           currentPage={currentPage}
@@ -247,6 +249,7 @@ const LeadFollowup: React.FC = () => {
           endIndex={paginationData.showingTo}
           onPageChange={handlePageChange}
         />
+      </div>
       </div>
     </div>
   );

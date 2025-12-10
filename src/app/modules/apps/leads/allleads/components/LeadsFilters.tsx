@@ -77,14 +77,6 @@ const LeadsFilters: React.FC<LeadsFiltersProps> = ({
     showSuccess('Filters reset successfully'); // Real toast notification
   };
 
-  const handleQuickFilter = (status: string) => {
-    onFilterChange('status', status);
-    if (onFilterSubmit) {
-      onFilterSubmit();
-    }
-    showInfo(`Filtered by: ${status}`); // Real toast notification
-  };
-
   const hasActiveFilters =
     filters.team !== 'All Teams' ||
     filters.user !== 'All Users' ||
@@ -92,22 +84,11 @@ const LeadsFilters: React.FC<LeadsFiltersProps> = ({
     filters.status !== 'All Statuses';
 
   // Show results count if we have data
-  const showResultsCount = totalLeads > 0;
-
   return (
-    <div className="card card-flush mb-6">
+    <div className="">
       <div className="card-body">
         {/* Results Summary and Reset Button */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          {showResultsCount && (
-            <div className="text-muted">
-              <small>
-                Showing {filteredCount} of {totalLeads} leads
-                {hasActiveFilters && ' (filtered)'}
-              </small>
-            </div>
-          )}
-
+        <div className="d-flex justify-content-between align-items-center">
           {/* Reset Filters Button */}
           {hasActiveFilters && (
             <button
@@ -126,7 +107,7 @@ const LeadsFilters: React.FC<LeadsFiltersProps> = ({
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="row g-4">
+          <div className="row">
 
             {(isAdmin || isManager) && (<>
               {/* Team Filter */}

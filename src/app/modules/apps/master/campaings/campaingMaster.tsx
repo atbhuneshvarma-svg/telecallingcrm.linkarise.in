@@ -118,14 +118,14 @@ const Campaigns = () => {
       await fetchCampaigns();
     } catch (error: any) {
       console.error('Error saving campaign:', error);
-      
+
       let errorMessage = 'Error saving campaign. Please try again.';
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       alert(errorMessage);
       return;
     }
@@ -152,14 +152,14 @@ const Campaigns = () => {
       }
     } catch (error: any) {
       console.error('Error deleting campaign:', error);
-      
+
       let errorMessage = 'Error deleting campaign. Please try again.';
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       alert(errorMessage);
     }
   };
@@ -255,21 +255,12 @@ const Campaigns = () => {
           {/* Campaign List Card */}
           <div className="card">
             <div className="card-body p-0">
-              {loading ? (
-                <div className="text-center py-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <p className="mt-3 text-muted">Loading campaigns...</p>
-                </div>
-              ) : (
-                <CampaignList
-                  campaigns={displayedCampaigns}
-                  onEdit={handleEditCampaign}
-                  onDelete={handleDeleteCampaign}
-                  loading={loading}
-                />
-              )}
+              <CampaignList
+                campaigns={displayedCampaigns}
+                onEdit={handleEditCampaign}
+                onDelete={handleDeleteCampaign}
+                loading={loading}
+              />
             </div>
           </div>
 
@@ -306,9 +297,8 @@ const Campaigns = () => {
                           (page) => (
                             <li
                               key={page}
-                              className={`page-item ${
-                                pagination.current_page === page ? 'active' : ''
-                              }`}
+                              className={`page-item ${pagination.current_page === page ? 'active' : ''
+                                }`}
                             >
                               <button className="page-link" onClick={() => handlePageChange(page)}>
                                 {page}
@@ -318,9 +308,8 @@ const Campaigns = () => {
                         )}
 
                         <li
-                          className={`page-item ${
-                            pagination.current_page === pagination.total_pages ? 'disabled' : ''
-                          }`}
+                          className={`page-item ${pagination.current_page === pagination.total_pages ? 'disabled' : ''
+                            }`}
                         >
                           <button
                             className="page-link"

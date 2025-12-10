@@ -1,108 +1,147 @@
-// StatusList.tsx
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import DataTable, { TableColumn } from 'react-data-table-component'
 import { Status } from './core/_request'
+import { useThemeMode } from '../../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
 
 interface StatusListProps {
   statuses: Status[]
+  loading?: boolean
   onEditStatus: (status: Status) => void
   onDeleteStatus: (id: number) => void
 }
 
 const StatusList: React.FC<StatusListProps> = ({
   statuses,
+  loading = false,
   onEditStatus,
-  onDeleteStatus
+  onDeleteStatus,
 }) => {
-  return (
-    <>
-      <div className="container-fluid px-0">
+  const { mode } = useThemeMode()
+  const isDark = mode === 'dark'
 
+  const [showSkeleton, setShowSkeleton] = useState(false)
 
-        <div className="table-responsive">
-          <table className="table table-hover table-bordered table-rounded table-striped border">
-            <thead>
-              <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200 text-center">
-                <th>Sr.No</th>
-                <th>Status Name</th>
-                <th>Status Color</th>
-                <th>stage</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {statuses.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-10">
-                    <div className="d-flex flex-column align-items-center">
-                      <i className="bi bi-inbox fs-2x text-muted mb-2"></i>
-                      <span className="text-muted fs-6">No statuses found</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                statuses.map((status, index) => (
-                  <tr className='text-center' key={status.id}>
-                    <td>
-                      <span className="text-gray-600">{index + 1}</span>
-                    </td>
-                    <td width={120} >
-                      <div style={{backgroundColor: status.color , padding:'15px', borderRadius:'8px' , paddingBottom: '20px' }} className="d-flex flex-column">
-                        <span className="fw-bold text-white fs-7"
-                        
-                        >{status.name}</span>
-                      </div>
-                    </td>
-                    <td >
-                      <div  className="align-items-center gap-2 text-center d-flex justify-content-center">
-                        <span className="badge badge-light fs-7">{status.color}</span>
-                      </div>
-                    </td>
-                    <td >
-                      <div className="align-items-center gap-2 text-center d-flex justify-content-center">
-                        <span className="fs-7">{status.stage}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="dropdown">
-                        <button
-                          className="btn btn-sm btn-light btn-active-light-primary"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Actions
-                          <i className="bi bi-chevron-down ms-2"></i>
-                        </button>
-                        <ul className="dropdown-menu">
-                          <li>
-                            <button
-                              className="dropdown-item"
-                              onClick={() => onEditStatus(status)}
-                            >
-                              <i className="bi bi-pencil me-2"></i>
-                              Edit
-                            </button>
-                          </li>
-                          <li>
-                            <button
-                              className="dropdown-item text-danger"
-                              onClick={() => onDeleteStatus(status.id)}
-                            >
-                              <i className="bi bi-trash me-2"></i>
-                              Delete
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+  useEffect(() => {
+    if (loading) {
+      setShowSkeleton(true)
+    } else {
+      const timeout = setTimeout(() => setShowSkeleton(false), 1000)
+      return () => clearTimeout(timeout)
+    }
+  }, [loading])
+
+  const skeletonRows: Status[] = Array.from({ length: 5 }).map((_, index) => ({
+    id: index,
+    name: '',
+    color: '',
+    stage: '',
+  }))
+
+  const SkeletonCell = () => (
+    <div className="placeholder-wave w-100">
+      <span
+        className="placeholder col-12"
+        style={{ height: '20px', display: 'block', borderRadius: '4px' }}
+      />
+    </div>
+  )
+
+  const columns: TableColumn<Status>[] = [
+    {
+      name: '#',
+      selector: (_, rowIndex) => (rowIndex ?? 0) + 1, // safe row numbering
+      cell: (_, rowIndex) => (showSkeleton ? <SkeletonCell /> : (rowIndex ?? 0) + 1),
+      width: '60px',
+      center: true,
+      sortable: true,
+    },
+    {
+      name: 'Status Name',
+      selector: row => row.name,
+      cell: row => showSkeleton ? <SkeletonCell /> : (
+        <div
+          style={{ backgroundColor: row.color, padding: '15px', borderRadius: '8px', paddingBottom: '20px' }}
+          className="d-flex flex-column"
+        >
+          <span className="fw-bold text-white fs-7">{row.name}</span>
         </div>
-      </div>
-    </>
+      ),
+      sortable: true,
+    },
+    {
+      name: 'Status Color',
+      selector: row => row.color,
+      cell: row => showSkeleton ? <SkeletonCell /> : <span className="badge badge-light fs-7">{row.color}</span>,
+      sortable: true,
+    },
+    {
+      name: 'Stage',
+      selector: row => row.stage,
+      cell: row => showSkeleton ? <SkeletonCell /> : row.stage,
+      sortable: true,
+    },
+    {
+      name: 'Actions',
+      cell: row => showSkeleton ? <SkeletonCell /> : (
+        <div className="dropdown">
+          <button className="btn btn-sm btn-light btn-active-light-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Actions <i className="bi bi-chevron-down ms-2"></i>
+          </button>
+          <ul className="dropdown-menu">
+            <li>
+              <button className="dropdown-item" onClick={() => onEditStatus(row)}>
+                <i className="bi bi-pencil me-2"></i>Edit
+              </button>
+            </li>
+            <li>
+              <button className="dropdown-item text-danger" onClick={() => onDeleteStatus(row.id)}>
+                <i className="bi bi-trash me-2"></i>Delete
+              </button>
+            </li>
+          </ul>
+        </div>
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+      width: '150px',
+      center: true,
+    },
+  ]
+
+  const customStyles = {
+    headCells: {
+      style: {
+        backgroundColor: isDark ? '#1a1a1a' : '#f8f9fa',
+        color: isDark ? '#ccc' : '#333',
+        fontWeight: 600,
+        fontSize: '14px',
+        borderBottom: isDark ? '2px solid #333' : '2px solid #dee2e6',
+        padding: '12px 15px',
+      },
+    },
+    cells: {
+      style: {
+        fontSize: '14px',
+        color: isDark ? '#ccc' : '#333',
+        backgroundColor: isDark ? '#1a1a1a' : '#f8f9fa',
+        padding: '12px 15px',
+        borderBottom: isDark ? '1px solid #333' : '1px solid #dee2e6',
+      },
+    },
+  }
+
+  return (
+    <DataTable
+      columns={columns}
+      data={showSkeleton ? skeletonRows : statuses}
+      customStyles={customStyles}
+      striped
+      highlightOnHover
+      pointerOnHover
+      responsive
+      noHeader
+    />
   )
 }
 

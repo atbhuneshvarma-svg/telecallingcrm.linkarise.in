@@ -1,9 +1,10 @@
 import React from 'react';
 import { Lead } from '../../../core/_models';
+import { Skeleton } from 'antd';
 
 interface ActionsColumnProps {
   lead: Lead;
-  loading: boolean;
+  loading?: boolean;
   deletingId: number | null;
   onViewClick: (lead: Lead) => void;
   onEditClick: (lead: Lead) => void;
@@ -12,12 +13,24 @@ interface ActionsColumnProps {
 
 export const ActionsColumn: React.FC<ActionsColumnProps> = ({
   lead,
-  loading,
+  loading = false,
   deletingId,
   onViewClick,
   onEditClick,
   onDeleteClick
 }) => {
+  if (loading) {
+    return (
+      <td className="pe-4 text-center">
+        <div className="d-flex justify-content-center gap-1">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <Skeleton.Button key={idx} size="small" active />
+          ))}
+        </div>
+      </td>
+    );
+  }
+
   return (
     <td className="pe-4 text-center">
       <div className="d-flex justify-content-center gap-1">

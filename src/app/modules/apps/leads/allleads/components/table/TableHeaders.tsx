@@ -22,11 +22,13 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
   displayLeads
 }) => {
   return (
-    <thead className="bg-light">
+    <thead className="bg-light h-0">
       <tr>
         {/* Sr.No */}
         {showRowNumbers && (
-          <th className="ps-4" style={{ width: '60px' }}>
+          <th className="ps-4" 
+          style={{ width: '60px' }}
+          >
             <span className="text-muted fw-semibold fs-7">Sr.No</span>
           </th>
         )}

@@ -38,16 +38,16 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
   };
 
   return (
-    <div className="card card-flush mb-6">
+    <div className="">
       <div className="card-body">
         {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h1 className="fw-bold text-gray-800 mb-2">Follow-up Leads</h1>
+            <h1 className="fw-bold text-gray-800">Follow-up Leads</h1>
           </div>
 
           <div className="d-flex gap-3"> 
-               <div className="d-flex gap-2 flex-wrap">
+            <div className="d-flex gap-2 flex-wrap m-2">
               <button
                 type="button"
                 className={`btn btn-sm ${
@@ -81,7 +81,7 @@ const FollowupFilters: React.FC<FollowupFiltersProps> = ({
 
             </div>
             <button
-              className="btn btn-light btn-active-light-primary"
+              className="btn btn-light btn-active-light-primary m-1"
               onClick={handleResetAll}
               disabled={loading}
             >

@@ -249,21 +249,13 @@ const UsersMaster = () => {
           {/* Users List Card */}
           <div className="card">
             <div className="card-body p-0">
-              {loading ? (
-                <div className="text-center py-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <p className="mt-3 text-muted">Loading users...</p>
-                </div>
-              ) : (
+             
                 <UsersList
                   users={displayedUsers}
                   onEdit={handleEditUser}
                   onDelete={handleDeleteUser}
                   loading={loading}
                 />
-              )}
             </div>
           </div>
 

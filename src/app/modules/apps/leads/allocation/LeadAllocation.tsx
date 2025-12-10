@@ -186,8 +186,8 @@ const LeadAllocation: React.FC = () => {
   }, [leads])
 
   return (
-    <div className="container-fluid py-4">
-      <div className="card shadow-sm mb-4">
+    <div className="container-fluid card">
+      <div className="mb-4">
         <div className="card-header bg-transparent py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div>

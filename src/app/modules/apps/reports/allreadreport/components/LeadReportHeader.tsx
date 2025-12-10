@@ -1,6 +1,5 @@
-// src/app/modules/apps/reports/allleadreport/components/LeadReportHeader.tsx
 import React, { useState } from 'react';
-import { Typography, Space, Button, Dropdown, Menu, message } from 'antd';
+import { Typography, Space, Button, Dropdown, message } from 'antd';
 import { 
   DownloadOutlined, 
   ReloadOutlined,
@@ -48,8 +47,6 @@ const LeadReportHeader: React.FC<LeadReportHeaderProps> = ({
           exportToPDF(leads, 'lead-report');
           message.success('PDF generated successfully!');
           break;
-        default:
-          break;
       }
     } catch (error) {
       message.error('Failed to export data');
@@ -59,30 +56,26 @@ const LeadReportHeader: React.FC<LeadReportHeaderProps> = ({
     }
   };
 
-  const exportMenu = (
-    <Menu
-      items={[
-        {
-          key: 'excel',
-          label: 'Export to Excel',
-          icon: <FileExcelOutlined />,
-          onClick: () => handleExport('excel'),
-        },
-        {
-          key: 'csv',
-          label: 'Export to CSV',
-          icon: <FileTextOutlined />,
-          onClick: () => handleExport('csv'),
-        },
-        {
-          key: 'pdf',
-          label: 'Export to PDF',
-          icon: <FilePdfOutlined />,
-          onClick: () => handleExport('pdf'),
-        },
-      ]}
-    />
-  );
+  const exportItems = [
+    {
+      key: 'excel',
+      label: 'Export to Excel',
+      icon: <FileExcelOutlined />,
+      onClick: () => handleExport('excel'),
+    },
+    {
+      key: 'csv',
+      label: 'Export to CSV',
+      icon: <FileTextOutlined />,
+      onClick: () => handleExport('csv'),
+    },
+    {
+      key: 'pdf',
+      label: 'Export to PDF',
+      icon: <FilePdfOutlined />,
+      onClick: () => handleExport('pdf'),
+    },
+  ];
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -95,9 +88,9 @@ const LeadReportHeader: React.FC<LeadReportHeaderProps> = ({
         >
           Refresh
         </Button>
-        
-        <Dropdown 
-          overlay={exportMenu} 
+
+        <Dropdown
+          menu={{ items: exportItems }}
           placement="bottomRight"
           disabled={leads.length === 0 || exporting}
         >

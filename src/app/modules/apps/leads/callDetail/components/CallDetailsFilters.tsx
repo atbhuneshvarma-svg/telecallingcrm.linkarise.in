@@ -11,7 +11,6 @@ import {
   Tag,
   Row,
   Col,
-  Input,
   Alert
 } from 'antd';
 import {
@@ -190,7 +189,7 @@ const CallDetailsFilters: React.FC<CallDetailsFiltersProps> = ({
 
   return (
     <Card
-      className="mb-6"
+      className="mb-6 rounded-0"
       size="small"
       title={
         <Space>

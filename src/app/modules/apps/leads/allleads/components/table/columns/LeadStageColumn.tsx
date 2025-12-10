@@ -1,15 +1,26 @@
 import React from 'react';
 import { Lead } from '../../../core/_models';
+import { Skeleton } from 'antd';
 
 interface LeadStageColumnProps {
   lead: Lead;
   getLeadStage?: (statusname: string) => string;
+  loading?: boolean;
 }
 
 export const LeadStageColumn: React.FC<LeadStageColumnProps> = ({ 
   lead, 
-  getLeadStage 
+  getLeadStage,
+  loading = false
 }) => {
+  if (loading) {
+    return (
+      <td className="min-w-120px text-center">
+        <Skeleton.Input style={{ width: 80 }} active size="small" />
+      </td>
+    );
+  }
+
   const stage = getLeadStage ? getLeadStage(lead.statusname || '') : 'N/A';
   
   const getStageColor = (stage: string) => {

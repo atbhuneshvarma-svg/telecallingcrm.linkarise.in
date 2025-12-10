@@ -9,10 +9,10 @@ import { FilterState } from './core/types';
 
 const LeadReportPage: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>({
-    campaign: 'All',
+    campaignmid: 'All',
     status: '',
-    user: '',
-    team: '',
+    usermid: '',
+    tmid: '',
     dateFrom: '',
     dateTo: '',
     page: 1,
@@ -37,7 +37,7 @@ const LeadReportPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 10 }}>
       <Card>
         {/* Pass leads data to LeadReportHeader */}
         <LeadReportHeader

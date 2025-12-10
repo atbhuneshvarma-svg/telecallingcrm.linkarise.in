@@ -40,14 +40,13 @@ const LeadsHeader: React.FC<LeadsHeaderProps> = ({
   }, [totalLeads, filteredCount, showStats])
 
   return (
-    <div className="card card-flush mb-6">
-      <div className="card-header border-0 pt-7">
+    <div className="">
+      <div className="card-header border-0">
         {/* Main Title Section */}
         <div className="card-title flex-column">
-          <h1 className="fw-bold text-gray-800 mb-5 py-2">Lead Management</h1>
+          <h1 className="fw-bold text-gray-800">Lead Management</h1>
           <div className="d-flex align-items-center gap-4 flex-wrap">
            
-
             {/* Statistics Badges */}
             {headerStats.showStats && (
               <div className="d-flex align-items-center gap-3">

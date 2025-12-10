@@ -54,12 +54,12 @@ export const FreshLeadFilters: React.FC<FreshLeadFiltersProps> = ({
   }, [leads]);
 
   return (
-    <div className="card card-flush mb-6">
+    <div className="">
       <div className="card-body">
         {/* Header Section */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h1 className="fw-bold text-gray-800 mb-2">Fresh Leads</h1>
+            <h1 className="fw-bold text-gray-800">Fresh Leads</h1>
           </div>
           <div className="d-flex align-items-center gap-3">
             <button

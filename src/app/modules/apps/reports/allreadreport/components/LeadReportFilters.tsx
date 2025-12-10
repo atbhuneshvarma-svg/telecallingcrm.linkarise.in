@@ -48,19 +48,70 @@ const LeadReportFilters: React.FC<LeadReportFiltersProps> = ({
   };
 
   const handleSelectChange = (field: keyof FilterState) => (value: string) => {
-    onFilterChange({ [field]: value });
+    let apiValue = '';
+    
+    if (value && value !== 'All' && value !== '') {
+      switch (field) {
+        case 'campaignmid':
+          const campaign = campaigns.find(c => c.campaignname === value);
+          apiValue = campaign?.campaignmid?.toString() || '';
+          break;
+        case 'tmid':
+          const team = teams.find(t => t.teamname === value);
+          apiValue = team?.tmid?.toString() || '';
+          break;
+        case 'usermid':
+          const user = users.find(u => u.username === value);
+          apiValue = user?.usermid?.toString() || '';
+          break;
+        case 'status':
+          apiValue = value;
+          break;
+        default:
+          apiValue = value;
+      }
+    }
+    
+    onFilterChange({ [field]: apiValue });
   };
 
   const handleReset = () => {
     onFilterChange({
-      campaign: 'All',
+      campaignmid: '',
       status: '',
-      user: '',
-      team: '',
+      usermid: '',
+      tmid: '',
       dateFrom: '',
       dateTo: '',
       page: 1,
     });
+  };
+
+  // Helper function to get display value from ID
+  const getDisplayValue = (field: keyof FilterState, idValue: string | undefined): string => {
+    if (!idValue || idValue === '') {
+      return field === 'campaignmid' ? '' : '';
+    }
+    
+    switch (field) {
+      case 'campaignmid':
+        const campaign = campaigns.find(c => c.campaignmid?.toString() === idValue);
+        return campaign?.campaignname || '';
+      case 'tmid':
+        const team = teams.find(t => t.tmid?.toString() === idValue);
+        return team?.teamname || '';
+      case 'usermid':
+        const user = users.find(u => u.usermid?.toString() === idValue);
+        return user?.username || '';
+      case 'status':
+        return idValue;
+      default:
+        return idValue;
+    }
+  };
+
+  const applyFilters = () => {
+    console.log('Applying filters:', filters);
   };
 
   return (
@@ -68,12 +119,12 @@ const LeadReportFilters: React.FC<LeadReportFiltersProps> = ({
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
           <Select
-            value={filters.campaign}
-            onChange={handleSelectChange('campaign')}
+            value={getDisplayValue('campaignmid', filters.campaignmid)}
+            onChange={handleSelectChange('campaignmid')}
             placeholder="All Campaigns"
             style={{ width: '100%' }}
           >
-            <Option value="All">All Campaigns</Option>
+            <Option value="">All Campaigns</Option>
             {campaigns.map(campaign => (
               <Option key={campaign.campaignmid} value={campaign.campaignname}>
                 {campaign.campaignname}
@@ -84,7 +135,7 @@ const LeadReportFilters: React.FC<LeadReportFiltersProps> = ({
 
         <Col xs={24} sm={12} md={6}>
           <Select
-            value={filters.status}
+            value={getDisplayValue('status', filters.status)}
             onChange={handleSelectChange('status')}
             placeholder="All Status"
             style={{ width: '100%' }}
@@ -110,8 +161,8 @@ const LeadReportFilters: React.FC<LeadReportFiltersProps> = ({
 
         <Col xs={24} sm={12} md={6}>
           <Select
-            value={filters.user}
-            onChange={handleSelectChange('user')}
+            value={getDisplayValue('usermid', filters.usermid)}
+            onChange={handleSelectChange('usermid')}
             placeholder="All Users"
             style={{ width: '100%' }}
           >
@@ -126,8 +177,8 @@ const LeadReportFilters: React.FC<LeadReportFiltersProps> = ({
 
         <Col xs={24} sm={12} md={6}>
           <Select
-            value={filters.team}
-            onChange={handleSelectChange('team')}
+            value={getDisplayValue('tmid', filters.tmid)}
+            onChange={handleSelectChange('tmid')}
             placeholder="All Teams"
             style={{ width: '100%' }}
           >
@@ -146,7 +197,7 @@ const LeadReportFilters: React.FC<LeadReportFiltersProps> = ({
             onChange={handleDateChange}
             value={
               filters.dateFrom && filters.dateTo
-                ? [dayjs(filters.dateFrom), dayjs(filters.dateTo)]
+                ? [dayjs(filters.dateFrom || ''), dayjs(filters.dateTo || '')]
                 : null
             }
           />
@@ -157,7 +208,7 @@ const LeadReportFilters: React.FC<LeadReportFiltersProps> = ({
             <Button
               type="primary"
               icon={<FilterOutlined />}
-              onClick={() => onFilterChange({})}
+              onClick={applyFilters}
             >
               Filter
             </Button>

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
-import {createContext, useContext, useEffect, useState} from 'react'
-import {ThemeModeComponent} from '../../../assets/ts/layout'
-import {toAbsoluteUrl} from '../../../helpers'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { ThemeModeComponent } from '../../../assets/ts/layout'
+import { toAbsoluteUrl } from '../../../helpers'
+import { ConfigProvider, theme as antdTheme } from 'antd'
 
 export type ThemeModeType = 'dark' | 'light' | 'system'
 export const themeModelSKey = 'kt_theme_mode_value'
@@ -60,22 +61,25 @@ const ThemeModeContext = createContext<ThemeModeContextType>({
 
 const useThemeMode = () => useContext(ThemeModeContext)
 
-const ThemeModeProvider = ({children}: {children: React.ReactNode}) => {
+const { defaultAlgorithm, darkAlgorithm } = antdTheme
+
+const ThemeModeProvider = ({ children }: { children: React.ReactNode }) => {
   const [mode, setMode] = useState<ThemeModeType>(defaultThemeMode.mode)
   const [menuMode, setMenuMode] = useState<ThemeModeType>(defaultThemeMode.menuMode)
 
   const updateMode = (_mode: ThemeModeType, saveInLocalStorage: boolean = true) => {
     setMode(_mode)
-    // themeModeSwitchHelper(updatedMode)
+    // Bootstrap / Metronic
     if (saveInLocalStorage && localStorage) {
       localStorage.setItem(themeModelSKey, _mode)
     }
 
-    if (saveInLocalStorage) {
-      const updatedMode = _mode === 'system' ? systemMode : _mode
-      document.documentElement.setAttribute('data-bs-theme', updatedMode)
-    }
+    const appliedMode = _mode === 'system' ? systemMode : _mode
+    document.documentElement.setAttribute('data-bs-theme', appliedMode)
     ThemeModeComponent.init()
+
+    // Call your existing helper to set background
+    themeModeSwitchHelper(_mode)
   }
 
   const updateMenuMode = (_menuMode: ThemeModeType, saveInLocalStorage: boolean = true) => {
@@ -91,11 +95,30 @@ const ThemeModeProvider = ({children}: {children: React.ReactNode}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // AntD theme algorithm
+  const antDAlgorithm =
+    mode === 'system'
+      ? systemMode === 'dark'
+        ? darkAlgorithm
+        : defaultAlgorithm
+      : mode === 'dark'
+      ? darkAlgorithm
+      : defaultAlgorithm
+
   return (
-    <ThemeModeContext.Provider value={{mode, menuMode, updateMode, updateMenuMode}}>
-      {children}
+    <ThemeModeContext.Provider value={{ mode, menuMode, updateMode, updateMenuMode }}>
+      <ConfigProvider
+        theme={{
+          algorithm: antDAlgorithm,
+          token: {
+            colorPrimary: mode === 'dark' ? '#1890ff' : '#096dd9',
+          },
+        }}
+      >
+        {children}
+      </ConfigProvider>
     </ThemeModeContext.Provider>
   )
 }
 
-export {ThemeModeProvider, useThemeMode, systemMode, themeModeSwitchHelper}
+export { ThemeModeProvider, useThemeMode, systemMode, themeModeSwitchHelper }

@@ -41,7 +41,7 @@ export const FreshLeadsPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className='card'>
       <FreshLeadFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}

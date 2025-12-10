@@ -109,35 +109,6 @@ const LeadCallDetails: React.FC = () => {
     }
   };
 
-  // Test the exact working URL
-  const testWorkingUrl = async () => {
-    setLoading(true);
-    setApiStatus('Testing API connection...');
-    try {
-      const workingUrl = 'https://crmtelecalling.linkarise.in/api/calldetails?daterange=26-11-2025+-+26-11-2025&campaignid=49&usermid=69&status=';
-
-      console.log('🔗 Testing working URL:', workingUrl);
-
-      const response = await fetch(workingUrl);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ API test successful:', data);
-        setApiStatus('API is working!');
-        return data;
-      } else {
-        console.error('❌ API test failed:', response.status, response.statusText);
-        setApiStatus(`API failed: ${response.status} ${response.statusText}`);
-        return null;
-      }
-    } catch (error: any) {
-      console.error('❌ API test error:', error);
-      setApiStatus(`API error: ${error.message}`);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // ✅ Export ALL filtered data
   const handleExportAllData = async () => {
@@ -211,20 +182,7 @@ const LeadCallDetails: React.FC = () => {
     }
   };
 
-  // Initialize on component mount
-  useEffect(() => {
-    const initializeData = async () => {
-      // First test with the exact working URL
-      const workingData = await testWorkingUrl();
 
-      if (workingData) {
-        // If working URL succeeds, load data with current filters
-        await fetchCallDetails(1);
-      }
-    };
-
-    initializeData();
-  }, []);
 
   // Handle entries per page change
   const handleEntriesPerPageChange = (value: number) => {

@@ -80,8 +80,8 @@ const SourceOfInquiryMaster: React.FC = () => {
       setCurrentSourceOfInquiry({ id: 0, name: '' });
       setShowModal(false);
     } catch (err) {
-      const errorMessage = modalMode === 'add' 
-        ? 'Failed to create source of inquiry. Please try again.' 
+      const errorMessage = modalMode === 'add'
+        ? 'Failed to create source of inquiry. Please try again.'
         : 'Failed to update source of inquiry. Please try again.';
       setError(errorMessage);
       console.error('Error saving source of inquiry:', err);
@@ -96,7 +96,7 @@ const SourceOfInquiryMaster: React.FC = () => {
 
   const handleDeleteSourceOfInquiry = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this source of inquiry?')) return;
-    
+
     try {
       setError(null);
       await sourceOfInquiryApi.deleteSourceOfInquiry(id);
@@ -134,25 +134,6 @@ const SourceOfInquiryMaster: React.FC = () => {
   const totalCount = pagination.total_records;
   const hasSearchFilter = searchTerm.trim() !== '';
 
-  if (loading) {
-    return (
-      <div className="container-fluid">
-        <div className="card">
-          <div className="card-body">
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
-              <div className="text-center">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-                <p className="mt-2 text-muted">Loading source of inquiries...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container-fluid">
       {/* Card Container */}
@@ -162,7 +143,7 @@ const SourceOfInquiryMaster: React.FC = () => {
           <div className="card-title">
             <h3 className="fw-bold m-0">Source of Inquiries</h3>
           </div>
-          
+
           <div className="card-toolbar">
             <div className="d-flex align-items-center gap-4">
               {/* Search Input */}
@@ -212,15 +193,15 @@ const SourceOfInquiryMaster: React.FC = () => {
               <div className="d-flex align-items-center">
                 <i className="bi bi-exclamation-triangle-fill me-2"></i>
                 <div className="flex-grow-1">{error}</div>
-                <button 
-                  type="button" 
-                  className="btn-close" 
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={() => setError(null)}
                   aria-label="Close"
                 ></button>
               </div>
               <div className="mt-2">
-                <button 
+                <button
                   className="btn btn-sm btn-outline-danger"
                   onClick={handleRetry}
                 >
@@ -236,9 +217,13 @@ const SourceOfInquiryMaster: React.FC = () => {
         <div className="card-body p-0">
           <SourceOfInquiryList
             sourceOfInquiries={filteredSourceOfInquiries}
+            loading={loading}
+            currentPage={currentPage}
+            perPage={entriesPerPage}
             onEditSourceOfInquiry={handleEditSourceOfInquiry}
             onDeleteSourceOfInquiry={handleDeleteSourceOfInquiry}
           />
+
         </div>
 
         {/* Card Footer */}
@@ -253,7 +238,7 @@ const SourceOfInquiryMaster: React.FC = () => {
               `Showing ${showingCount} of ${totalCount} entries`
             )}
           </div>
-          
+
           {/* Pagination - Only show if there are multiple pages */}
           {pagination.total_pages > 1 && (
             <nav>
@@ -297,11 +282,6 @@ const SourceOfInquiryMaster: React.FC = () => {
               </ul>
             </nav>
           )}
-
-          {/* Copyright */}
-          <div className="text-gray-600">
-            2025 © Arth Technology
-          </div>
         </div>
       </div>
 

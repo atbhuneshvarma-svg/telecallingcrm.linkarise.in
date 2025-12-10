@@ -1,26 +1,34 @@
 import React from 'react';
 import { Lead } from '../../../core/_models';
+import { Skeleton } from 'antd';
 
 interface AddedOnColumnProps {
   lead: Lead;
+  loading?: boolean;
 }
 
 export const AddedOnColumn: React.FC<AddedOnColumnProps> = ({ 
-  lead 
+  lead,
+  loading = false
 }) => {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
-    
-    // Parse DD-MM-YYYY format
     const [day, month, year] = dateString.split('-');
     const date = new Date(`${year}-${month}-${day}`);
-    
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
+
+  if (loading) {
+    return (
+      <td className="min-w-120px">
+        <Skeleton.Input style={{ width: '80px' }} active size="small" />
+      </td>
+    );
+  }
 
   return (
     <td className="min-w-120px">

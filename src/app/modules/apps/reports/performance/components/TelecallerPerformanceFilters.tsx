@@ -9,8 +9,7 @@ import {
   Input,
   Space,
   Row,
-  Col,
-  Typography
+  Col
 } from 'antd';
 import {
   CalendarOutlined,
@@ -25,7 +24,6 @@ import { useLeads } from '../../../leads/allleads/core/LeadsContext';
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { Search } = Input;
-const { Title } = Typography;
 
 interface TelecallerPerformanceFiltersProps {
   filters: TelecallerPerformanceFiltersType;
@@ -45,10 +43,8 @@ export const TelecallerPerformanceFilters: React.FC<TelecallerPerformanceFilters
   onRefresh,
   isLoading
 }) => {
-  // Access dropdowns from leads context if needed
   const { dropdowns } = useLeads();
   const useroptions = dropdowns.users || [];
-
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Set default current date if no date is selected
@@ -110,6 +106,57 @@ export const TelecallerPerformanceFilters: React.FC<TelecallerPerformanceFilters
     (filters.telecaller_id !== undefined && filters.telecaller_id !== null) ||
     (filters.search && filters.search.trim() !== '');
 
+  const dateRangeContent = (
+    <div style={{ width: 260, padding: 8 }}>
+      <RangePicker
+        size="small"
+        style={{ width: '100%', fontSize: '12px' }}
+        onChange={handleDateRangeChange}
+        value={
+          filters.date_from && filters.date_to
+            ? [
+              filters.date_from ? dayjs(filters.date_from) : null,
+              filters.date_to ? dayjs(filters.date_to) : null
+            ]
+            : null
+        }
+        format="DD-MM-YYYY"
+        popupStyle={{ fontSize: '12px' }}
+        suffixIcon={<CalendarOutlined style={{ fontSize: '12px' }} />}
+      />
+
+      <div style={{ marginTop: 12 }}>
+        <Space wrap size={[4, 4]}>
+          <Button
+            size="small"
+            onClick={() => handleQuickDateRange(0)}
+          >
+            Today
+          </Button>
+          <Button
+            size="small"
+            onClick={() => handleQuickDateRange(7)}
+          >
+            7 Days
+          </Button>
+          <Button
+            size="small"
+            onClick={() => handleQuickDateRange(30)}
+          >
+            30 Days
+          </Button>
+          <Button
+            size="small"
+            type="primary"
+            onClick={() => setShowDatePicker(false)}
+          >
+            Apply
+          </Button>
+        </Space>
+      </div>
+    </div>
+  );
+
   return (
     <Card
       title={
@@ -150,80 +197,14 @@ export const TelecallerPerformanceFilters: React.FC<TelecallerPerformanceFilters
       style={{ marginBottom: 16 }}
     >
       <Row gutter={[16, 16]}>
+        {/* Date Range Filter */}
         <Col xs={24} md={8}>
           <div style={{ marginBottom: 8 }}>
             <strong>Date Range</strong>
           </div>
           <Space.Compact style={{ width: '100%' }}>
-            <Button
-              icon={<CalendarOutlined />}
-              onClick={() => setShowDatePicker(!showDatePicker)}
-              style={{ width: '100%', textAlign: 'left' }}
-            >
-              {getDisplayDateRange()}
-            </Button>
-            {!isDefaultDate() && (
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={clearDateFilter}
-                title="Reset to today"
-              />
-            )}
-          </Space.Compact>
-
-          <Col xs={24} md={8}>
-            <div style={{ marginBottom: 8 }}>
-              <strong>Date Range</strong>
-            </div>
             <Popover
-              content={
-                <div style={{ width: 280, padding: 8 }}>
-                  <RangePicker
-                    style={{ width: '100%' }}
-                    onChange={handleDateRangeChange}
-                    value={
-                      filters.date_from && filters.date_to
-                        ? [
-                          filters.date_from ? dayjs(filters.date_from) : null,
-                          filters.date_to ? dayjs(filters.date_to) : null
-                        ]
-                        : null
-                    }
-                    format="DD-MM-YYYY"
-                    size="small"
-                  />
-
-                  <div style={{ marginTop: 12 }}>
-                    <Space wrap size={[4, 4]}>
-                      <Button
-                        size="small"
-                        onClick={() => handleQuickDateRange(0)}
-                      >
-                        Today
-                      </Button>
-                      <Button
-                        size="small"
-                        onClick={() => handleQuickDateRange(7)}
-                      >
-                        7 Days
-                      </Button>
-                      <Button
-                        size="small"
-                        onClick={() => handleQuickDateRange(30)}
-                      >
-                        30 Days
-                      </Button>
-                      <Button
-                        size="small"
-                        type="primary"
-                        onClick={() => setShowDatePicker(false)}
-                      >
-                        Apply
-                      </Button>
-                    </Space>
-                  </div>
-                </div>
-              }
+              content={dateRangeContent}
               title="Select Date Range"
               trigger="click"
               open={showDatePicker}
@@ -237,7 +218,14 @@ export const TelecallerPerformanceFilters: React.FC<TelecallerPerformanceFilters
                 {getDisplayDateRange()}
               </Button>
             </Popover>
-          </Col>
+            {!isDefaultDate() && (
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={clearDateFilter}
+                title="Reset to today"
+              />
+            )}
+          </Space.Compact>
         </Col>
 
         {/* User Filter */}

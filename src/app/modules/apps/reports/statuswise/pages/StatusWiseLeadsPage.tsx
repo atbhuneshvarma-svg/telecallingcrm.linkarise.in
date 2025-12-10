@@ -1,5 +1,6 @@
 // src/app/modules/apps/leads/statuswise/pages/StatusWiseLeadsPage.tsx
 import React, { useState, useEffect } from 'react'
+import { useThemeMode } from '../../../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
 import { useStatusWiseLeads } from '../hooks/useStatusWiseLeads'
 import StatusFilters from '../components/StatusFilters'
 import StatusLeadsTable from '../components/StatusLeadsTable'
@@ -8,6 +9,7 @@ import TableSummary from '../components/TableSummary'
 import { Filters, FilterOptions } from '../core/_models'
 
 const StatusWiseLeadsPage = () => {
+  const { mode } = useThemeMode() // Get current theme mode
   const [filters, setFilters] = useState<Filters>({
     leadmids: [14401, 14406],
     page: 1,
@@ -42,122 +44,106 @@ const StatusWiseLeadsPage = () => {
     }
   }, [leads])
 
-  const handleFilterChange = (newFilters: Filters) => {
-    setFilters(newFilters)
+  const handleFilterChange = (newFilters: Filters) => setFilters(newFilters)
+  const handleDateChange = (dates: [Date, Date]) => { }
+  const handlePageChange = (page: number) => setFilters(prev => ({ ...prev, page }))
+  const handleRowsPerPageChange = (perPage: number) => setFilters(prev => ({ ...prev, per_page: perPage, page: 1 }))
+  const handleResetFilters = () => setFilters({
+    leadmids: [14401, 14406],
+    page: 1,
+    per_page: 10,
+    date_from: '2025-12-01',
+    date_to: '2025-12-01',
+    campaign: '',
+    telecaller: '',
+    statusname: '',
+  })
+
+  const handleExportExcel = () => console.log('Export to Excel')
+  const handleExportPDF = () => console.log('Export to PDF')
+
+  // Dynamic background and text color based on theme
+  const containerStyle = {
+    padding: '20px',
+    minHeight: '100vh',
+    background: mode === 'dark' ? '#141414' : '#f8f9fa',
+    color: mode === 'dark' ? '#fff' : '#000',
   }
 
-  const handleDateChange = (dates: [Date, Date]) => {
-    // Handle date change if needed
+  const cardStyle = {
+    borderRadius: '4px',
+    background: mode === 'dark' ? '#1f1f1f' : '#fff',
   }
 
-  const handlePageChange = (page: number) => {
-    setFilters(prev => ({ ...prev, page }))
+  const cardHeaderStyle = {
+    background: mode === 'dark' ? '#1a1a1a' : '#fff',
+    borderBottom: '1px solid #dee2e6',
+    padding: '15px 20px',
   }
 
-  const handleRowsPerPageChange = (perPage: number) => {
-    setFilters(prev => ({ ...prev, per_page: perPage, page: 1 }))
+  const cardFooterStyle: React.CSSProperties = {
+    background: mode === 'dark' ? '#1a1a1a' : '#fff',
+    borderTop: '1px solid #dee2e6',
+    padding: '15px 20px',
+    textAlign: 'center', // now TypeScript is happy
+    color: mode === 'dark' ? '#ccc' : '#666',
   }
 
-  const handleResetFilters = () => {
-    setFilters({
-      leadmids: [14401, 14406],
-      page: 1,
-      per_page: 10,
-      date_from: '2025-12-01',
-      date_to: '2025-12-01',
-      campaign: '',
-      telecaller: '',
-      statusname: '',
-    })
-  }
 
-  const handleExportExcel = () => {
-    // Export to Excel logic
-    console.log('Export to Excel')
-  }
+ return (
+  <div className="container-fluid " style={containerStyle}>
+    <div className="card" style={cardStyle}>
+      <div className="card-header" style={cardHeaderStyle}>
+        <h3 className="card-title mb-0" style={{ fontSize: 18, fontWeight: 600 }}>
+          Status Wise Lead
+        </h3>
+      </div>
 
-  const handleExportPDF = () => {
-    // Export to PDF logic
-    console.log('Export to PDF')
-  }
+      <div className="card-body" style={{ padding: 20 }}>
+        <StatusFilters
+          filters={filters}
+          filterOptions={filterOptions}
+          dateRange={[new Date(filters.date_from), new Date(filters.date_to)]}
+          onFilterChange={handleFilterChange}
+          onDateChange={handleDateChange}
+          onApplyFilters={refetch}
+          onResetFilters={handleResetFilters}
+        />
 
-  return (
-    <div className="container-fluid" style={{ padding: '20px', background: '#f8f9fa', minHeight: '100vh' }}>
-      <div className="card" style={{ border: '1px solid #dee2e6', borderRadius: '4px' }}>
-        <div className="card-header" style={{
-          background: '#fff',
-          borderBottom: '1px solid #dee2e6',
-          padding: '15px 20px'
-        }}>
-          <h3 className="card-title mb-0" style={{
-            fontSize: '18px',
-            fontWeight: '600',
-            color: '#333'
-          }}>
-            Status Wise Lead
-          </h3>
-        </div>
+        <StatusLeadsTable
+          leads={leads}
+          isLoading={isLoading}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
 
-        <div className="card-body" style={{ padding: '20px' }}>
-          {/* Filters */}
-          <StatusFilters
-            filters={filters}
-            filterOptions={filterOptions}
-            dateRange={[new Date(filters.date_from), new Date(filters.date_to)]}
-            onFilterChange={handleFilterChange}
-            onDateChange={handleDateChange}
-            onApplyFilters={refetch}
-            onResetFilters={handleResetFilters}
-          />
+        <TableSummary
+          from={pagination.from}
+          to={pagination.to}
+          total={pagination.total}
+          currentPage={pagination.current_page}
+          totalPages={Math.ceil(pagination.total / pagination.per_page)}
+        />
 
-          {/* Data Table */}
-          <StatusLeadsTable
-            leads={leads}
-            isLoading={isLoading}
-            pagination={pagination}
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-          />
-
-          {/* Table Summary */}
-          <TableSummary
-            from={pagination.from}
-            to={pagination.to}
-            total={pagination.total}
-            currentPage={pagination.current_page}
-            totalPages={Math.ceil(pagination.total / pagination.per_page)}
-          />
-
-          {/* Export Buttons */}
-          <ExportButtons
-            onExportExcel={handleExportExcel}
-            onExportPDF={handleExportPDF}
-            dataCount={leads.length}
-            leads={leads}
-            filters={{
-              date_from: filters.date_from,
-              date_to: filters.date_to,
-              campaign: filters.campaign,
-              telecaller: filters.telecaller,
-              statusname: filters.statusname
-            }}
-          />
-        </div>
-
-        {/* Footer */}
-        <div className="card-footer" style={{
-          background: '#fff',
-          borderTop: '1px solid #dee2e6',
-          padding: '15px 20px',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '14px', color: '#666' }}>
-            © 2025® Arth Technology
-          </div>
-        </div>
+        <ExportButtons
+          onExportExcel={handleExportExcel}
+          onExportPDF={handleExportPDF}
+          dataCount={leads.length}
+          leads={leads}
+          filters={{
+            date_from: filters.date_from,
+            date_to: filters.date_to,
+            campaign: filters.campaign,
+            telecaller: filters.telecaller,
+            statusname: filters.statusname,
+          }}
+        />
       </div>
     </div>
-  )
+  </div>
+)
+
 }
 
 export default StatusWiseLeadsPage

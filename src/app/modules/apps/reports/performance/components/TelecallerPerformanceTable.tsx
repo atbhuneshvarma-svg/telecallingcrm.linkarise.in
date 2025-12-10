@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Table, Card, Badge, Form, InputGroup } from 'react-bootstrap'
 import { TelecallerPerformance } from '../core/_models'
 
@@ -19,17 +19,34 @@ export const TelecallerPerformanceTable: React.FC<TelecallerPerformanceTableProp
   searchTerm,
   onSearchChange
 }) => {
-  if (isLoading) return null
+  const [showSkeleton, setShowSkeleton] = useState(false)
 
-  // Calculate starting index for serial numbers
+  useEffect(() => {
+    if (isLoading) setShowSkeleton(true)
+    else {
+      const timeout = setTimeout(() => setShowSkeleton(false), 1000)
+      return () => clearTimeout(timeout)
+    }
+  }, [isLoading])
+
+  // Skeleton rows
+  const skeletonRows: TelecallerPerformance[] = Array.from({ length: perPage }).map((_, index) => ({
+    sr_no: index,
+    telecaller: '',
+    date: '',
+    first_call: '',
+    last_call: '',
+    dialed: 0,
+    answered: 0,
+    interested: 0,
+    confirmed: 0,
+    talk_time: ''
+  }))
+
   const startIndex = ((currentPage - 1) * perPage) + 1
 
-  // Helper function to format numbers with commas
-  const formatNumber = (num: number) => {
-    return num.toLocaleString()
-  }
+  const formatNumber = (num: number) => num.toLocaleString()
 
-  // Helper function to determine badge color based on performance
   const getPerformanceBadge = (answered: number, dialed: number) => {
     if (dialed === 0) return 'secondary'
     const rate = (answered / dialed) * 100
@@ -38,18 +55,23 @@ export const TelecallerPerformanceTable: React.FC<TelecallerPerformanceTableProp
     return 'danger'
   }
 
-  // Filter data based on search term
-  const filteredData = performanceData.filter(item =>
+  // Filtered data
+  const filteredData = (showSkeleton ? skeletonRows : performanceData).filter(item =>
     item.telecaller.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  // Skeleton Cell
+  const SkeletonCell = () => (
+    <div className="placeholder-wave w-100">
+      <span style={{ height: '20px', display: 'block', borderRadius: '4px' }} className="placeholder col-12"></span>
+    </div>
   )
 
   return (
     <Card>
-      <Card.Header>
-        <div className="d-flex justify-content-between align-items-center">
-         <span className='text-info '>Performance Data</span> 
-        </div>
-        <div className="d-flex justify-content-between align-items-center w-25">
+      <Card.Header className="d-flex justify-content-between align-items-center">
+        <span className="text-info">Performance Data</span>
+        <div className="w-25">
           <InputGroup size="sm">
             <Form.Control
               type="text"
@@ -63,6 +85,7 @@ export const TelecallerPerformanceTable: React.FC<TelecallerPerformanceTableProp
           </InputGroup>
         </div>
       </Card.Header>
+
       <Card.Body className="p-0">
         <div className="table-responsive">
           <Table striped hover className="mb-0 align-middle table-bordered">
@@ -83,45 +106,36 @@ export const TelecallerPerformanceTable: React.FC<TelecallerPerformanceTableProp
             </thead>
             <tbody>
               {filteredData.map((item, index) => {
+                if (showSkeleton) {
+                  return (
+                    <tr key={index}>
+                      {Array.from({ length: 11 }).map((_, i) => (
+                        <td key={i}><SkeletonCell /></td>
+                      ))}
+                    </tr>
+                  )
+                }
+
                 const answerRate = item.dialed > 0 ? ((item.answered / item.dialed) * 100) : 0
-                const conversionRate = item.answered > 0 ? ((item.interested / item.answered) * 100) : 0
 
                 return (
-                  <tr key={item.sr_no} className="border-bottom">
+                  <tr key={item.sr_no}>
                     <td className="ps-4 fw-semibold">{startIndex + index}</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <div className="symbol symbol-35px symbol-circle me-3">
-                          <span className="symbol-label bg-light-primary text-primary fw-bold">
-                            {item.telecaller.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="fw-bold text-gray-800">{item.telecaller}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="text-gray-600">{item.date}</span>
-                    </td>
+                    <td>{item.telecaller || <SkeletonCell />}</td>
+                    <td>{item.date || <SkeletonCell />}</td>
                     <td>
                       <span className={`badge badge-light-${item.first_call === '-' ? 'danger' : 'success'} fs-8`}>
-                        {item.first_call}
+                        {item.first_call || <SkeletonCell />}
                       </span>
                     </td>
                     <td>
                       <span className={`badge badge-light-${item.last_call === '-' ? 'danger' : 'success'} fs-8`}>
-                        {item.last_call}
+                        {item.last_call || <SkeletonCell />}
                       </span>
                     </td>
+                    <td className="text-center">{formatNumber(item.dialed)}</td>
                     <td className="text-center">
-                      <span className="fw-bold text-gray-800">{formatNumber(item.dialed)}</span>
-                    </td>
-                    <td className="text-center">
-                      <Badge
-                        bg={getPerformanceBadge(item.answered, item.dialed)}
-                        className="fs-8"
-                      >
+                      <Badge bg={getPerformanceBadge(item.answered, item.dialed)} className="fs-8">
                         {formatNumber(item.answered)}
                       </Badge>
                     </td>
@@ -138,8 +152,7 @@ export const TelecallerPerformanceTable: React.FC<TelecallerPerformanceTableProp
                     </td>
                     <td className="text-center">
                       <span className={`fw-bold ${answerRate >= 50 ? 'text-success' :
-                          answerRate >= 25 ? 'text-warning' : 'text-danger'
-                        }`}>
+                        answerRate >= 25 ? 'text-warning' : 'text-danger'}`}>
                         {answerRate.toFixed(1)}%
                       </span>
                     </td>
@@ -150,19 +163,12 @@ export const TelecallerPerformanceTable: React.FC<TelecallerPerformanceTableProp
           </Table>
         </div>
 
-        {/* Empty State */}
-        {filteredData.length === 0 && (
+        {filteredData.length === 0 && !showSkeleton && (
           <div className="text-center py-10">
             <i className="bi bi-table fs-2x text-gray-400 mb-3"></i>
             <h5 className="text-gray-600">
               {searchTerm ? 'No matching telecallers found' : 'No performance data available'}
             </h5>
-            <p className="text-muted">
-              {searchTerm
-                ? 'No telecaller performance records match your search criteria.'
-                : 'No telecaller performance records found for the selected criteria.'
-              }
-            </p>
           </div>
         )}
       </Card.Body>

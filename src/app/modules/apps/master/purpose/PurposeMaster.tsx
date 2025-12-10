@@ -36,7 +36,6 @@ const PurposeMaster: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load purposes from API when page or entries per page changes
   useEffect(() => {
     loadPurposes();
   }, [currentPage, entriesPerPage]);
@@ -45,10 +44,9 @@ const PurposeMaster: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Use server-side pagination - the API already supports it!
+
       const response = await purposeApi.getPurposesPaginated(currentPage, entriesPerPage);
-      
+
       setPurposes(response.data);
       setPagination({
         current_page: response.current_page,
@@ -56,10 +54,9 @@ const PurposeMaster: React.FC = () => {
         total_records: response.total_records,
         total_pages: response.total_pages
       });
-      
     } catch (err) {
       setError('Failed to load purposes. Please try again.');
-      console.error('Error loading purposes:', err);
+      console.error(err);
       setPurposes([]);
       setPagination({
         current_page: 1,
@@ -72,11 +69,9 @@ const PurposeMaster: React.FC = () => {
     }
   };
 
-  // Handlers
   const handleEntriesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newPerPage = Number(e.target.value);
-    setEntriesPerPage(newPerPage);
-    setCurrentPage(1); // Reset to first page when changing entries per page
+    setEntriesPerPage(Number(e.target.value));
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
@@ -89,18 +84,12 @@ const PurposeMaster: React.FC = () => {
     try {
       setError(null);
       if (modalMode === 'add') {
-        await purposeApi.createPurpose({
-          name: currentPurpose.name
-        });
+        await purposeApi.createPurpose({ name: currentPurpose.name });
       } else {
-        await purposeApi.updatePurpose(currentPurpose.id, {
-          name: currentPurpose.name
-        });
+        await purposeApi.updatePurpose(currentPurpose.id, { name: currentPurpose.name });
       }
-
       setCurrentPurpose({ id: 0, name: '' });
       setShowModal(false);
-      // Refresh the list - go to first page for new items
       setCurrentPage(1);
       await loadPurposes();
     } catch (err) {
@@ -108,7 +97,7 @@ const PurposeMaster: React.FC = () => {
         ? 'Failed to create purpose. Please try again.'
         : 'Failed to update purpose. Please try again.';
       setError(errorMessage);
-      console.error('Error saving purpose:', err);
+      console.error(err);
     }
   };
 
@@ -124,11 +113,10 @@ const PurposeMaster: React.FC = () => {
     try {
       setError(null);
       await purposeApi.deletePurpose(id);
-      // Refresh to update the list
       await loadPurposes();
     } catch (err) {
       setError('Failed to delete purpose. Please try again.');
-      console.error('Error deleting purpose:', err);
+      console.error(err);
     }
   };
 
@@ -148,200 +136,119 @@ const PurposeMaster: React.FC = () => {
     loadPurposes();
   };
 
-  // Client-side filtering for search (only filters current page)
-  const filteredPurposes = purposes.filter((purpose) =>
-    purpose.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPurposes = purposes.filter((p) =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Pagination state:', {
-      currentPage,
-      entriesPerPage,
-      totalPurposes: purposes.length,
-      totalFiltered: filteredPurposes.length,
-      totalRecords: pagination.total_records,
-      totalPages: pagination.total_pages,
-      displayedCount: filteredPurposes.length
-    });
-  }, [currentPage, entriesPerPage, purposes.length, filteredPurposes.length, pagination]);
-
-  if (loading) {
-    return (
-      <div className="container-fluid py-4">
-        <div className="card shadow-sm">
-          <div className="card-body">
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
-              <div className="text-center">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-                <p className="mt-3 text-muted">Loading purposes...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container-fluid py-4">
       {/* Main Card */}
       <div className="card shadow-sm">
-        {/* Card Header - Fixed Layout */}
-        <div className="card-header bg-transparent py-3">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h1 className="h4 fw-bold mb-1">Purpose Master</h1>
-              
-            </div>
-            
-          </div>
-          <button
-              onClick={handleAddNew}
-              className="btn btn-primary d-flex align-items-center gap-2"
-            >
-              <i className="bi bi-plus-circle"></i>
-              Add Purpose
-            </button>
+        {/* Card Header */}
+        <div className="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+          <h1 className="h4 fw-bold mb-0">Purpose Master</h1>
+          <button className="btn btn-primary d-flex align-items-center gap-2" onClick={handleAddNew}>
+            <i className="bi bi-plus-circle"></i> Add Purpose
+          </button>
         </div>
 
         {/* Card Body */}
         <div className="card-body">
           {/* Error Alert */}
           {error && (
-            <div className="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <div className="alert alert-danger alert-dismissible fade show mb-4">
               <div className="d-flex align-items-center">
                 <i className="bi bi-exclamation-triangle-fill me-2"></i>
                 <div className="flex-grow-1">{error}</div>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setError(null)}
-                  aria-label="Close"
-                ></button>
+                <button type="button" className="btn-close" onClick={() => setError(null)}></button>
               </div>
               <div className="mt-2">
-                <button
-                  className="btn btn-sm btn-outline-danger"
-                  onClick={handleRetry}
-                >
-                  <i className="bi bi-arrow-clockwise me-1"></i>
-                  Retry
+                <button className="btn btn-sm btn-outline-danger" onClick={handleRetry}>
+                  <i className="bi bi-arrow-clockwise me-1"></i> Retry
                 </button>
               </div>
             </div>
           )}
 
-          {/* Controls Card */}
+          {/* Controls */}
           <div className="card card-flat mb-4">
             <div className="card-body py-3">
               <div className="row align-items-center">
-                <div className="col-md-6">
-                  <div className="d-flex align-items-center gap-2">
-                    <label className="form-label mb-0 text-muted">Show</label>
-                    <select
-                      value={entriesPerPage}
-                      onChange={handleEntriesChange}
-                      className="form-select form-select-sm w-auto"
-                    >
-                      <option value="5">5</option>
-                      <option value="10">10</option>
-                      <option value="25">25</option>
-                      <option value="50">50</option>
-                    </select>
-                    <label className="form-label mb-0 text-muted">entries</label>
-                  </div>
+                <div className="col-md-6 d-flex align-items-center gap-2">
+                  <label className="form-label mb-0 text-muted">Show</label>
+                  <select
+                    value={entriesPerPage}
+                    onChange={handleEntriesChange}
+                    className="form-select form-select-sm w-auto"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <label className="form-label mb-0 text-muted">entries</label>
                 </div>
-                <div className="col-md-6">
-                  <div className="d-flex align-items-center gap-2 justify-content-md-end">
-                    <label className="form-label mb-0 text-muted">Search:</label>
-                    <div className="position-relative">
-                      <input
-                        type="text"
-                        placeholder="Search purposes..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="form-control form-control-sm"
-                      />
-                      <i className="bi bi-search position-absolute top-50 end-0 translate-middle-y me-2 text-muted"></i>
-                    </div>
+                <div className="col-md-6 d-flex align-items-center gap-2 justify-content-md-end">
+                  <label className="form-label mb-0 text-muted">Search:</label>
+                  <div className="position-relative">
+                    <input
+                      type="text"
+                      placeholder="Search purposes..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="form-control form-control-sm"
+                    />
+                    <i className="bi bi-search position-absolute top-50 end-0 translate-middle-y me-2 text-muted"></i>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Purpose List Card */}
+          {/* Purpose List Table with Skeleton */}
           <div className="card">
             <div className="card-body p-0">
               <PurposeList
                 purposes={filteredPurposes}
                 onEdit={handleEditPurpose}
                 onDelete={handleDeletePurpose}
-                loading={loading}
+                loading={loading} // <-- skeleton shows when true
               />
             </div>
           </div>
 
-          {/* Footer Card */}
+          {/* Pagination */}
           <div className="card card-flat mt-4">
-            <div className="card-body py-3">
-              <div className="d-flex justify-content-between align-items-center">
-                <div className="text-muted small">
-                  Showing {filteredPurposes.length} of {pagination.total_records} entries
-                  {searchTerm && filteredPurposes.length < purposes.length && 
-                    ` (filtered from ${purposes.length} entries on this page)`
-                  }
-                </div>
-
-                {/* Pagination Controls - Use server-side pagination info */}
-                {pagination.total_pages > 1 && (
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="text-muted small">
-                      Page {pagination.current_page} of {pagination.total_pages}
-                    </div>
-                    <nav>
-                      <ul className="pagination pagination-sm mb-0">
-                        <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(pagination.current_page - 1)}
-                            disabled={pagination.current_page === 1}
-                          >
-                            Previous
-                          </button>
-                        </li>
-
-                        {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map(page => (
-                          <li
-                            key={page}
-                            className={`page-item ${pagination.current_page === page ? 'active' : ''}`}
-                          >
-                            <button
-                              className="page-link"
-                              onClick={() => handlePageChange(page)}
-                            >
-                              {page}
-                            </button>
-                          </li>
-                        ))}
-
-                        <li className={`page-item ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}`}>
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(pagination.current_page + 1)}
-                            disabled={pagination.current_page === pagination.total_pages}
-                          >
-                            Next
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                  </div>
-                )}
+            <div className="card-body py-3 d-flex justify-content-between align-items-center">
+              <div className="text-muted small">
+                Showing {filteredPurposes.length} of {pagination.total_records} entries
+                {searchTerm && filteredPurposes.length < purposes.length &&
+                  ` (filtered from ${purposes.length} entries on this page)`
+                }
               </div>
+
+              {pagination.total_pages > 1 && (
+                <div className="d-flex align-items-center gap-3">
+                  <div className="text-muted small">
+                    Page {pagination.current_page} of {pagination.total_pages}
+                  </div>
+                  <nav>
+                    <ul className="pagination pagination-sm mb-0">
+                      <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
+                        <button className="page-link" onClick={() => handlePageChange(pagination.current_page - 1)}>Previous</button>
+                      </li>
+                      {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map(page => (
+                        <li key={page} className={`page-item ${pagination.current_page === page ? 'active' : ''}`}>
+                          <button className="page-link" onClick={() => handlePageChange(page)}>{page}</button>
+                        </li>
+                      ))}
+                      <li className={`page-item ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}`}>
+                        <button className="page-link" onClick={() => handlePageChange(pagination.current_page + 1)}>Next</button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              )}
             </div>
           </div>
         </div>

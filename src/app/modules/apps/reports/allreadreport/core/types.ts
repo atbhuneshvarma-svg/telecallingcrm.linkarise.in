@@ -67,13 +67,14 @@ export interface LeadReportResponse {
   total_pages: number;
 }
 
+// types.ts
 export interface FilterState {
-  campaign: string;
-  status: string;
-  user: string;
-  team: string;
-  dateFrom: string;
-  dateTo: string;
   page: number;
   perPage: number;
+  campaignmid?: string;  // Store campaign ID
+  tmid?: string;         // Store team ID
+  usermid?: string;      // Store user ID
+  status?: string;       // Store status name
+  dateFrom?: string;
+  dateTo?: string;
 }

@@ -1,13 +1,24 @@
 import React from 'react';
 import { Lead } from '../../../core/_models';
+import { Skeleton } from 'antd';
 
 interface AddedByColumnProps {
   lead: Lead;
+  loading?: boolean;
 }
 
 export const AddedByColumn: React.FC<AddedByColumnProps> = ({ 
-  lead 
+  lead,
+  loading = false
 }) => {
+  if (loading) {
+    return (
+      <td className="min-w-120px">
+        <Skeleton.Input style={{ width: '80px' }} active size="small" />
+      </td>
+    );
+  }
+
   return (
     <td className="min-w-120px">
       <div className="d-flex flex-column">

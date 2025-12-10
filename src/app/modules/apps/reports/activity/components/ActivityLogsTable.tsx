@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import DataTable, { TableColumn } from 'react-data-table-component';
 import { ActivityLog } from '../core/_models';
+import { useThemeMode } from '../../../../../../_metronic/partials';
 
 interface ActivityLogsTableProps {
   logs: ActivityLog[];
@@ -8,220 +10,159 @@ interface ActivityLogsTableProps {
   perPage: number;
 }
 
-type SortField = 'logmid' | 'module' | 'action' | 'description' | 'ip_address' | 'created_at';
-type SortDirection = 'asc' | 'desc';
-
-export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({ 
-  logs, 
-  loading, 
-  currentPage, 
-  perPage 
+export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({
+  logs,
+  loading,
+  currentPage,
+  perPage,
 }) => {
-  const [sortField, setSortField] = useState<SortField>('created_at');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const { mode } = useThemeMode(); // get current theme mode
+  const isDark = mode === 'dark'
+  const [sortField, setSortField] = useState<keyof ActivityLog>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    
     return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
 
   const getActionBadgeClass = (action: string) => {
     switch (action) {
       case 'Login':
-        return 'bg-success';
+        return 'bg-success text-white px-2 rounded';
       case 'Edit':
-        return 'bg-warning';
+        return 'bg-warning text-dark px-2 rounded';
       case 'Create':
-        return 'bg-info';
+        return 'bg-info text-white px-2 rounded';
       case 'Delete':
-        return 'bg-danger';
+        return 'bg-danger text-white px-2 rounded';
       default:
-        return 'bg-secondary';
+        return 'bg-secondary text-white px-2 rounded';
     }
   };
 
-  // Sort logs based on selected field and direction
   const sortedLogs = useMemo(() => {
     if (!logs.length) return [];
-
     return [...logs].sort((a, b) => {
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
 
-      // Handle date sorting
       if (sortField === 'created_at') {
         aValue = new Date(aValue).getTime();
         bValue = new Date(bValue).getTime();
       }
 
-      // Handle string sorting (case insensitive)
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
 
-      if (aValue < bValue) {
-        return sortDirection === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortDirection === 'asc' ? 1 : -1;
-      }
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
   }, [logs, sortField, sortDirection]);
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      // Toggle direction if same field
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      // New field, default to ascending
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
+  const columns: TableColumn<ActivityLog>[] = [
+    {
+      name: '#',
+      width: '70px',
+      cell: (_, index) => (currentPage - 1) * perPage + index + 1,
+    },
+    {
+      name: 'Module',
+      selector: row => row.module,
+      sortable: true,
+      cell: row => <span className="badge bg-primary">{row.module}</span>,
+    },
+    {
+      name: 'Action',
+      selector: row => row.action,
+      sortable: true,
+      cell: row => <span className={getActionBadgeClass(row.action)}>{row.action}</span>,
+    },
+    {
+      name: 'Description',
+      selector: row => row.description,
+      sortable: true,
+      wrap: true,
+    },
+    {
+      name: 'IP Address',
+      selector: row => row.ip_address,
+      sortable: true,
+      cell: row => <code>{row.ip_address}</code>,
+    },
+    {
+      name: 'Created At',
+      selector: row => row.created_at,
+      sortable: true,
+      cell: row => formatDate(row.created_at),
+    },
+  ];
 
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) {
-      return '↕️'; // Neutral icon
-    }
-    return sortDirection === 'asc' ? '↑' : '↓';
-  };
-
-  if (loading && logs.length === 0) {
-    return (
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover">
-          <thead className="table-light">
-            <tr>
-              <th className="text-center">Sr. No</th>
-              <th>Module</th>
-              <th>Action</th>
-              <th>Description</th>
-              <th>IP Address</th>
-              <th>Created At</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={6} className="text-center py-4">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-
-  if (!loading && logs.length === 0) {
-    return (
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover">
-          <thead className="table-light">
-            <tr>
-              <th className="text-center">Sr. No</th>
-              <th>Module</th>
-              <th>Action</th>
-              <th>Description</th>
-              <th>IP Address</th>
-              <th>Created At</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={6} className="text-center py-4">
-                <div className="text-muted">No activity logs found</div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  }
+  // Skeleton rows
+  const skeletonRows: ActivityLog[] = Array.from({ length: 10 }).map((_, i) => ({
+    logmid: i,
+    cmpmid: 0,
+    usermid: 0,
+    record_id: 0,
+    module: '',
+    action: '',
+    description: '',
+    ip_address: '',
+    created_at: '',
+  }));
 
   return (
-    <div className="table-responsive">
-      <table className="table table-bordered table-hover">
-        <thead className="table-light">
-          <tr>
-            <th className="text-center">Sr. No</th>
-            <th 
-              className="cursor-pointer"
-              onClick={() => handleSort('module')}
-            >
-              <div className="d-flex align-items-center gap-1">
-                Module
-                <span className="sort-icon">{getSortIcon('module')}</span>
-              </div>
-            </th>
-            <th 
-              className="cursor-pointer"
-              onClick={() => handleSort('action')}
-            >
-              <div className="d-flex align-items-center gap-1">
-                Action
-                <span className="sort-icon">{getSortIcon('action')}</span>
-              </div>
-            </th>
-            <th 
-              className="cursor-pointer"
-              onClick={() => handleSort('description')}
-            >
-              <div className="d-flex align-items-center gap-1">
-                Description
-                <span className="sort-icon">{getSortIcon('description')}</span>
-              </div>
-            </th>
-            <th 
-              className="cursor-pointer"
-              onClick={() => handleSort('ip_address')}
-            >
-              <div className="d-flex align-items-center gap-1">
-                IP Address
-                <span className="sort-icon">{getSortIcon('ip_address')}</span>
-              </div>
-            </th>
-            <th 
-              className="cursor-pointer"
-              onClick={() => handleSort('created_at')}
-            >
-              <div className="d-flex align-items-center gap-1">
-                Created At
-                <span className="sort-icon">{getSortIcon('created_at')}</span>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedLogs.map((log, index) => (
-            <tr key={log.logmid}>
-              <td className="text-center">{(currentPage - 1) * perPage + index + 1}</td>
-              <td>
-                <span className="badge bg-primary">{log.module}</span>
-              </td>
-              <td>
-                <span className={`badge ${getActionBadgeClass(log.action)}`}>
-                  {log.action}
-                </span>
-              </td>
-              <td>{log.description}</td>
-              <td>
-                <code>{log.ip_address}</code>
-              </td>
-              <td>{formatDate(log.created_at)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      columns={columns}
+      data={loading ? skeletonRows : sortedLogs}
+      highlightOnHover
+      pointerOnHover
+      striped
+      responsive
+      noHeader
+      // Theme integration
+      customStyles={{
+        table: {
+          style: {
+            backgroundColor: mode === 'dark' ? '#1e1e2f' : undefined,
+          },
+        },
+        headCells: {
+          style: {
+            backgroundColor: mode === 'dark' ? '#2a2a3d' : '#f8f9fa',
+            color: mode === 'dark' ? '#fff' : undefined,
+          },
+        },
+        cells: {
+          style: {
+            backgroundColor: isDark ? '#1a1a1a' : '#f8f9fa',
+            color: mode === 'dark' ? '#fff' : undefined,
+          },
+        },
+      }}
+      progressPending={loading}
+      progressComponent={
+        <div className="text-center py-4">
+          <div className="placeholder-wave w-100">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="placeholder col-12 mb-2"
+                style={{ height: '20px', borderRadius: '4px', backgroundColor: mode === 'dark' ? '#444' : '#e0e0e0' }}
+              />
+            ))}
+          </div>
+        </div>
+      }
+    />
   );
 };

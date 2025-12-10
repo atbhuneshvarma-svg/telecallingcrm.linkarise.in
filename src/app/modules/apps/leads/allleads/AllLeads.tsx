@@ -47,6 +47,23 @@ const AllLeads: React.FC = () => {
 
   const { teams, loading: teamLoading } = useTeamManagement();
 
+  const [delayedLoading, setDelayedLoading] = useState(true);
+
+  useEffect(() => {
+    let timer: any;
+
+    if (loading) {
+      // always show loading for at least 2 seconds
+      setDelayedLoading(true);
+      timer = setTimeout(() => setDelayedLoading(false), 2000);
+    } else {
+      // loading finished — but ensure 2 sec delay completed
+      timer = setTimeout(() => setDelayedLoading(false), 2000);
+    }
+
+    return () => clearTimeout(timer);
+  }, [loading]);
+
   const allTeams = useMemo(() => {
     const baseTeams =
       uniqueTeams.length > 1 ? uniqueTeams.map((team) => team.name) : teams.map((t) => t.teamname);
@@ -99,33 +116,33 @@ const AllLeads: React.FC = () => {
   }, []);
 
   const handleDeleteClick = useCallback(
-  async (lead: Lead) => {
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete "${lead.leadname || 'this lead'}"? This action cannot be undone.`
-    );
+    async (lead: Lead) => {
+      const confirmDelete = window.confirm(
+        `Are you sure you want to delete "${lead.leadname || 'this lead'}"? This action cannot be undone.`
+      );
 
-    if (!confirmDelete) return;
+      if (!confirmDelete) return;
 
-    try {
-      const result = await deleteLeadFromHook(lead.leadmid);
+      try {
+        const result = await deleteLeadFromHook(lead.leadmid);
 
-      if (result.success) {
-        showSuccess(result.message || 'Lead deleted successfully!');
+        if (result.success) {
+          showSuccess(result.message || 'Lead deleted successfully!');
 
-        // ⬇️ HARD REFRESH ensures UI updates immediately
-        await refreshLeads();  
-      } else {
-        showError(result.message || 'Failed to delete lead');
+          // ⬇️ HARD REFRESH ensures UI updates immediately
+          await refreshLeads();
+        } else {
+          showError(result.message || 'Failed to delete lead');
+        }
+      } catch (err: any) {
+        showError(err || 'Something went wrong');
+      } finally {
+        // ⬇️ ALWAYS refresh even if API failed (optional)
+        refreshLeads();
       }
-    } catch (err: any) {
-      showError(err || 'Something went wrong');
-    } finally {
-      // ⬇️ ALWAYS refresh even if API failed (optional)
-      refreshLeads();
-    }
-  },
-  [deleteLeadFromHook, refreshLeads, showSuccess, showError]
-);
+    },
+    [deleteLeadFromHook, refreshLeads, showSuccess, showError]
+  );
 
 
   const handleStatusClick = useCallback((lead: Lead) => {
@@ -168,7 +185,7 @@ const AllLeads: React.FC = () => {
   const handleFilterChangeWithToast = useCallback(
     (filterType: 'user' | 'campaign' | 'status' | 'team', value: any) => {
       handleFilterChange(filterType, value);
-      
+
       // Show toast for status filter changes
       if (filterType === 'status' && value !== 'All Statuses') {
         showInfo(`Filtering by status: ${value}`);
@@ -206,8 +223,8 @@ const AllLeads: React.FC = () => {
   }, [serverSideFiltering, filterOptions.teams, allTeams]);
 
   return (
-    <div className="container-fluid py-4">
-      <ToastContainer position="top-right" autoClose={3000} />
+    <div className="container-fluid card">
+
 
       <div className="card shadow-sm">
         <LeadsHeader
@@ -233,7 +250,7 @@ const AllLeads: React.FC = () => {
 
         <LeadsTable
           leads={dataToRender}
-          loading={loading}
+          loading={delayedLoading}
           onViewClick={handleViewClick}
           onEditClick={handleEditClick}
           onDeleteClick={handleDeleteClick}

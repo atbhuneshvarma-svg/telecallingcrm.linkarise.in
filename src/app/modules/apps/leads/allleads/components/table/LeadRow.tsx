@@ -61,6 +61,7 @@ export const LeadRow: React.FC<LeadRowProps> = (props) => {
         showRowNumbers={showRowNumbers}
         index={index}
         getRowNumber={getRowNumber}
+        loading={loading}
 
       />
       <SelectionCheckboxColumn
@@ -70,27 +71,29 @@ export const LeadRow: React.FC<LeadRowProps> = (props) => {
         isLeadSelected={isLeadSelected}
         onSelectLead={onSelectLead}
       />
-      <CampaignColumn lead={lead} />
+      <CampaignColumn lead={lead} loading={loading} />
 
-      <AssignedUserColumn lead={lead} />
+      <AssignedUserColumn lead={lead} loading={loading} />
 
       <LeadInfoColumn
         lead={lead}
         onViewClick={onViewClick}
+        loading={loading}
       />
 
-      
 
 
 
-      <ContactInfoColumn lead={lead} />
 
-      <PurposeColumn lead={lead} />
-      <LeadDetailColumn lead={lead} onViewClick={onViewClick} />
+      <ContactInfoColumn lead={lead} loading={loading} />
+
+      <PurposeColumn lead={lead} loading={loading} />
+      <LeadDetailColumn lead={lead} onViewClick={onViewClick} loading={loading} />
 
       <LeadStageColumn
         lead={lead}
         getLeadStage={getLeadStage}
+        loading={loading}
       />
 
       <StatusColumn
@@ -100,17 +103,17 @@ export const LeadRow: React.FC<LeadRowProps> = (props) => {
         getStatusColor={getStatusColor}
       />
 
-      <ActivityColumn lead={lead} />
+      <ActivityColumn lead={lead} loading={loading} />
 
-      <RemarksColumn lead={lead} />
+      <RemarksColumn lead={lead} loading={loading} />
 
-      <UpdatedOnColumn lead={lead} />
+      <UpdatedOnColumn lead={lead} loading={loading} />
 
-      <UpdatedByColumn lead={lead} />
+      <UpdatedByColumn lead={lead} loading={loading} />
 
-      <AddedOnColumn lead={lead} />
+      <AddedOnColumn lead={lead} loading={loading} />
 
-      <AddedByColumn lead={lead} />
+      <AddedByColumn lead={lead} loading={loading} />
 
 
 

@@ -1,17 +1,19 @@
 import React from 'react';
+import { Skeleton } from 'antd';
 import { Lead } from '../../../core/_models';
 
 interface UpdatedOnColumnProps {
   lead: Lead;
+  loading?: boolean;
 }
 
 export const UpdatedOnColumn: React.FC<UpdatedOnColumnProps> = ({ 
-  lead 
+  lead,
+  loading = false
 }) => {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     
-    // Parse DD-MM-YYYY format
     const [day, month, year] = dateString.split('-');
     const date = new Date(`${year}-${month}-${day}`);
     
@@ -25,7 +27,9 @@ export const UpdatedOnColumn: React.FC<UpdatedOnColumnProps> = ({
   return (
     <td className="min-w-120px">
       <div className="d-flex flex-column">
-        {lead.updatedon ? (
+        {loading ? (
+          <Skeleton.Input style={{ width: 80 }} active size="small" />
+        ) : lead.updatedon ? (
           <span className="text-gray-800 fs-7 fw-semibold">
             {formatDate(lead.updatedon)}
           </span>
