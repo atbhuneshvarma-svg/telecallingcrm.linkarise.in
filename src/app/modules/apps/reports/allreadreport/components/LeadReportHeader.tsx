@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Typography, Space, Button, Dropdown, message } from 'antd';
-import { 
-  DownloadOutlined, 
+import {
+  DownloadOutlined,
   ReloadOutlined,
   FileExcelOutlined,
   FileTextOutlined,
@@ -12,45 +12,84 @@ import { LeadData } from '../core/types';
 
 const { Title } = Typography;
 
+interface ExportFilters {
+  status_filter?: string;
+  campaign_filter?: string;
+  user_filter?: string;
+  team_filter?: string;
+  date_from?: string;
+  date_to?: string;
+  per_page?: string;
+}
+
 interface LeadReportHeaderProps {
   onRefresh: () => void;
   leads?: LeadData[];
   isLoading?: boolean;
+  filters?: {
+    status?: string;
+    campaignmid?: string;
+    usermid?: string;
+    tmid?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  };
 }
 
 const LeadReportHeader: React.FC<LeadReportHeaderProps> = ({
   onRefresh,
   leads = [],
-  isLoading
+  isLoading,
+  filters = {}
 }) => {
   const [exporting, setExporting] = useState(false);
 
-  const handleExport = (type: 'excel' | 'csv' | 'pdf') => {
-    if (!leads || leads.length === 0) {
-      message.warning('No data to export');
-      return;
-    }
-
-    setExporting(true);
-    
+  const handleExport = async (format: 'excel' | 'csv' | 'pdf') => {
     try {
-      switch (type) {
+      setExporting(true);
+      
+      // Map component filters to API filters
+      const apiFilters: ExportFilters = {
+        per_page: 'all'
+      };
+
+      // Only add filters that have values
+      if (filters.status && filters.status !== 'All') {
+        apiFilters.status_filter = filters.status;
+      }
+      if (filters.campaignmid && filters.campaignmid !== 'All') {
+        apiFilters.campaign_filter = filters.campaignmid;
+      }
+      if (filters.usermid && filters.usermid !== 'All') {
+        apiFilters.user_filter = filters.usermid;
+      }
+      if (filters.tmid && filters.tmid !== 'All') {
+        apiFilters.team_filter = filters.tmid;
+      }
+      if (filters.dateFrom && filters.dateTo) {
+        apiFilters.date_from = filters.dateFrom;
+        apiFilters.date_to = filters.dateTo;
+      }
+
+      // Call the appropriate export function
+      switch (format) {
         case 'excel':
-          exportToExcel(leads, 'lead-report');
-          message.success('Excel file downloaded successfully!');
+          await exportToExcel(apiFilters, 'lead-report');
           break;
         case 'csv':
-          exportToCSV(leads, 'lead-report');
-          message.success('CSV file downloaded successfully!');
+          await exportToCSV(apiFilters, 'lead-report');
           break;
         case 'pdf':
-          exportToPDF(leads, 'lead-report');
-          message.success('PDF generated successfully!');
+          await exportToPDF(apiFilters, 'lead-report');
           break;
       }
+
+      // Show success message
+      message.success(`${format.toUpperCase()} export completed successfully!`);
+      
     } catch (error) {
-      message.error('Failed to export data');
       console.error('Export error:', error);
+      message.error(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setExporting(false);
     }
@@ -78,8 +117,8 @@ const LeadReportHeader: React.FC<LeadReportHeaderProps> = ({
   ];
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Title level={3} style={{ margin: 5, padding: 5 }}>All Lead Report</Title>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px' }}>
+      <Title level={3} style={{ margin: 0 }}>All Lead Report</Title>
       <Space>
         <Button
           icon={<ReloadOutlined />}
@@ -93,6 +132,7 @@ const LeadReportHeader: React.FC<LeadReportHeaderProps> = ({
           menu={{ items: exportItems }}
           placement="bottomRight"
           disabled={leads.length === 0 || exporting}
+          trigger={['click']}
         >
           <Button
             icon={<DownloadOutlined />}
