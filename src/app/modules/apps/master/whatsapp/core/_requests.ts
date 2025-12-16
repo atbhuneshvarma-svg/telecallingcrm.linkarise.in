@@ -7,76 +7,68 @@ const API_URL = import.meta.env.VITE_APP_THEME_API_URL;
 // Endpoints
 const GET_TEMPLATES_URL = `${API_URL}/whatsapptamplate`;
 const CREATE_TEMPLATE_URL = `${API_URL}/whatsapptamplateadd`;
-const EDIT_TEMPLATE_URL = `${API_URL}/whatsapp-template-edit`;
-const DELETE_TEMPLATE_URL = `${API_URL}/whatsapp-template-delete`;
+const UPDATE_TEMPLATE_URL = `${API_URL}/whatsapptamplateedit`;
+const DELETE_TEMPLATE_URL = `${API_URL}/whatsapptamplatedelete`;
 
-// API Response interfaces based on your actual response
-interface ApiResponse<T> {
-  status: string;
-  data: T;
-  message?: string; // Added optional message property
+// Helper function to convert API to UI model
+const mapApiToTemplate = (apiTemplate: any): WhatsAppTemplate => {
+  return {
+    id: apiTemplate.wtmid,
+    wtmid: apiTemplate.wtmid,
+    cmpmid: apiTemplate.cmpmid,
+    name: apiTemplate.template_name,
+    template_name: apiTemplate.template_name,
+    body: apiTemplate.message,
+    message: apiTemplate.message,
+    whatsappimage: apiTemplate.whatsappimage || '',
+    type: apiTemplate.type || 'Text',
+    image_url: apiTemplate.image_url || '',
+    created_at: apiTemplate.created_at,
+    updated_at: apiTemplate.updated_at,
+    status: 'ACTIVE',
+    category: 'UTILITY'
+  }
 }
 
-interface PaginatedResponseData {
-  current_page: number;
-  data: any[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: any[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
-}
-
-interface PaginatedResponse {
-  data: WhatsAppTemplate[];
-  current_page: number;
-  per_page: number;
-  total_records: number;
-  total_pages: number;
-}
-
-// Enhanced API object
 export const whatsAppTemplateApi = {
   // Get templates with pagination
-  async getTemplatesPaginated(page: number = 1, perPage: number = 10): Promise<PaginatedResponse> {
+  async getTemplatesPaginated(page: number = 1, perPage: number = 10): Promise<{
+    data: WhatsAppTemplate[];
+    current_page: number;
+    per_page: number;
+    total_records: number;
+    total_pages: number;
+  }> {
     try {
-      const response = await axios.get<ApiResponse<PaginatedResponseData>>(
-        `${GET_TEMPLATES_URL}?page=${page}&per_page=${perPage}`
-      );
+      const response = await axios.get(`${GET_TEMPLATES_URL}?page=${page}&per_page=${perPage}`);
       
-      console.log('API Response:', response.data);
+      console.log('API Response data:', response.data);
 
       if (response.data.status !== 'success') {
-        throw new Error(response.data.message || 'API returned unsuccessful status');
+        throw new Error('API returned unsuccessful status');
       }
 
-      const responseData = response.data.data;
+      // Check if data exists and is an array
+      if (!response.data.data || !Array.isArray(response.data.data)) {
+        console.warn('API response data is not an array:', response.data.data);
+        return {
+          data: [],
+          current_page: 1,
+          per_page: perPage,
+          total_records: 0,
+          total_pages: 1
+        };
+      }
+
+      // Map API response to UI models
+      const templates = response.data.data.map(mapApiToTemplate);
 
       return {
-        data: responseData.data.map((item: any) => ({
-          id: item.wtmid,
-          name: item.template_name,
-          category: item.category || 'UTILITY',
-          language: item.language || 'en',
-          status: item.status || 'PENDING',
-          header_type: item.header_type || 'TEXT',
-          header_text: item.header_text || '',
-          body: item.message || item.body || '',
-          footer: item.footer || '',
-          buttons: item.buttons || [],
-          created_at: item.created_at,
-          updated_at: item.updated_at
-        })),
-        current_page: responseData.current_page,
-        per_page: responseData.per_page,
-        total_records: responseData.total,
-        total_pages: responseData.last_page
+        data: templates,
+        current_page: response.data.current_page || 1,
+        per_page: response.data.per_page || perPage,
+        total_records: response.data.total_records || 0,
+        total_pages: response.data.total_pages || 1
       };
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -84,111 +76,104 @@ export const whatsAppTemplateApi = {
     }
   },
 
-  // Create new template
-  async createTemplate(template: Omit<WhatsAppTemplate, 'id'>): Promise<WhatsAppTemplate> {
+  // Create new template (accepts FormData)
+  async createTemplate(formData: FormData): Promise<WhatsAppTemplate> {
     try {
-      const response = await axios.post<ApiResponse<any>>(
-        CREATE_TEMPLATE_URL,
-        {
-          template_name: template.name,
-          category: template.category,
-          language: template.language,
-          status: template.status,
-          header_type: template.header_type,
-          header_text: template.header_text,
-          message: template.body, // Using 'message' field as per your API
-          footer: template.footer,
-          buttons: template.buttons
-        }
-      );
+      console.log('Creating template with FormData:', Array.from(formData.entries()));
+      
+      const response = await axios.post(CREATE_TEMPLATE_URL, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-      console.log('Create Template Response:', response.data);
+      console.log('Create template response:', response.data);
 
       if (response.data.status !== 'success') {
         throw new Error(response.data.message || 'API returned unsuccessful status');
       }
 
-      const item = response.data.data;
-      return {
-        id: item.wtmid || item.template_id,
-        name: item.template_name,
-        category: item.category,
-        language: item.language,
-        status: item.status,
-        header_type: item.header_type,
-        header_text: item.header_text,
-        body: item.message || item.body,
-        footer: item.footer,
-        buttons: item.buttons || [],
-        created_at: item.created_at,
-        updated_at: item.updated_at
-      };
-    } catch (error) {
-      console.error('Error creating template:', error);
-      throw error;
+      // Handle different response structures
+      if (response.data.data && Array.isArray(response.data.data) && response.data.data[0]) {
+        return mapApiToTemplate(response.data.data[0]);
+      } else if (response.data.template) {
+        return mapApiToTemplate(response.data.template);
+      } else {
+        // Return a minimal template with the response data
+        return {
+          template_name: formData.get('template_name') as string || '',
+          message: formData.get('message') as string || '',
+          type: formData.get('type') as string || 'Text',
+          whatsappimage: formData.get('whatsappimage') ? 'uploaded' : '',
+          status: 'ACTIVE'
+        };
+      }
+    } catch (error: any) {
+      console.error('Error creating template:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || error.message || 'Failed to create template');
     }
   },
 
-  // Update template
-  async updateTemplate(id: number, template: Omit<WhatsAppTemplate, 'id'>): Promise<WhatsAppTemplate> {
+  // Update template (accepts FormData)
+  async updateTemplate(id: number, formData: FormData): Promise<WhatsAppTemplate> {
     try {
-      const response = await axios.put<ApiResponse<any>>(
-        `${EDIT_TEMPLATE_URL}?template_id=${id}`,
-        {
-          template_name: template.name,
-          category: template.category,
-          language: template.language,
-          status: template.status,
-          header_type: template.header_type,
-          header_text: template.header_text,
-          message: template.body, // Using 'message' field as per your API
-          footer: template.footer,
-          buttons: template.buttons
-        }
-      );
+      // Add the ID to formData if not already present
+      if (!formData.has('wtmid')) {
+        formData.append('wtmid', id.toString());
+      }
 
-      console.log('Update Template Response:', response.data);
+      console.log('Updating template with FormData:', Array.from(formData.entries()));
+      
+      const response = await axios.post(UPDATE_TEMPLATE_URL, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Update template response:', response.data);
 
       if (response.data.status !== 'success') {
         throw new Error(response.data.message || 'API returned unsuccessful status');
       }
 
-      const item = response.data.data;
-      return {
-        id: item.wtmid || item.template_id,
-        name: item.template_name,
-        category: item.category,
-        language: item.language,
-        status: item.status,
-        header_type: item.header_type,
-        header_text: item.header_text,
-        body: item.message || item.body,
-        footer: item.footer,
-        buttons: item.buttons || [],
-        created_at: item.created_at,
-        updated_at: item.updated_at
-      };
-    } catch (error) {
-      console.error('Error updating template:', error);
-      throw error;
+      // Handle different response structures
+      if (response.data.data && Array.isArray(response.data.data) && response.data.data[0]) {
+        return mapApiToTemplate(response.data.data[0]);
+      } else if (response.data.template) {
+        return mapApiToTemplate(response.data.template);
+      } else {
+        // Return current data
+        return {
+          wtmid: id,
+          template_name: formData.get('template_name') as string || '',
+          message: formData.get('message') as string || '',
+          type: formData.get('type') as string || 'Text',
+          whatsappimage: formData.get('whatsappimage') ? 'updated' : '',
+          status: 'ACTIVE'
+        };
+      }
+    } catch (error: any) {
+      console.error('Error updating template:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || error.message || 'Failed to update template');
     }
   },
 
   // Delete template
   async deleteTemplate(id: number): Promise<void> {
     try {
-      const response = await axios.delete<ApiResponse<{ message?: string }>>(
-        `${DELETE_TEMPLATE_URL}?template_id=${id}`
-      );
+      console.log('Deleting template with ID:', id);
       
-      console.log('Delete Template Response:', response.data);
+      // Using POST method (common for Laravel with CSRF)
+      const response = await axios.post(DELETE_TEMPLATE_URL, { wtmid: id });
+      
+      console.log('Delete template response:', response.data);
 
       if (response.data.status !== 'success') {
         throw new Error(response.data.message || 'API returned unsuccessful status');
       }
-    } catch (error) {
-      console.error('Error deleting template:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Error deleting template:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || error.message || 'Failed to delete template');
     }
   }
 };

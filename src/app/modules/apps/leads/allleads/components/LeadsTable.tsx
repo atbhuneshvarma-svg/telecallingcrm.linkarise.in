@@ -103,7 +103,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
 
   const getSortIcon = (field: string) => {
     if (localSortField !== field) return <i className="bi bi-arrow-down-up text-muted fs-9"></i>;
-    return localSortDirection === 'asc' 
+    return localSortDirection === 'asc'
       ? <i className="bi bi-arrow-up-short text-primary fs-9"></i>
       : <i className="bi bi-arrow-down-short text-primary fs-9"></i>;
   };
@@ -181,7 +181,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
 
   return (
     <div className="card-body p-0">
-      <TableHeaderControls
+      <div className="pb-2"><TableHeaderControls
         showTableControls={showTableControls}
         showSearch={showSearch}
         loading={loading}
@@ -197,12 +197,13 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
         showingTo={showingTo}
         totalRecords={totalRecords}
       />
+      </div>
 
       <BulkActionsBar
         selectable={selectable}
         selectedLeads={selectedLeads}
         displayLeads={displayLeads}
-        onBulkAction={() => {}}
+        onBulkAction={() => { }}
       />
 
       <div className="table-container position-relative">
@@ -221,31 +222,31 @@ const LeadsTable: React.FC<LeadsTableProps> = ({
             <tbody className="border-top-0">
               {displayLeads.length > 0
                 ? displayLeads.map((lead, idx) => (
-                    <LeadRow
-                      key={lead.leadmid}
-                      lead={lead}
-                      index={idx}
-                      showRowNumbers={showRowNumbers}
-                      selectable={selectable}
-                      loading={loading}
-                      isLeadSelected={isLeadSelected}
-                      onSelectLead={handleSelectLead}
-                      onViewClick={onViewClick}
-                      onEditClick={onEditClick}
-                      onStatusClick={onStatusClick}
-                      onDeleteClick={handleDeleteClick}
-                      deletingId={deletingId}
-                      getRowNumber={getRowNumber}
-                      getStatusColor={getStatusColor}
-                      getLeadStage={getLeadStage}
-                    />
-                  ))
-                : <EmptyState
+                  <LeadRow
+                    key={lead.leadmid}
+                    lead={lead}
+                    index={idx}
+                    showRowNumbers={showRowNumbers}
+                    selectable={selectable}
                     loading={loading}
-                    displayLeads={displayLeads}
-                    localSearchTerm={localSearchTerm}
-                    onSearchClear={handleSearchClear}
+                    isLeadSelected={isLeadSelected}
+                    onSelectLead={handleSelectLead}
+                    onViewClick={onViewClick}
+                    onEditClick={onEditClick}
+                    onStatusClick={onStatusClick}
+                    onDeleteClick={handleDeleteClick}
+                    deletingId={deletingId}
+                    getRowNumber={getRowNumber}
+                    getStatusColor={getStatusColor}
+                    getLeadStage={getLeadStage}
                   />
+                ))
+                : <EmptyState
+                  loading={loading}
+                  displayLeads={displayLeads}
+                  localSearchTerm={localSearchTerm}
+                  onSearchClear={handleSearchClear}
+                />
               }
             </tbody>
           </table>

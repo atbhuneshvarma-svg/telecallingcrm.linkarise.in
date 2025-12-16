@@ -191,7 +191,7 @@ const LeadAllocation: React.FC = () => {
         <div className="card-header bg-transparent py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h1 className="fw-bold text-dark mb-1 fs-2">Lead Allocation</h1>
+              <h1 className="fw-bold text-gray-800">Lead Allocation</h1>
               <p className="text-muted mb-0">
                 {selectedLeads.length > 0 && (
                   <span className="badge bg-primary">
@@ -208,7 +208,7 @@ const LeadAllocation: React.FC = () => {
           <div className="btn-group mt-3">
             {/* ✅ NEW: Bulk Allocate to Teams Button in Header */}
             <button
-              className="btn btn-primary"
+              className="btn btn-sm btn-primary"
               onClick={() => setShowBulkAllocateModal(true)}
               disabled={loading}
             >
@@ -216,7 +216,7 @@ const LeadAllocation: React.FC = () => {
               Bulk Allocate Teams
             </button>
             <button
-              className="btn btn-outline-warning"
+              className="btn btn-sm btn-outline-warning"
               onClick={handleOpenBulkModal}
               disabled={loading}
             >
@@ -224,7 +224,7 @@ const LeadAllocation: React.FC = () => {
               Bulk Allocate Users
             </button>
             <button
-              className="btn btn-outline-success"
+              className="btn  btn-sm btn-outline-success"
               onClick={() => setShowImportModal(true)}
               disabled={loading || isImporting}
             >
@@ -246,7 +246,7 @@ const LeadAllocation: React.FC = () => {
             </button>
             {/* ✅ Transfer Leads Button - Simple redirect */}
             <button
-              className="btn btn-outline-info"
+              className="btn btn-sm btn-outline-info"
               onClick={handleTransferLeads}
               disabled={loading}
             >
@@ -254,7 +254,7 @@ const LeadAllocation: React.FC = () => {
               Transfer Leads
             </button>
             <button
-              className="btn btn-outline-secondary"
+              className="btn btn-sm btn-outline-secondary"
               onClick={refreshData}
               disabled={loading}
             >

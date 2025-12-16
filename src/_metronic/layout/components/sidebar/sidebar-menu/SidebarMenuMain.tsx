@@ -171,6 +171,13 @@ const SidebarMenuMain = () => {
             fontIcon="bi-box-seam"
             hasBullet={true}
           />
+          <SidebarMenuItem
+            to="/master/whatsapptemplate"
+            title="WhatsappTemplates"
+            icon="abstract-40"
+            fontIcon="bi-box-seam"
+            hasBullet={true}
+          />
         </SidebarMenuItemWithSub>
       )}
 

@@ -194,12 +194,13 @@ const UsersMaster = () => {
         <div className="card-header bg-transparent py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h1 className="h4 fw-bold mb-1">User Master</h1>
+              <h1 className="fw-bold text-gray-800">User Master</h1>
             </div>
           </div>
           <button
             onClick={handleAddNew}
-            className="btn btn-primary d-flex align-items-center gap-2">
+           className="btn btn-sm btn-primary d-flex align-items-center gap-2"
+           style={{width:'150px' , height:'35px'}}>
             <i className="bi bi-plus-circle"></i>
             Add User
           </button>

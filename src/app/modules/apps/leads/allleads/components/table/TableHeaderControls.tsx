@@ -29,14 +29,11 @@ export const TableHeaderControls: React.FC<TableHeaderControlsProps> = ({
   onSearchClear,
   displayLeads,
   leads,
-  showingFrom = 0,
-  showingTo = 0,
-  totalRecords = 0
 }) => {
   return (
     <div className="leads-table-header">
       {(showTableControls || showSearch) && (
-        <div className="border-bottom bg-light">
+        <div className="border-bottom">
           <div className="row align-items-center px-3 py-1">
             {showTableControls && (
               <div className="col-md-6">
@@ -55,16 +52,7 @@ export const TableHeaderControls: React.FC<TableHeaderControlsProps> = ({
                       <option value="100">100</option>
                     </select>
                     <span className="text-muted fw-medium">entries</span>
-                  </div>
-                  
-                  {/* Showing X to Y of Z entries */}
-                  {totalRecords > 0 && (
-                    <div className="d-none d-md-block">
-                      <span className="text-muted fs-8">
-                        Showing <strong>{showingFrom}</strong> to <strong>{showingTo}</strong> of <strong>{totalRecords}</strong> entries
-                      </span>
-                    </div>
-                  )}
+                  </div>         
                 </div>
               </div>
             )}

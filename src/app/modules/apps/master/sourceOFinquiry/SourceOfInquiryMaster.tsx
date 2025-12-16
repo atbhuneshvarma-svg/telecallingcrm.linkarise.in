@@ -141,7 +141,7 @@ const SourceOfInquiryMaster: React.FC = () => {
         {/* Card Header */}
         <div className="card-header border-0 pt-6">
           <div className="card-title">
-            <h3 className="fw-bold m-0">Source of Inquiries</h3>
+            <h1 className="fw-bold text-gray-800">Source of Inquiries</h1>
           </div>
 
           <div className="card-toolbar">
@@ -177,10 +177,11 @@ const SourceOfInquiryMaster: React.FC = () => {
               {/* Add Source of Inquiry Button */}
               <button
                 onClick={handleAddNew}
-                className="btn btn-primary d-flex align-items-center gap-2"
+                className="btn btn-sm btn-primary d-flex align-items-center gap-2"
+           style={{width:'150px' , height:'35px'}}
               >
                 <i className="bi bi-plus-circle"></i>
-                Add Source of Inquiry
+                Add Source
               </button>
             </div>
           </div>

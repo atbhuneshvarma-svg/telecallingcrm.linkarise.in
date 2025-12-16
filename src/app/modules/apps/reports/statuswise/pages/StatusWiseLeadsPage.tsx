@@ -94,9 +94,9 @@ const StatusWiseLeadsPage = () => {
   <div className="container-fluid " style={containerStyle}>
     <div className="card" style={cardStyle}>
       <div className="card-header" style={cardHeaderStyle}>
-        <h3 className="card-title mb-0" style={{ fontSize: 18, fontWeight: 600 }}>
+        <h1 className="fw-bold text-gray-800 mt-5">
           Status Wise Lead
-        </h3>
+        </h1>
       </div>
 
       <div className="card-body" style={{ padding: 20 }}>

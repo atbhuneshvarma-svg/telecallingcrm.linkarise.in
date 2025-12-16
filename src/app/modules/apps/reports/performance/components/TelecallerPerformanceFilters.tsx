@@ -162,7 +162,7 @@ export const TelecallerPerformanceFilters: React.FC<TelecallerPerformanceFilters
       title={
         <Space>
           <FilterOutlined />
-          <span>Performance Report Filters</span>
+          <h1 className='fw-bold text-gray-800'>Performance Report Filters</h1>
           {hasActiveFilters && (
             <Button
               type="link"

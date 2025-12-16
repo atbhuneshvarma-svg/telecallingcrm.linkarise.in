@@ -6,8 +6,9 @@ import { leadApi } from '../core/_request'
 import { useLeads } from '../core/LeadsContext'
 import { useToast } from '../hooks/useToast'
 import { FreshLead } from '../../fressleads/core/_models'
+import { whatsAppTemplateApi } from '../../../master/whatsapp/core/_requests'
 
-const { Text, Title } = Typography
+const { Text } = Typography
 const { TextArea } = Input
 const { Option } = Select
 
@@ -25,6 +26,15 @@ interface FormData {
   followup: boolean
   followupdate: string
   isclient: boolean
+  sendWhatsApp: string
+  whatsappTemplate: string
+  whatsappMessage: string
+}
+
+interface WhatsAppTemplate {
+  id: string
+  name: string
+  content: string
 }
 
 const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onHide, lead, onStatusUpdated }) => {
@@ -37,10 +47,15 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
     followupremark: '',
     followup: true,
     followupdate: '',
-    isclient: false
+    isclient: false,
+    sendWhatsApp: 'No',
+    whatsappTemplate: '',
+    whatsappMessage: ''
   })
   const [loading, setLoading] = useState(false)
+  const [fetchingTemplates, setFetchingTemplates] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [whatsappTemplates, setWhatsappTemplates] = useState<WhatsAppTemplate[]>([])
 
   const currentDateTime = useMemo(() => {
     const now = new Date()
@@ -55,6 +70,39 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
 
   const selectedStatus = statusOptions.find(s => s.statusname === formData.statusname)
   const isStatusNEW = selectedStatus?.statusname?.toLowerCase() === 'new'
+  const showWhatsAppFields = formData.sendWhatsApp === 'Yes'
+
+  // Simple fetch function without useCallback
+  const fetchWhatsAppTemplates = async () => {
+    if (whatsappTemplates.length > 0) return // Don't fetch if already loaded
+
+    try {
+      setFetchingTemplates(true)
+      const response = await whatsAppTemplateApi.getTemplatesPaginated()
+
+      console.log('WhatsApp templates API response:', response)
+
+      const apiResponse = response as any
+
+      if (apiResponse.data && Array.isArray(apiResponse.data)) {
+        const templates: WhatsAppTemplate[] = apiResponse.data.map((template: any) => ({
+          id: template.wtmid?.toString() || '',
+          name: template.template_name || '',
+          content: template.message || ''
+        }))
+        setWhatsappTemplates(templates)
+      }
+    } catch (error: any) {
+      console.error('Error fetching WhatsApp templates:', error)
+      setWhatsappTemplates([
+        { id: '1', name: 'frfr', content: 'Hello {name}' },
+        { id: '2', name: 'welcome', content: 'Welcome {name}, thank you for your interest!' },
+      ])
+      showError('Failed to load WhatsApp templates. Using default templates.')
+    } finally {
+      setFetchingTemplates(false)
+    }
+  }
 
   useEffect(() => {
     if (show && lead) {
@@ -65,28 +113,92 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
         followupremark: '',
         followup: true,
         followupdate: currentDateTime.today,
-        isclient: false
+        isclient: false,
+        sendWhatsApp: 'No',
+        whatsappTemplate: '',
+        whatsappMessage: ''
       })
       setErrors({})
     }
   }, [show, lead, activityOptions, currentDateTime])
 
-  const validateForm = useCallback(() => {
+  const validateForm = () => {
     const newErrors: Record<string, string> = {}
     if (!formData.statusname.trim()) newErrors.statusname = 'Status is required'
     if (!formData.activityname.trim()) newErrors.activityname = 'Activity type is required'
     if (formData.followup && !formData.followupdate) newErrors.followupdate = 'Follow-up date is required'
     if (formData.followupremark.length > 500) newErrors.followupremark = 'Remark cannot exceed 500 characters'
+
+    if (showWhatsAppFields) {
+      if (!formData.whatsappTemplate) newErrors.whatsappTemplate = 'Please select a WhatsApp template'
+      if (!formData.whatsappMessage.trim()) newErrors.whatsappMessage = 'WhatsApp message is required'
+      if (formData.whatsappMessage.length > 1000) newErrors.whatsappMessage = 'Message cannot exceed 1000 characters'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }, [formData])
+  }
 
-  const handleFieldChange = useCallback((field: keyof FormData, value: any) => {
+
+  const handleSendWhatsApp = () => {
+    if (!lead) return
+
+    if (!formData.whatsappMessage.trim()) {
+      showError('WhatsApp message is empty')
+      return
+    }
+
+    const phone = lead.phone?.replace(/\D/g, '') // remove spaces & symbols
+    if (!phone) {
+      showError('Invalid phone number')
+      return
+    }
+
+    const message = encodeURIComponent(formData.whatsappMessage)
+
+    const whatsappUrl = `https://wa.me/${phone}?text=${message}`
+
+    window.open(whatsappUrl, '_blank')
+  }
+
+  const handleFieldChange = (field: keyof FormData, value: any) => {
+    console.log(`Changing ${field} to:`, value)
+
     setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) setErrors(prev => { const e = { ...prev }; delete e[field]; return e })
-  }, [errors])
+    if (errors[field]) {
+      setErrors(prev => {
+        const e = { ...prev };
+        delete e[field];
+        return e
+      })
+    }
 
-  const handleSubmit = async () => {
+    // Auto-fill whatsappMessage when template is selected
+    if (field === 'whatsappTemplate' && value && lead) {
+      const selectedTemplate = whatsappTemplates.find(t => t.name === value)
+      if (selectedTemplate) {
+        let message = selectedTemplate.content
+        message = message.replace(/#LeadName/g, lead.leadname || '')
+        message = message.replace(/#Interest/g, lead.purpose || '')
+        message = message.replace(/#Phone/g, lead.phone || '')
+        setFormData(prev => ({ ...prev, whatsappMessage: message }))
+      }
+    }
+
+    // Fetch templates when user selects "Yes" for WhatsApp
+    if (field === 'sendWhatsApp' && value === 'Yes' && whatsappTemplates.length === 0) {
+      console.log('Will fetch templates')
+      // Use setTimeout to prevent immediate state updates during render
+      setTimeout(() => {
+        fetchWhatsAppTemplates()
+      }, 0)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
     if (!lead) return
     if (!validateForm()) {
       showError('Please fix the validation errors before submitting.')
@@ -99,14 +211,21 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
         leadmid: lead.leadmid,
         followup: formData.followup ? 1 : 0,
         followupremark: formData.followupremark,
-        followupdate: formData.followup ? formData.followupdate : '',
+        followupdate: formData.followup ? moment(formData.followupdate).format('DD-MM-YYYY') : '',
         statusname: formData.statusname,
         activityname: formData.activityname,
         starttime: formData.followup ? currentDateTime.currentTime : '',
         endtime: formData.followup ? currentDateTime.endTime : '',
         mobileno: lead.phone || '',
-        isclient: formData.isclient ? 1 : 0
+        isclient: formData.isclient ? 1 : 0,
+        ...(showWhatsAppFields && {
+          whatsapptamplate: formData.whatsappTemplate,
+          whatsappmessage: formData.whatsappMessage
+        })
       }
+
+      console.log('Submitting payload:', payload)
+
       const response = await leadApi.updateLeadStatus(payload)
       if (response.result || response.message?.toLowerCase().includes('success')) {
         showSuccess(response.message || 'Lead status updated successfully!')
@@ -127,9 +246,13 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
       followupremark: '',
       followup: false,
       followupdate: '',
-      isclient: false
+      isclient: false,
+      sendWhatsApp: 'No',
+      whatsappTemplate: '',
+      whatsappMessage: ''
     })
     setErrors({})
+    setWhatsappTemplates([]) // Clear templates when modal closes
     onHide()
   }
 
@@ -149,7 +272,14 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
   }
 
   return (
-    <Modal open={show} onCancel={handleClose} footer={null} title={`Update Lead Status`}>
+    <Modal
+      open={show}
+      onCancel={handleClose}
+      footer={null}
+      title="Update Lead Status"
+      width={600}
+      destroyOnClose={true} // Add this to destroy modal when closed
+    >
       {!lead ? (
         <div className="text-center p-5 text-muted">
           <Text>No lead selected</Text>
@@ -178,11 +308,11 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
           </Card>
 
           {/* Form */}
-          <Form layout="vertical" onFinish={handleSubmit}>
+          <form onSubmit={handleSubmit}> {/* Use regular form tag */}
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  label="Select Status"
+                  label="Select Status*"
                   validateStatus={errors.statusname ? 'error' : ''}
                   help={errors.statusname || ''}
                 >
@@ -199,7 +329,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Activity Type"
+                  label="Activity Type*"
                   validateStatus={errors.activityname ? 'error' : ''}
                   help={errors.activityname || ''}
                 >
@@ -216,6 +346,91 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
               </Col>
             </Row>
 
+            {/* WhatsApp Section */}
+            <Card className="mb-4" size="small">
+              <div className="d-flex align-items-center mb-2">
+                <Text strong>WhatsApp Message</Text>
+              </div>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Send WhatsApp?"
+                    validateStatus={errors.sendWhatsApp ? 'error' : ''}
+                    help={errors.sendWhatsApp || ''}
+                  >
+                    <Select
+                      value={formData.sendWhatsApp}
+                      onChange={(val) => {
+                        console.log('Send WhatsApp onChange:', val)
+                        handleFieldChange('sendWhatsApp', val)
+                      }}
+                      onSelect={(val) => {
+                        console.log('Send WhatsApp onSelect:', val)
+                        // This might work better than onChange
+                      }}
+                      placeholder="-- Select --"
+                      dropdownMatchSelectWidth={false}
+                    >
+                      <Option value="No">No</Option>
+                      <Option value="Yes">Yes</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                {showWhatsAppFields && (
+                  <>
+
+                    <Col span={12}>
+                      <Form.Item
+                        label="Template"
+                        validateStatus={errors.whatsappTemplate ? 'error' : ''}
+                        help={errors.whatsappTemplate || ''}
+                      >
+                        <Select
+                          value={formData.whatsappTemplate}
+                          onChange={(val) => handleFieldChange('whatsappTemplate', val)}
+                          placeholder={fetchingTemplates}
+                          loading={fetchingTemplates}
+                          disabled={fetchingTemplates}
+                        ><option value="">Select Template</option>
+                          {whatsappTemplates.map(template => (
+                            <Option key={template.id} value={template.name}>
+                              {template.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    <Col span={20}>
+                      <Form.Item
+                        label="WhatsApp Message"
+                        validateStatus={errors.whatsappMessage ? 'error' : ''}
+                        help={errors.whatsappMessage || ''}
+                      >
+                        <TextArea
+                          rows={3}
+                          value={formData.whatsappMessage}
+                          onChange={(e) => handleFieldChange('whatsappMessage', e.target.value)}
+                          maxLength={1000}
+                          placeholder="Type or edit your WhatsApp message here..."
+                          disabled={fetchingTemplates}
+                        />
+                      </Form.Item>
+                      <Button
+                        type="primary"
+                        onClick={handleSendWhatsApp}
+                        disabled={!formData.whatsappMessage.trim()}
+                      >
+                        Send WhatsApp
+                      </Button>
+
+                    </Col>
+                  </>
+                )}
+              </Row>
+
+            </Card>
+
             <Form.Item
               label="Follow-up Remark"
               validateStatus={errors.followupremark ? 'error' : ''}
@@ -226,6 +441,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
                 value={formData.followupremark}
                 onChange={(e) => handleFieldChange('followupremark', e.target.value)}
                 maxLength={500}
+                placeholder="Enter remarks for this activity..."
               />
             </Form.Item>
 
@@ -245,6 +461,7 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
                     value={formData.followupdate ? moment(formData.followupdate) : undefined}
                     onChange={(date) => handleFieldChange('followupdate', date ? date.format('YYYY-MM-DD') : '')}
                     disabledDate={(current) => current && current < moment(currentDateTime.today)}
+                    format="DD-MM-YYYY"
                   />
                 )}
               </Form.Item>
@@ -254,11 +471,11 @@ const LeadStatusUpdateModal: React.FC<LeadStatusUpdateModalProps> = ({ show, onH
               <Button type="default" onClick={handleClose} style={{ marginRight: 8 }}>
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit" disabled={loading}>
+              <Button type="primary" htmlType="submit" disabled={loading || fetchingTemplates}>
                 {loading ? <Spin size="small" /> : 'Update Status'}
               </Button>
             </Form.Item>
-          </Form>
+          </form>
         </>
       )}
     </Modal>

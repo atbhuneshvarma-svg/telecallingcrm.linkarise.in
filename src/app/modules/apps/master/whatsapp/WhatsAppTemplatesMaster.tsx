@@ -20,18 +20,13 @@ const WhatsAppTemplatesMaster = () => {
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
   const [searchTerm, setSearchTerm] = useState('')
   const [templates, setTemplates] = useState<WhatsAppTemplate[]>([])
-  const [currentTemplate, setCurrentTemplate] = useState<WhatsAppTemplate>({ 
-    id: 0,
-    name: '',
-    category: 'UTILITY',
-    language: 'en',
-    status: 'PENDING',
-    header_type: 'TEXT',
-    header_text: '',
-    body: '',
-    footer: '',
-    buttons: []
+  const [currentTemplate, setCurrentTemplate] = useState<WhatsAppTemplate>({
+    template_name: '',
+    message: '',
+    type: 'Text'
   })
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   // Fetch templates when page or entries per page changes
@@ -71,105 +66,146 @@ const WhatsAppTemplatesMaster = () => {
     setCurrentPage(page)
   }
 
-  const handleAddOrUpdateTemplate = async () => {
-    if (!currentTemplate.name.trim() || !currentTemplate.body.trim()) return;
+  const handleImageUpload = (file: File) => {
+    setSelectedImage(file)
 
-    try {
-      if (modalMode === "add") {
-        await whatsAppTemplateApi.createTemplate({
-          name: currentTemplate.name,
-          category: currentTemplate.category,
-          language: currentTemplate.language,
-          status: currentTemplate.status,
-          header_type: currentTemplate.header_type,
-          header_text: currentTemplate.header_text,
-          body: currentTemplate.body,
-          footer: currentTemplate.footer,
-          buttons: currentTemplate.buttons
-        });
-        // Refresh the list to get updated pagination
-        fetchTemplates();
-      } else {
-        await whatsAppTemplateApi.updateTemplate(currentTemplate.id, {
-          name: currentTemplate.name,
-          category: currentTemplate.category,
-          language: currentTemplate.language,
-          status: currentTemplate.status,
-          header_type: currentTemplate.header_type,
-          header_text: currentTemplate.header_text,
-          body: currentTemplate.body,
-          footer: currentTemplate.footer,
-          buttons: currentTemplate.buttons
-        });
-        // Refresh to ensure data consistency
-        fetchTemplates();
-      }
-
-      setCurrentTemplate({ 
-        id: 0,
-        name: '',
-        category: 'UTILITY',
-        language: 'en',
-        status: 'PENDING',
-        header_type: 'TEXT',
-        header_text: '',
-        body: '',
-        footer: '',
-        buttons: []
-      });
-      setShowModal(false);
-    } catch (error) {
-      console.error("Error saving template:", error);
+    // Create preview URL
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
     }
-  };
+    reader.readAsDataURL(file)
 
+    // Clear image preview when modal closes
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }
+
+  const handleClearImage = () => {
+    setSelectedImage(null)
+    setImagePreview(null)
+    setCurrentTemplate(prev => ({
+      ...prev,
+      whatsappimage: '',
+      image_url: ''
+    }))
+  }
+
+const handleAddOrUpdateTemplate = async () => {
+  if (!currentTemplate.template_name?.trim()) {
+    alert('Template Name is required')
+    return
+  }
+
+  if (!currentTemplate.message?.trim()) {
+    alert('Message is required')
+    return
+  }
+
+  try {
+    // Create FormData to send both form data and file
+    const formData = new FormData()
+
+    // Add text fields
+    formData.append('template_name', currentTemplate.template_name)
+    formData.append('message', currentTemplate.message)
+    formData.append('type', currentTemplate.type || 'Text')
+
+    // Add company ID (from your API response)
+    formData.append('cmpmid', '15')
+
+    // Add image if exists
+    if (selectedImage) {
+      formData.append('whatsappimage', selectedImage)
+    } else if (currentTemplate.type === 'ImageText' && !selectedImage && modalMode === 'add') {
+      alert('Please upload an image for ImageText template')
+      return
+    }
+
+    // For edit mode, add the template ID
+    if (modalMode === 'edit' && currentTemplate.wtmid) {
+      formData.append('wtmid', currentTemplate.wtmid.toString())
+    }
+
+    // Call appropriate API based on mode
+    if (modalMode === 'add') {
+      await whatsAppTemplateApi.createTemplate(formData)
+    } else {
+      await whatsAppTemplateApi.updateTemplate(currentTemplate.wtmid!, formData)
+    }
+
+    // Refresh the list
+    fetchTemplates()
+
+    // Reset and close modal
+    setCurrentTemplate({
+      template_name: '',
+      message: '',
+      type: 'Text'
+    })
+    setSelectedImage(null)
+    setImagePreview(null)
+    setShowModal(false)
+  } catch (error: any) {
+    console.error("Error saving template:", error)
+    // Show more specific error message
+    alert(`Failed to save template: ${error.message || 'Unknown error'}`)
+  }
+}
   const handleEditTemplate = (template: WhatsAppTemplate) => {
     setModalMode('edit')
-    setCurrentTemplate(template)
+    setCurrentTemplate({
+      wtmid: template.wtmid,
+      template_name: template.template_name || template.name || '',
+      message: template.message || template.body || '',
+      whatsappimage: template.whatsappimage || '',
+      type: template.type || 'Text',
+      image_url: template.image_url || ''
+    })
+    setSelectedImage(null)
+    setImagePreview(template.image_url || null)
     setShowModal(true)
   }
 
-  const handleDeleteTemplate = async (id: number) => {
+  const handleDeleteTemplate = async (wtmid: number) => {
     if (!window.confirm('Are you sure you want to delete this template?')) return
 
     try {
-      await whatsAppTemplateApi.deleteTemplate(id)
+      await whatsAppTemplateApi.deleteTemplate(wtmid)
       // Refresh to update pagination
-      fetchTemplates();
+      fetchTemplates()
     } catch (error) {
       console.error('Error deleting template:', error)
+      alert('Failed to delete template. Please try again.')
     }
   }
 
   const handleAddNew = () => {
     setModalMode('add')
-    setCurrentTemplate({ 
-      id: 0,
-      name: '',
-      category: 'UTILITY',
-      language: 'en',
-      status: 'PENDING',
-      header_type: 'TEXT',
-      header_text: '',
-      body: '',
-      footer: '',
-      buttons: []
+    setCurrentTemplate({
+      template_name: '',
+      message: '',
+      type: 'Text'
     })
+    setSelectedImage(null)
+    setImagePreview(null)
     setShowModal(true)
   }
 
-  // Client-side filtering for search (only filters the current page)
-  const filteredTemplates = Array.isArray(templates)
-    ? templates.filter((template) =>
-        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.body.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.category.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : []
+  // Client-side filtering for search
+  const filteredTemplates = templates.filter((template) => {
+    const searchTermLower = searchTerm.toLowerCase()
+    const templateName = (template.template_name || template.name || '').toLowerCase()
+    const message = (template.message || template.body || '').toLowerCase()
+    const type = (template.type || '').toLowerCase()
 
-  const displayedTemplates = Array.isArray(filteredTemplates)
-    ? filteredTemplates
-    : []
+    return templateName.includes(searchTermLower) ||
+      message.includes(searchTermLower) ||
+      type.includes(searchTermLower)
+  })
 
   return (
     <div className="container-fluid">
@@ -178,9 +214,9 @@ const WhatsAppTemplatesMaster = () => {
         {/* Card Header */}
         <div className="card-header border-0 pt-6">
           <div className="card-title">
-            <h3 className="fw-bold m-0">Whatsapp Templates</h3>
+            <h1 className="fw-bold text-gray-800">WhatsApp Templates</h1>
           </div>
-          
+
           <div className="card-toolbar">
             <div className="d-flex align-items-center gap-4">
               {/* Search Input */}
@@ -214,7 +250,8 @@ const WhatsAppTemplatesMaster = () => {
               {/* Add Template Button */}
               <button
                 onClick={handleAddNew}
-                className="btn btn-primary d-flex align-items-center gap-2"
+                className="btn btn-sm btn-primary d-flex align-items-center gap-2"
+           style={{width:'150px' , height:'35px'}}
               >
                 <i className="bi bi-plus-circle"></i>
                 Add Template
@@ -234,7 +271,7 @@ const WhatsAppTemplatesMaster = () => {
             </div>
           ) : (
             <WhatsAppTemplatesList
-              templates={displayedTemplates}
+              templates={filteredTemplates}
               onEdit={handleEditTemplate}
               onDelete={handleDeleteTemplate}
             />
@@ -244,10 +281,10 @@ const WhatsAppTemplatesMaster = () => {
         {/* Card Footer */}
         <div className="card-footer d-flex justify-content-between align-items-center py-3">
           <div className="text-gray-600">
-            Showing {displayedTemplates.length} of {pagination.total_records} entries
-            {searchTerm && ` (filtered from ${templates.length} entries on this page)`}
+            Showing {filteredTemplates.length} of {templates.length} entries on this page
+            {searchTerm && ` (filtered from ${templates.length} total)`}
           </div>
-          
+
           {/* Pagination */}
           {pagination.total_pages > 1 && (
             <nav>
@@ -299,6 +336,10 @@ const WhatsAppTemplatesMaster = () => {
         template={currentTemplate}
         setTemplate={setCurrentTemplate}
         onSubmit={handleAddOrUpdateTemplate}
+        onImageUpload={handleImageUpload}
+        onClearImage={handleClearImage}
+        selectedImage={selectedImage}
+        imagePreview={imagePreview || currentTemplate.image_url}
       />
     </div>
   )

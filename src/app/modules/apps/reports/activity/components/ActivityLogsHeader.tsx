@@ -16,7 +16,7 @@ export const ActivityLogsHeader: React.FC<ActivityLogsHeaderProps> = ({
   return (
     <div className="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 className="fw-bold text-gray-800">{title}</h2>
+        <h1 className="fw-bold text-gray-800">{title}</h1>
         {subtitle && <span className="text-muted">{subtitle}</span>}
       </div>
       

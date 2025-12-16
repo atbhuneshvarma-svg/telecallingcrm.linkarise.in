@@ -55,7 +55,7 @@ const PurposeList: React.FC<PurposeListProps> = ({
       sortable: true,
     },
     {
-      name: 'Purpose Name',
+      name: 'Interested Name',
       selector: row => row.name,
       cell: row =>
         showSkeleton ? (

@@ -75,10 +75,10 @@ const CampaignList: React.FC<CampaignListProps> = ({
             <table className="table table-bordered table-hover mb-0">
               <thead className="bg-secondary text-white">
                 <tr>
-                  <th className="px-4 py-3 text-uppercase font-sm text-muted">#</th>
-                  <th className="px-4 py-3 text-uppercase font-sm text-muted">Campaign Name</th>
-                  <th className="px-4 py-3 text-uppercase font-sm text-muted">Campaign Date</th>
-                  <th className="px-4 py-3 text-uppercase font-sm text-muted">Operations</th>
+                  <th className="px-4 py-3 text-uppercase font-sm text-bold">Sr.No</th>
+                  <th className="px-4 py-3 text-uppercase font-sm text-bold">Campaign Name</th>
+                  <th className="px-4 py-3 text-uppercase font-sm text-bold">Campaign Date</th>
+                  <th className="px-4 py-3 text-uppercase font-sm text-bold">Operations</th>
                 </tr>
               </thead>
 

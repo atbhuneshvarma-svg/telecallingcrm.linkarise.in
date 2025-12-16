@@ -1,6 +1,6 @@
 // components/FreshLeadsTable.tsx
 import React, { useState, useEffect, useMemo } from 'react'
-import { Table, Input, Select } from 'antd'
+import { Table, Input, Select ,Card} from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { StatusBadge } from '../../followup/components/StatusBadge'
 import LeadStatusUpdateModal from './../../allleads/components/LeadStatusUpdateModal'
@@ -108,34 +108,34 @@ export const FreshLeadsTable: React.FC<FreshLeadsTableProps> = ({
   }
 
   const { showSuccess } = useToast()
-const handleStatusUpdate = async (newStatus: string, notes?: string) => {
-  if (!selectedLead || !onStatusUpdate) return;
-  setUpdatingStatus(true);
-  try {
-    await onStatusUpdate(selectedLead.leadmid, newStatus, notes);
+  const handleStatusUpdate = async (newStatus: string, notes?: string) => {
+    if (!selectedLead || !onStatusUpdate) return;
+    setUpdatingStatus(true);
+    try {
+      await onStatusUpdate(selectedLead.leadmid, newStatus, notes);
 
-    // Show toast using react-toastify
-    toast.success(`Status updated to "${newStatus}" for ${selectedLead.leadname}`, {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
+      // Show toast using react-toastify
+      toast.success(`Status updated to "${newStatus}" for ${selectedLead.leadname}`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
 
-    // Close modal
-    handleStatusModalClose();
+      // Close modal
+      handleStatusModalClose();
 
-    // Optionally refresh leads
-    onSearch?.('');
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setUpdatingStatus(false);
-  }
-};
+      // Optionally refresh leads
+      onSearch?.('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
 
 
@@ -230,31 +230,46 @@ const handleStatusUpdate = async (newStatus: string, notes?: string) => {
 
   return (
     <>
-      {/* Top Controls */}
-      <div className="d-flex justify-content-between mb-3">
-        <Select
-          value={perPage}
-          onChange={onEntriesPerPageChange}
-          style={{ width: 80 }}
-          disabled={isLoading}
-        >
-          <Option value={10}>10</Option>
-          <Option value={25}>25</Option>
-          <Option value={50}>50</Option>
-          <Option value={100}>100</Option>
-        </Select>
-
-        <Search
-          placeholder="Search leads..."
-          value={localSearch}
-          onChange={e => {
-            setLocalSearch(e.target.value)
-            onSearch?.(e.target.value)
+      <Card className="mb-3">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
           }}
-          allowClear
-          style={{ width: 250 }}
-        />
-      </div>
+        >
+          {/* Left: Entries per page */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontWeight: 500 }}>Show</span>
+            <Select
+              value={perPage}
+              onChange={onEntriesPerPageChange}
+              style={{ width: 90 }}
+              disabled={isLoading}
+            >
+              <Option value={10}>10</Option>
+              <Option value={25}>25</Option>
+              <Option value={50}>50</Option>
+              <Option value={100}>100</Option>
+            </Select>
+            <span>entries</span>
+          </div>
+
+          {/* Right: Search */}
+          <Search
+            placeholder="Search leads..."
+            value={localSearch}
+            onChange={(e) => {
+              setLocalSearch(e.target.value)
+              onSearch?.(e.target.value)
+            }}
+            allowClear
+            style={{ width: 260 }}
+          />
+        </div>
+      </Card>
 
       <Table
         rowKey="leadmid"

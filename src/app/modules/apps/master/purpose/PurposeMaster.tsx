@@ -146,8 +146,9 @@ const PurposeMaster: React.FC = () => {
       <div className="card shadow-sm">
         {/* Card Header */}
         <div className="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
-          <h1 className="h4 fw-bold mb-0">Purpose Master</h1>
-          <button className="btn btn-primary d-flex align-items-center gap-2" onClick={handleAddNew}>
+          <h1 className="fw-bold text-gray-800">Interest Master</h1>
+          <button className="btn btn-sm btn-primary d-flex align-items-center gap-2"
+           style={{width:'150px' , height:'35px'}} onClick={handleAddNew}>
             <i className="bi bi-plus-circle"></i> Add Purpose
           </button>
         </div>

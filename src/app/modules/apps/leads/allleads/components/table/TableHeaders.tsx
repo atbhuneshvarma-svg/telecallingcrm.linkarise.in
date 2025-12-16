@@ -29,7 +29,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
           <th className="ps-4" 
           style={{ width: '60px' }}
           >
-            <span className="text-muted fw-semibold fs-7">Sr.No</span>
+            <span className="text-bold fw-bold fs-5">Sr.No</span>
           </th>
         )}
         
@@ -55,7 +55,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('campaignname')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Campaign</span>
+            <span className="text-bold fw-bold fs-5">Campaign</span>
             {getSortIcon('campaignname')}
           </button>
         </th>
@@ -67,7 +67,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('username')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">User</span>
+            <span className="text-bold fw-bold fs-5">User</span>
             {getSortIcon('username')}
           </button>
         </th>
@@ -79,7 +79,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('leadname')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Name</span>
+            <span className="text-bold fw-bold fs-5">Name</span>
             {getSortIcon('leadname')}
           </button>
         </th>
@@ -91,7 +91,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('phone')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Mobile</span>
+            <span className="text-bold fw-bold fs-5">Mobile</span>
             {getSortIcon('phone')}
           </button>
         </th>
@@ -103,19 +103,19 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('purpose')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Purpose</span>
+            <span className="text-bold fw-bold fs-5">Interested</span>
             {getSortIcon('purpose')}
           </button>
         </th>
         
         {/* Lead Detail */}
         <th className="min-w-200px">
-          <span className="text-muted fw-semibold fs-7">Lead Detail</span>
+          <span className="text-bold fw-bold fs-5">Lead Detail</span>
         </th>
         
         {/* Lead Stage */}
         <th className="min-w-120px">
-          <span className="text-muted fw-semibold fs-7">Lead Stage</span>
+          <span className="text-bold fw-bold fs-5">Lead Stage</span>
         </th>
         
         {/* Lead Status */}
@@ -125,7 +125,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('statusname')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Lead Status</span>
+            <span className="text-bold fw-bold fs-5">Lead Status</span>
             {getSortIcon('statusname')}
           </button>
         </th>
@@ -137,14 +137,14 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('activity')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Activity</span>
+            <span className="text-bold fw-bold fs-5">Activity</span>
             {getSortIcon('activity')}
           </button>
         </th>
         
         {/* Remarks */}
         <th className="min-w-150px">
-          <span className="text-muted fw-semibold fs-7">Remarks</span>
+          <span className="text-bold fw-bold fs-5">Remarks</span>
         </th>
         
         {/* Updated On */}
@@ -154,7 +154,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('updatedon')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Updated On</span>
+            <span className="text-bold fw-bold fs-5">Updated On</span>
             {getSortIcon('updatedon')}
           </button>
         </th>
@@ -166,7 +166,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('updatedby')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Updated By</span>
+            <span className="text-bold fw-bold fs-5">Updated By</span>
             {getSortIcon('updatedby')}
           </button>
         </th>
@@ -178,7 +178,7 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('addedon')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Added On</span>
+            <span className="text-bold fw-bold fs-5">Added On</span>
             {getSortIcon('addedon')}
           </button>
         </th>
@@ -190,14 +190,14 @@ export const TableHeaders: React.FC<TableHeadersProps> = ({
             onClick={() => onSort('addedby')}
             disabled={loading}
           >
-            <span className="text-muted fw-semibold fs-7">Added By</span>
+            <span className="text-bold fw-bold fs-5">Added By</span>
             {getSortIcon('addedby')}
           </button>
         </th>
         
         {/* Operations */}
         <th className="pe-4 text-center" style={{ width: '140px' }}>
-          <span className="text-muted fw-semibold fs-7">Operations</span>
+          <span className="text-bold fw-bold fs-5">Operations</span>
         </th>
       </tr>
     </thead>

@@ -38,7 +38,7 @@ export const LeadInfoColumn: React.FC<LeadInfoColumnProps> = ({
         </div>
         <div className="d-flex flex-column">
           <span
-            className="fw-bold text-dark cursor-pointer hover-primary text-hover-primary"
+            className="fw-semibold text-dark cursor-pointer hover-primary text-hover-primary"
             onClick={() => onViewClick?.(lead)}
             style={{ cursor: 'pointer' }}
           >

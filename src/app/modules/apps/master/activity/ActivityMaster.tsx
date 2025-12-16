@@ -117,7 +117,7 @@ const ActivityMaster: React.FC = () => {
       <div className="card">
         {/* Card Header */}
         <div className="card-header py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <h5 className="card-title mb-0 fw-bold">Activities</h5>
+          <h1 className="fw-bold text-gray-800">Activities</h1>
           <div className="d-flex align-items-center gap-2 flex-wrap">
             {/* Search */}
             <div className="position-relative">

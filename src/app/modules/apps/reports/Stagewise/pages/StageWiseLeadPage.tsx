@@ -76,7 +76,7 @@ const StageWiseLeadPage = () => {
         <div className="container-fluid p-5">
             <div className="card">
                 <div className="card-header">
-                    <h3 className="card-title mb-0">Stage Wise Lead</h3>
+                    <h1 className="mt-5 fw-bold text-gray-800">Stage Wise Lead</h1>
                 </div>
 
                 <div className="card-body">

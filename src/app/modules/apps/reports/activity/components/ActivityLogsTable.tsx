@@ -33,19 +33,25 @@ export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({
   };
 
   const getActionBadgeClass = (action: string) => {
+     if (action === 'Add') {      
+       action = 'Create'
+    }
     switch (action) {
       case 'Login':
-        return 'bg-success text-white px-2 rounded';
+        return 'bg-success text-white px-2 badge';
       case 'Edit':
-        return 'bg-warning text-dark px-2 rounded';
+        return 'bg-warning text-dark px-2 badge';
       case 'Create':
-        return 'bg-info text-white px-2 rounded';
+        return 'bg-info text-white px-2 badge';
       case 'Delete':
-        return 'bg-danger text-white px-2 rounded';
+        return 'bg-danger text-white px-2 badge';
       default:
         return 'bg-secondary text-white px-2 rounded';
     }
+   
   };
+
+
 
   const sortedLogs = useMemo(() => {
     if (!logs.length) return [];
@@ -70,6 +76,7 @@ export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({
   }, [logs, sortField, sortDirection]);
 
   const columns: TableColumn<ActivityLog>[] = [
+
     {
       name: '#',
       width: '70px',
@@ -79,13 +86,14 @@ export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({
       name: 'Module',
       selector: row => row.module,
       sortable: true,
-      cell: row => <span className="badge bg-primary">{row.module}</span>,
+      cell: row => <span className=" fw-bold fs-7">{row.module}</span>,
     },
     {
       name: 'Action',
       selector: row => row.action,
       sortable: true,
-      cell: row => <span className={getActionBadgeClass(row.action)}>{row.action}</span>,
+      cell: row => <span className={getActionBadgeClass(row.action)}>{row.action} </span>
+      ,
     },
     {
       name: 'Description',
@@ -138,6 +146,8 @@ export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({
         },
         headCells: {
           style: {
+            fontSize:'1.2em',
+            fontWeight: '700', // 👈 makes header bold
             backgroundColor: mode === 'dark' ? '#2a2a3d' : '#f8f9fa',
             color: mode === 'dark' ? '#fff' : undefined,
           },

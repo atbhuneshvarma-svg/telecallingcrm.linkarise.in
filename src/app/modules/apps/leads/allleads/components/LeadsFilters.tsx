@@ -86,7 +86,7 @@ const LeadsFilters: React.FC<LeadsFiltersProps> = ({
   // Show results count if we have data
   return (
     <div className="">
-      <div className="card-body">
+      <div className="card-body pt-0">
         {/* Results Summary and Reset Button */}
         <div className="d-flex justify-content-between align-items-center">
           {/* Reset Filters Button */}

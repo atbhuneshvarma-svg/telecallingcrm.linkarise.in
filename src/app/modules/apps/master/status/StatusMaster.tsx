@@ -123,11 +123,10 @@ const StatusMaster: React.FC = () => {
       <div className="card">
         {/* Header */}
         <div className="card-header py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <h5 className="card-title mb-0 fw-bold">Statuses</h5>
+          <h1 className="fw-bold text-gray-800">Statuses</h1>
           <div className="d-flex align-items-center gap-2 flex-wrap">
             {/* Search */}
             <div className="position-relative">
-              <i className="bi bi-search fs-6 position-absolute ms-2"></i>
               <input
                 type="text"
                 className="form-control form-control-sm w-150px ps-8"
