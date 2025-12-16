@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found</title>
+  <script>
+    // Redirect all 404 requests to index.html preserving the path
+    (function() {
+      var pathname = window.location.pathname;
+      var repoBase = '/telecallingcrm.linkarise.in/'; // <-- your repo path
+      if (pathname !== repoBase) {
+        window.location.href = repoBase + '#' + pathname.replace(repoBase, '/');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <h1>404 - Page Not Found</h1>
+  <p>Redirecting to the app...</p>
+</body>
+</html>
