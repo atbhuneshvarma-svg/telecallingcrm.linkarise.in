@@ -7,7 +7,6 @@ const Breadcrumbs: FC = () => {
 
   // Split the path into segments
   const pathnames = location.pathname.split('/').filter(x => x);
-//abc
   return (
     <nav aria-label="breadcrumb" className="py-2 px-4">
       <ol className="breadcrumb mb-0">
