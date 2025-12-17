@@ -1,6 +1,6 @@
 PORT=3011
 VITE_APP_BASE_LAYOUT_CONFIG_KEY='metronic-react-demo1-8150'
-VITE_APP_API_URL=https://crmtelecalling.linkarise.in
+VITE_APP_API_URL=https://leadzcrm.linkarise.in
 VITE_APP_VERSION=v8.2.9
 VITE_APP_THEME_NAME=Metronic
 VITE_APP_THEME_DEMO=demo1
@@ -11,6 +11,6 @@ VITE_APP_PURCHASE_URL=https://themeforest.net/item/metronic-responsive-admin-das
 VITE_APP_PREVIEW_URL=https://preview.keenthemes.com/metronic8/react/demo1/
 VITE_APP_PREVIEW_REACT_URL=https://preview.keenthemes.com/metronic8/react
 VITE_APP_PREVIEW_DOCS_URL=https://preview.keenthemes.com/metronic8/react/docs
-VITE_APP_THEME_API_URL=https://crmtelecalling.linkarise.in/api
+VITE_APP_THEME_API_URL=https://leadzcrm.linkarise.in/api
 # VITE_APP_THEME_API_URL=http://127.0.0.1:8000/api
 # VITE_APP_API_URL=http://127.0.0.1:8000
